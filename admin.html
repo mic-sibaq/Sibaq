@@ -1,0 +1,2530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Arts Fest Control Room</title>
+
+<style>
+:root{
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --text:#172033;
+  --muted:#667085;
+  --border:#dce2ea;
+  --primary:#5b5ce2;
+  --primary2:#7c3aed;
+  --green:#16a34a;
+  --red:#dc2626;
+  --orange:#ea580c;
+  --yellow:#ca8a04;
+  --shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+body.dark{
+  --bg:#0b1020;
+  --card:#121a2b;
+  --text:#f5f7ff;
+  --muted:#9aa6bd;
+  --border:#26324a;
+  --primary:#818cf8;
+  --primary2:#a78bfa;
+  --shadow:0 10px 30px rgba(0,0,0,.3);
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Inter,Segoe UI,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  transition:.25s;
+}
+
+button,input,textarea,select{
+  font:inherit;
+}
+
+button{
+  border:0;
+  cursor:pointer;
+}
+
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:var(--card);
+  border-bottom:1px solid var(--border);
+  padding:14px 22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  box-shadow:var(--shadow);
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.logo{
+  width:44px;
+  height:44px;
+  border-radius:13px;
+  background:linear-gradient(135deg,var(--primary),var(--primary2));
+  display:grid;
+  place-items:center;
+  color:white;
+  font-weight:900;
+  font-size:20px;
+}
+
+.brand h1{
+  margin:0;
+  font-size:20px;
+}
+
+.brand small{
+  color:var(--muted);
+}
+
+.top-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.container{
+  max-width:1500px;
+  margin:auto;
+  padding:22px;
+}
+
+.clock-card{
+  background:linear-gradient(135deg,var(--primary),var(--primary2));
+  color:white;
+  border-radius:22px;
+  padding:25px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+  box-shadow:var(--shadow);
+  margin-bottom:20px;
+}
+
+.big-clock{
+  font-size:42px;
+  font-weight:900;
+}
+
+.clock-date{
+  opacity:.85;
+  margin-top:5px;
+}
+
+.current-title{
+  font-size:27px;
+  font-weight:900;
+}
+
+.current-sub{
+  opacity:.9;
+  margin-top:6px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  gap:18px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:20px;
+  box-shadow:var(--shadow);
+}
+
+.col-12{grid-column:span 12}
+.col-8{grid-column:span 8}
+.col-6{grid-column:span 6}
+.col-4{grid-column:span 4}
+
+.card h2{
+  margin:0 0 15px;
+  font-size:18px;
+}
+
+.card h3{
+  margin:0 0 10px;
+}
+
+.muted{
+  color:var(--muted);
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+}
+
+.stat{
+  padding:18px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  text-align:center;
+}
+
+.stat b{
+  display:block;
+  font-size:28px;
+  margin-bottom:4px;
+}
+
+.stat span{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.btn{
+  padding:11px 15px;
+  border-radius:11px;
+  background:var(--primary);
+  color:white;
+  font-weight:700;
+  transition:.2s;
+}
+
+.btn:hover{
+  transform:translateY(-1px);
+  filter:brightness(1.08);
+}
+
+.btn.secondary{
+  background:var(--card);
+  color:var(--text);
+  border:1px solid var(--border);
+}
+
+.btn.green{background:var(--green)}
+.btn.red{background:var(--red)}
+.btn.orange{background:var(--orange)}
+.btn.dark{background:#111827}
+.btn.yellow{background:var(--yellow)}
+
+.btn-row{
+  display:flex;
+  gap:9px;
+  flex-wrap:wrap;
+}
+
+textarea,
+input,
+select{
+  width:100%;
+  border:1px solid var(--border);
+  background:var(--bg);
+  color:var(--text);
+  border-radius:11px;
+  padding:12px;
+  outline:none;
+}
+
+textarea{
+  min-height:120px;
+  resize:vertical;
+}
+
+input:focus,
+textarea:focus,
+select:focus{
+  border-color:var(--primary);
+}
+
+label{
+  display:block;
+  font-size:13px;
+  font-weight:700;
+  margin-bottom:6px;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:10px;
+}
+
+.form-group{
+  margin-bottom:12px;
+}
+
+.progress{
+  height:13px;
+  background:var(--border);
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.progress div{
+  height:100%;
+  background:linear-gradient(90deg,var(--primary),var(--primary2));
+  width:0%;
+  transition:.3s;
+}
+
+.schedule{
+  display:grid;
+  gap:10px;
+}
+
+.schedule-item{
+  display:grid;
+  grid-template-columns:110px 1fr auto;
+  gap:12px;
+  align-items:center;
+  padding:13px;
+  border:1px solid var(--border);
+  border-radius:13px;
+}
+
+.schedule-item.active{
+  border-color:var(--primary);
+  box-shadow:0 0 0 2px rgba(91,92,226,.12);
+}
+
+.schedule-time{
+  font-weight:800;
+}
+
+.badge{
+  display:inline-block;
+  padding:5px 9px;
+  border-radius:20px;
+  background:rgba(91,92,226,.12);
+  color:var(--primary);
+  font-size:12px;
+  font-weight:800;
+}
+
+.student-table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+.student-table th,
+.student-table td{
+  border-bottom:1px solid var(--border);
+  padding:11px 8px;
+  text-align:left;
+  font-size:13px;
+}
+
+.student-table th{
+  color:var(--muted);
+  font-size:12px;
+}
+
+.check{
+  width:18px;
+  height:18px;
+}
+
+.complete{
+  color:var(--green);
+  font-weight:800;
+}
+
+.pending{
+  color:var(--red);
+  font-weight:800;
+}
+
+.student-actions{
+  display:flex;
+  gap:5px;
+}
+
+.small-btn{
+  padding:6px 9px;
+  border-radius:7px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  color:var(--text);
+}
+
+.ai-box{
+  border:2px solid var(--primary);
+  background:rgba(91,92,226,.07);
+  border-radius:15px;
+  padding:15px;
+}
+
+.ai-title{
+  font-weight:900;
+  margin-bottom:8px;
+}
+
+.toggle{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  margin-bottom:10px;
+}
+
+.toggle input{
+  width:auto;
+}
+
+.toast{
+  position:fixed;
+  right:20px;
+  bottom:20px;
+  z-index:200;
+  background:#111827;
+  color:white;
+  padding:13px 17px;
+  border-radius:10px;
+  opacity:0;
+  transform:translateY(20px);
+  pointer-events:none;
+  transition:.25s;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translateY(0);
+}
+
+.popup{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  display:none;
+  background:rgba(0,0,0,.72);
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.popup.show{
+  display:flex;
+}
+
+.popup-box{
+  width:min(800px,95vw);
+  background:var(--card);
+  border-radius:25px;
+  padding:30px;
+  text-align:center;
+  box-shadow:0 30px 80px rgba(0,0,0,.4);
+}
+.popup-box.animate{
+   animation:popupIn .45s cubic-bezier(.2,.8,.2,1),popupPulse 1.2s ease .45s;
+}
+@keyframes popupIn{
+  0%{opacity:0;transform:translateY(40px) scale(.88) rotateX(8deg)}
+  60%{opacity:1;transform:translateY(-5px) scale(1.02)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes popupPulse{
+  0%,100%{box-shadow:0 30px 80px rgba(0,0,0,.4)}
+  50%{box-shadow:0 0 0 10px rgba(91,92,226,.12),0 30px 90px rgba(0,0,0,.5)}
+}
+.ai-editor{
+  margin-top:14px;padding:14px;border:1px dashed var(--primary);
+  border-radius:14px;background:rgba(91,92,226,.05);
+}
+.ai-editor-title{font-weight:900;margin-bottom:6px}
+.ai-editor .btn{font-size:12px;padding:8px 11px}
+.call-next-card{
+  margin-top:12px;padding:14px;border-radius:14px;
+  border:1px solid var(--border);background:var(--bg);
+}
+.call-next-name{font-size:20px;font-weight:900}
+.call-next-meta{color:var(--muted);margin-top:4px;line-height:1.5}
+
+
+.popup-label{
+  color:var(--primary);
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+
+.popup-text{
+  font-size:28px;
+  line-height:1.4;
+  font-weight:800;
+  margin:20px 0;
+}
+
+.remaining{
+  font-size:34px;
+  font-weight:900;
+  color:var(--primary);
+}
+
+@media(max-width:1000px){
+  .col-8,.col-6,.col-4{grid-column:span 12}
+  .form-grid{grid-template-columns:repeat(2,1fr)}
+  .stats{grid-template-columns:repeat(2,1fr)}
+}
+
+@media(max-width:650px){
+  .topbar,.clock-card{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .big-clock{font-size:32px}
+  .form-grid{grid-template-columns:1fr}
+  .schedule-item{grid-template-columns:1fr}
+  .student-table{font-size:11px}
+  .container{padding:12px}
+}
+
+
+/* Announcement stop + volume controls */
+.announcement-stop-card{
+  margin-top:16px;
+}
+.stop-all-btn{
+  width:100%;
+  min-height:58px;
+  background:#d91e36 !important;
+  color:#fff !important;
+  border:0 !important;
+  font-size:16px;
+  font-weight:900;
+  letter-spacing:.2px;
+  box-shadow:0 8px 18px rgba(217,30,54,.22);
+}
+.stop-all-btn:hover{
+  background:#b5162b !important;
+  transform:translateY(-1px);
+}
+.stop-help{
+  margin-top:7px;
+  color:#667085;
+  font-size:12px;
+  line-height:1.4;
+}
+.volume-card{
+  margin-top:14px;
+  padding:13px 14px;
+  border:1px solid #d8dfeb;
+  border-radius:14px;
+  background:#f8fafc;
+}
+.volume-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-weight:800;
+  margin-bottom:9px;
+}
+#volumeValue{color:#175cd3;}
+#announcementVolume{width:100%; accent-color:#175cd3;}
+.volume-actions{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+  flex-wrap:wrap;
+}
+
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">AF</div>
+    <div>
+      <h1>National Arts Fest — Control Room</h1>
+      <small>Practice Command Centre</small>
+    </div>
+  </div>
+
+  <div class="top-actions">
+    <button class="btn secondary" onclick="toggleTheme()">🌙 / ☀️ Theme</button>
+    <button class="btn" onclick="openLiveWall()">📺 Live Wall</button>
+  </div>
+</header>
+
+<main class="container">
+
+  <section class="clock-card">
+    <div>
+      <div class="big-clock" id="clock">--:--:--</div>
+      <div class="clock-date" id="date">Loading...</div>
+    </div>
+
+    <div>
+      <div class="current-title" id="currentTitle">No Active Session</div>
+      <div class="current-sub" id="currentDescription">Waiting for schedule...</div>
+      <div style="margin-top:12px">
+        <span class="badge" id="currentRemaining">-- remaining</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid">
+
+    <!-- STATS -->
+    <section class="card col-12">
+      <h2>📊 Control Room Status</h2>
+
+      <div class="stats">
+        <div class="stat">
+          <b id="totalStudents">0</b>
+          <span>Total Students</span>
+        </div>
+
+        <div class="stat">
+          <b id="completedStudents">0</b>
+          <span>Fully Completed</span>
+        </div>
+
+        <div class="stat">
+          <b id="pendingStudents">0</b>
+          <span>Pending</span>
+        </div>
+
+        <div class="stat">
+          <b id="completionPercent">0%</b>
+          <span>Completion</span>
+        </div>
+      </div>
+
+      <div style="margin-top:15px">
+        <div class="progress">
+          <div id="mainProgress"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ANNOUNCEMENT CONTROL -->
+    <section class="card col-8">
+      <h2>📢 Announcement Control Centre</h2>
+
+      <div class="ai-box">
+        <div class="ai-title">⚡ Automatic Announcement Assistant</div>
+        <div class="muted">
+          Builds announcements from the current activity, time, remaining time and student status.
+        </div>
+        <br>
+        <div class="btn-row">
+          <button class="btn" onclick="generateCurrentAnnouncement()">✨ Generate Current</button>
+          <button class="btn secondary" onclick="generateNextAnnouncement()">➡️ Generate Next</button>
+          <button class="btn green" onclick="generateMotivation()">🔥 Generate Motivation</button>
+          <button class="btn red" onclick="callNextPendingStudent()">🚨 Call Next Pending</button>
+        </div>
+      </div>
+
+      <div class="ai-editor">
+        <div class="ai-editor-title">🤖 AI Announcement Editor</div>
+        <div class="muted">Improve, shorten, clean or make the current announcement friendlier. This built-in editor works without an external API.</div>
+        <br>
+        <div class="btn-row">
+          <button class="btn" onclick="aiEditAnnouncement('professional')">✨ AI Improve</button>
+          <button class="btn secondary" onclick="aiEditAnnouncement('short')">⚡ AI Shorten</button>
+          <button class="btn secondary" onclick="aiEditAnnouncement('friendly')">😊 AI Friendly</button>
+          <button class="btn secondary" onclick="aiEditAnnouncement('clear')">🧹 AI Clean</button>
+        </div>
+      </div>
+
+      <br>
+      <label>Announcement Text</label>
+      <textarea id="announcementText"
+        placeholder="Your announcement will appear here..."></textarea>
+
+      <br>
+
+      <div class="btn-row">
+        <button class="btn" onclick="playAnnouncement()">🔊 PLAY</button>
+        <button class="btn secondary" onclick="speakTest()">🎙 Test Voice</button>
+        <button class="btn orange" onclick="showAnnouncementOnly()">👁 Show on Wall</button>
+        <button class="btn secondary" onclick="clearAnnouncement()">Clear</button>
+      </div>
+
+      <br>
+
+      <label>Voice</label>
+      <select id="voiceSelect"></select>
+
+      <br>
+
+      <label>Voice Speed</label>
+      <input id="voiceRate" type="range" min="0.7" max="1.3" step="0.05" value="0.95">
+    </section>
+
+    <!-- AUTOMATION -->
+    <section class="card col-4">
+      <h2>🤖 Automatic Coach</h2>
+
+      <div class="toggle">
+        <input type="checkbox" id="autoCoach">
+        <label for="autoCoach">Automatic announcements</label>
+      </div>
+
+      <div class="toggle">
+        <input type="checkbox" id="auto45" checked>
+        <label for="auto45">45-minute reminders</label>
+      </div>
+
+      <div class="toggle">
+        <input type="checkbox" id="autoCountdown" checked>
+        <label for="autoCountdown">30 / 15 / 10 / 5 min alerts</label>
+      </div>
+
+      <div class="toggle">
+        <input type="checkbox" id="autoStart" checked>
+        <label for="autoStart">Session start announcement</label>
+      </div>
+
+      <button class="btn green" style="width:100%;margin-top:8px"
+        onclick="saveSettings()">
+        💾 Save Automation
+      </button>
+
+      <br><br>
+
+      <h3>Manual Controls</h3>
+
+      <div class="btn-row">
+        <button class="btn" onclick="generateCurrentAnnouncement()">📢 Current</button>
+        <button class="btn secondary" onclick="generateNextAnnouncement()">➡️ Next</button>
+        <button class="btn orange" onclick="generateMotivation()">🔥 Motivate</button>
+      </div>
+
+      <div class="announcement-stop-card">
+        <button class="btn stop-all-btn" onclick="stopAllAnnouncements()">⛔ STOP ALL ANNOUNCEMENTS</button>
+        <div class="stop-help">Stops speech, pending-student announcements, reminders and the announcement queue.</div>
+      </div>
+
+      <div class="volume-card">
+        <div class="volume-title">🔊 Announcement Volume <span id="volumeValue">100%</span></div>
+        <input id="announcementVolume" type="range" min="0" max="100" step="1" value="100"
+          oninput="setAnnouncementVolume(this.value)">
+        <div class="volume-actions">
+          <button class="btn secondary" onclick="testAnnouncementChime()">🔔 Test PA Chime</button>
+          <button class="btn secondary" onclick="setAnnouncementVolume(100)">100%</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCHEDULE -->
+    <section class="card col-12">
+      <h2>🗓️ Today's Practice Schedule</h2>
+      <div class="schedule" id="schedule"></div>
+    </section>
+
+    <!-- STUDENT ADD -->
+    <section class="card col-12">
+      <h2>👥 Add Student</h2>
+
+      <div class="form-grid">
+
+        <div>
+          <label>Admission No.</label>
+          <input id="adNo" placeholder="001">
+        </div>
+
+        <div>
+          <label>Name</label>
+          <input id="studentName" placeholder="ARJUN K">
+        </div>
+
+        <div>
+          <label>Program Code</label>
+          <input id="programCode" placeholder="P01">
+        </div>
+
+        <div>
+          <label>Program</label>
+          <input id="program" placeholder="Malayalam Recitation">
+        </div>
+
+        <div>
+          <label>Mentor</label>
+          <input id="mentor" placeholder="Suresh Sir">
+        </div>
+
+      </div>
+
+      <br>
+
+      <div class="btn-row">
+        <button class="btn green" onclick="addStudent()">➕ Add Student</button>
+        <button class="btn" onclick="document.getElementById('csvFileInput').click()">📄 Add CSV</button>
+        <button class="btn red" onclick="removeUploadedCSV()">🗑️ Remove Uploaded CSV</button>
+        <input id="csvFileInput" type="file" accept=".csv,text/csv" style="display:none" onchange="importCSVFile(this)">
+      </div>
+
+      <p class="muted" id="csvStatus">
+        No CSV students uploaded. You can add students manually or upload a CSV file.
+      </p>
+      <p class="muted">
+        Tick the single <b>Done ✓</b> box for each student when that student has completed the work.
+      </p>
+    </section>
+
+    <!-- STUDENTS -->
+    <section class="card col-12">
+      <h2>📋 Daily Student Checklist</h2>
+
+      <div class="btn-row" style="margin:10px 0 14px">
+        <button class="btn green" onclick="tickAllStudents()">☑️ Tick All Students</button>
+        <button class="btn red" onclick="untickAllStudents()">☐ Remove Tick Mark of All Students</button>
+      </div>
+
+      <div style="overflow:auto">
+        <table class="student-table">
+          <thead>
+            <tr>
+              <th>Ad.No</th>
+              <th>Name</th>
+              <th>Program Code</th>
+              <th>Program</th>
+              <th>Mentor</th>
+              <th>Done ✓</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody id="studentTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PENDING -->
+    <section class="card col-6">
+      <h2>🚨 Pending Students</h2>
+      <div id="pendingList" class="muted">No pending students.</div>
+
+      <div class="call-next-card">
+        <div class="muted">Next pending student</div>
+        <div class="call-next-name" id="nextPendingName">No pending student</div>
+        <div class="call-next-meta" id="nextPendingMeta"></div>
+      </div>
+
+      <br>
+
+      <div class="btn-row">
+        <button class="btn red" onclick="announceAllPendingStudents()">🔔 Announce All Pending Students</button>
+        <button class="btn secondary" onclick="resetPendingCaller()">↺ Start From First</button>
+      </div>
+      <p class="muted" style="margin-bottom:0">
+        One click calls every pending student in order. Each student appears as a separate animated popup on the Live Wall.
+      </p>
+    </section>
+
+    <!-- MOTIVATION -->
+    <section class="card col-6">
+      <h2>🔥 Motivation Control</h2>
+
+      <textarea id="motivationText"
+        placeholder="Enter motivation or leave blank to generate automatically..."></textarea>
+
+      <br>
+
+      <div class="btn-row">
+        <button class="btn green" onclick="generateMotivation()">✨ Generate</button>
+        <button class="btn" onclick="playMotivation()">🔊 Play Motivation</button>
+      </div>
+    </section>
+
+    <!-- SYSTEM -->
+    <section class="card col-12">
+      <h2>🛠️ System Controls</h2>
+
+      <div class="btn-row">
+        <button class="btn" onclick="openLiveWall()">📺 Open Live Wall</button>
+        <button class="btn secondary" onclick="broadcastRefresh()">🔄 Refresh Live Wall</button>
+        <button class="btn yellow" onclick="testPopup()">🖥 Test Popup</button>
+        <button class="btn red" onclick="clearAllData()">⚠️ Clear All Data</button>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- ANNOUNCEMENT POPUP -->
+<div class="popup" id="announcementPopup">
+  <div class="popup-box">
+    <div class="popup-label" id="popupLabel">ANNOUNCEMENT</div>
+
+    <div class="popup-text" id="popupText">
+      Attention everyone.
+    </div>
+
+    <div class="remaining" id="popupRemaining"></div>
+
+    <br>
+
+    <button class="btn" onclick="closePopup()">OK</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   DATA
+========================================================= */
+
+const schedule = [
+  {
+    start:"07:30",
+    end:"09:00",
+    title:"Reading Hour",
+    description:"Take out your reading materials and begin focused reading."
+  },
+  {
+    start:"09:00",
+    end:"09:30",
+    title:"Breakfast Break",
+    description:"Have breakfast, refresh yourself and return on time."
+  },
+  {
+    start:"09:30",
+    end:"11:00",
+    title:"Reading Hour",
+    description:"Continue focused reading and complete your assigned reading."
+  },
+  {
+    start:"11:15",
+    end:"12:45",
+    title:"Writing Hour",
+    description:"Take out your writing materials and work with full concentration."
+  },
+  {
+    start:"12:45",
+    end:"13:50",
+    title:"Lunch & Prayer",
+    description:"Have lunch, complete prayer and take proper rest."
+  },
+  {
+    start:"14:00",
+    end:"16:00",
+    title:"Mentor Check",
+    description:"Keep your completed work ready. Mentors will check your progress."
+  }
+];
+
+let students = JSON.parse(localStorage.getItem("artsFestStudents") || "[]");
+
+/* One-time migration from the old three-checkbox model. */
+students = students.map(s => ({
+  ...s,
+  completed:
+    typeof s.completed === "boolean"
+      ? s.completed
+      : !!(s.reading && s.writing && s.mentorCheck)
+}));
+
+let settings = JSON.parse(localStorage.getItem("artsFestSettings") || "{}");
+
+let lastAnnouncements =
+  JSON.parse(localStorage.getItem("artsFestLastAnnouncements") || "{}");
+
+let voices = [];
+
+const channel = "BroadcastChannel" in window
+  ? new BroadcastChannel("artsFestChannel")
+  : null;
+
+
+/* =========================================================
+   THEME
+========================================================= */
+
+function loadTheme(){
+  const theme = localStorage.getItem("artsFestTheme") || "light";
+  document.body.classList.toggle("dark",theme === "dark");
+}
+
+function toggleTheme(){
+  const dark = !document.body.classList.contains("dark");
+  document.body.classList.toggle("dark",dark);
+  localStorage.setItem("artsFestTheme",dark ? "dark":"light");
+
+  broadcast({
+    type:"theme",
+    dark
+  });
+}
+
+loadTheme();
+
+
+/* =========================================================
+   TIME
+========================================================= */
+
+function minutes(time){
+  const [h,m] = time.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function nowMinutes(){
+  const d = new Date();
+  return d.getHours()*60 + d.getMinutes();
+}
+
+function formatClockTime(time){
+  const [h,m] = time.split(":").map(Number);
+
+  const suffix = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+
+  return `${hour}:${String(m).padStart(2,"0")} ${suffix}`;
+}
+
+function formatDuration(mins){
+  mins = Math.max(0,Math.round(mins));
+
+  const h = Math.floor(mins/60);
+  const m = mins%60;
+
+  if(h && m) return `${h} hour ${m} minutes`;
+  if(h) return `${h} hour`;
+  return `${m} minutes`;
+}
+
+function formatRemaining(mins){
+  mins = Math.max(0,Math.round(mins));
+
+  if(mins < 1) return "less than a minute";
+
+  return formatDuration(mins);
+}
+
+
+/* =========================================================
+   CURRENT / NEXT SESSION
+========================================================= */
+
+function currentSlot(){
+
+  const now = nowMinutes();
+
+  return schedule.find(s =>
+    now >= minutes(s.start) &&
+    now < minutes(s.end)
+  ) || null;
+}
+
+function nextSlot(){
+
+  const now = nowMinutes();
+
+  return schedule.find(s =>
+    minutes(s.start) > now
+  ) || null;
+}
+
+
+/* =========================================================
+   CLOCK
+========================================================= */
+
+function updateClock(){
+
+  const d = new Date();
+
+  document.getElementById("clock").textContent =
+    d.toLocaleTimeString("en-IN");
+
+  document.getElementById("date").textContent =
+    d.toLocaleDateString("en-IN",{
+      weekday:"long",
+      year:"numeric",
+      month:"long",
+      day:"numeric"
+    });
+
+  const current = currentSlot();
+
+  if(current){
+
+    const remaining =
+      minutes(current.end) - nowMinutes();
+
+    document.getElementById("currentTitle").textContent =
+      current.title;
+
+    document.getElementById("currentDescription").textContent =
+      current.description;
+
+    document.getElementById("currentRemaining").textContent =
+      formatRemaining(remaining) + " remaining";
+
+  }else{
+
+    document.getElementById("currentTitle").textContent =
+      "No Active Session";
+
+    document.getElementById("currentDescription").textContent =
+      "There is currently no scheduled practice activity.";
+
+    const next = nextSlot();
+
+    document.getElementById("currentRemaining").textContent =
+      next ? "Next: " + formatClockTime(next.start) : "Schedule finished";
+  }
+
+  renderSchedule();
+  automaticAnnouncements();
+}
+
+
+/* =========================================================
+   SCHEDULE UI
+========================================================= */
+
+function renderSchedule(){
+
+  const box = document.getElementById("schedule");
+  const current = currentSlot();
+
+  box.innerHTML = schedule.map((s,index)=>{
+
+    const active =
+      current &&
+      current.start === s.start &&
+      current.end === s.end;
+
+    return `
+      <div class="schedule-item ${active ? "active":""}">
+        <div class="schedule-time">
+          ${formatClockTime(s.start)}<br>
+          <span class="muted">to ${formatClockTime(s.end)}</span>
+        </div>
+
+        <div>
+          <b>${escapeHtml(s.title)}</b>
+          <div class="muted">${escapeHtml(s.description)}</div>
+        </div>
+
+        <button class="small-btn"
+          onclick="announceSchedule(${index})">
+          🔊 Announce
+        </button>
+      </div>
+    `;
+
+  }).join("");
+}
+
+function announceSchedule(index){
+
+  const s = schedule[index];
+
+  const text =
+    `Attention everyone. It is now ${formatClockTime(s.start)}. ` +
+    `${s.title} is scheduled from ${formatClockTime(s.start)} ` +
+    `to ${formatClockTime(s.end)}. ` +
+    `${s.description}`;
+
+  setAnnouncement(text,"Schedule Announcement",true);
+}
+
+
+/* =========================================================
+   ANNOUNCEMENT GENERATOR
+========================================================= */
+
+function generateCurrentAnnouncement(){
+
+  const s = currentSlot();
+
+  if(!s){
+
+    const next = nextSlot();
+
+    const text = next
+      ? `Attention everyone. There is no active session right now. ` +
+        `The next activity is ${next.title} at ${formatClockTime(next.start)}.`
+      : `Attention everyone. Today's scheduled practice activities are complete. ` +
+        `Please finish any pending work and prepare for tomorrow.`;
+
+    setAnnouncement(text,"Control Room",true);
+    return;
+  }
+
+  const remaining =
+    minutes(s.end) - nowMinutes();
+
+  const text =
+    `Attention everyone. It is now ${new Date().toLocaleTimeString("en-IN",{
+      hour:"numeric",
+      minute:"2-digit"
+    })}. ` +
+    `${s.title} is currently in progress. ` +
+    `${s.description} ` +
+    `You have approximately ${formatRemaining(remaining)} remaining. ` +
+    `Please stay focused and complete your work on time.`;
+
+  setAnnouncement(text,"Current Activity",true);
+}
+
+function generateNextAnnouncement(){
+
+  const next = nextSlot();
+
+  if(!next){
+
+    setAnnouncement(
+      "There are no more scheduled activities for today.",
+      "Next Activity",
+      true
+    );
+
+    return;
+  }
+
+  const text =
+    `Attention everyone. The next scheduled activity is ` +
+    `${next.title}, starting at ${formatClockTime(next.start)}. ` +
+    `${next.description} ` +
+    `Please be ready before the starting time.`;
+
+  setAnnouncement(text,"Next Activity",true);
+}
+
+function generateMotivation(){
+
+  const custom =
+    document.getElementById("motivationText").value.trim();
+
+  const messages = [
+    "Keep going everyone. Every focused minute today is helping you become stronger for the National Arts Fest.",
+    "Stay disciplined. Practice today creates confidence on competition day.",
+    "Do not compare yourself with others. Improve yourself one step at a time.",
+    "Your preparation is your advantage. Stay focused, stay calm and keep practicing.",
+    "Champions are built during practice. Give your best effort right now.",
+    "One more focused session can make a big difference. Keep going, everyone."
+  ];
+
+  const text =
+    custom ||
+    messages[Math.floor(Math.random()*messages.length)];
+
+  document.getElementById("motivationText").value = text;
+
+  setAnnouncement(text,"Motivation",true);
+}
+
+let pendingCallIndex = Number(localStorage.getItem("artsFestPendingCallIndex") || 0);
+let pendingAnnouncementRunning = false;
+let announcementStopRequested = false;
+let announcementAudioContext = null;
+let announcementChimeTimer = null;
+let announcementChimeResolve = null;
+
+function getPendingStudents(){
+  return students.filter(s => !isComplete(s));
+}
+
+function resetPendingCaller(){
+  pendingCallIndex = 0;
+  localStorage.setItem("artsFestPendingCallIndex","0");
+  updateNextPendingPreview();
+  toast("Pending caller reset to the first student.");
+}
+
+function updateNextPendingPreview(){
+  const pending = getPendingStudents();
+  if(pendingCallIndex >= pending.length) pendingCallIndex = 0;
+
+  const next = pending[pendingCallIndex];
+  const nameEl = document.getElementById("nextPendingName");
+  const metaEl = document.getElementById("nextPendingMeta");
+  if(!nameEl || !metaEl) return;
+
+  if(!next){
+    nameEl.textContent = "No pending student";
+    metaEl.textContent = "All students are complete.";
+    return;
+  }
+
+  nameEl.textContent = next.name;
+  metaEl.textContent = `Ad.No: ${next.adNo} • ${next.programCode} • ${next.program}`;
+}
+
+/* Formal announcement sequence:
+   1. Bell
+   2. "This is an announcement from SIBAQ Control Room."
+   3. Pending student details, one student at a time
+   4. "Thank you."
+   Each student gets its own Live Wall popup. */
+async function announceAllPendingStudents(){
+  if(pendingAnnouncementRunning){
+    toast("A pending-student announcement is already running.");
+    return;
+  }
+
+  const pending = getPendingStudents();
+
+  if(!pending.length){
+    await runOfficialAnnouncement(
+      "Excellent work everyone. All students have completed today's checklist."
+    );
+    return;
+  }
+
+  pendingAnnouncementRunning = true;
+  announcementStopRequested = false;
+
+  try{
+    stopSpeech();
+
+    await playAnnouncementBell();
+
+    await speakAndWait(
+      "This is an announcement from SIBAQ Control Room."
+    );
+
+    await wait(450);
+
+    for(let i=0;i<pending.length;i++){
+      if(announcementStopRequested) break;
+      const student = pending[i];
+
+      /* Voice announcement: ONLY the student's name.
+         Admission number, program code and program remain visual-only on the Live Wall. */
+      const voiceText = `${student.name}.`;
+
+      showStudentCall(student,voiceText,false);
+
+      await speakAndWait(voiceText);
+
+      if(announcementStopRequested) break;
+
+      /* Give the Live Wall time to clearly show this student before the next one. */
+      await wait(900);
+    }
+
+    if(!announcementStopRequested){
+      await speakAndWait(
+        "The last student called, please contact the control room immediately."
+      );
+      if(!announcementStopRequested) await speakAndWait("Thank you.");
+    }
+
+    pendingCallIndex = 0;
+    localStorage.setItem("artsFestPendingCallIndex","0");
+    updateNextPendingPreview();
+
+    toast(`Announcement completed for ${pending.length} pending student${pending.length === 1 ? "" : "s"}.`);
+  } finally {
+    pendingAnnouncementRunning = false;
+  }
+}
+
+async function runOfficialAnnouncement(text){
+  pendingAnnouncementRunning = true;
+  announcementStopRequested = false;
+  try{
+    stopSpeech();
+    await playAnnouncementBell();
+    if(!announcementStopRequested){
+      await speakAndWait(
+        `This is an announcement from SIBAQ Control Room. ${text} Thank you.`
+      );
+    }
+  } finally {
+    pendingAnnouncementRunning = false;
+  }
+}
+
+/* Kept for compatibility with older buttons/bookmarks. */
+async function callNextPendingStudent(){
+  const pending = getPendingStudents();
+  if(!pending.length){
+    await runOfficialAnnouncement(
+      "Excellent work everyone. All students have completed today's checklist."
+    );
+    return;
+  }
+
+  const student = pending[pendingCallIndex % pending.length];
+  pendingCallIndex = (pendingCallIndex + 1) % pending.length;
+  localStorage.setItem("artsFestPendingCallIndex",String(pendingCallIndex));
+  updateNextPendingPreview();
+
+  announcementStopRequested = false;
+  stopSpeech();
+  await playAnnouncementBell();
+  if(announcementStopRequested) return;
+  await speakAndWait("This is an announcement from SIBAQ Control Room.");
+
+  /* Voice: name only. Details are shown only in the Live Wall popup. */
+  const voiceText = `${student.name}.`;
+
+  if(announcementStopRequested) return;
+  showStudentCall(student,voiceText,false);
+  await speakAndWait(voiceText);
+  if(!announcementStopRequested) await speakAndWait("Thank you.");
+}
+
+function showStudentCall(student,voiceText,speakNow=false){
+  document.getElementById("announcementText").value = voiceText;
+
+  const payload = {
+    type:"announcement",
+    label:"SIBAQ CONTROL ROOM • PENDING STUDENT",
+    text:voiceText,
+    studentCall:{
+      name:student.name,
+      adNo:student.adNo,
+      programCode:student.programCode,
+      program:student.program
+    },
+    time:Date.now()
+  };
+
+  showAnnouncementPayload(payload);
+
+  if(speakNow) speakOfficial(voiceText);
+}
+
+function showAnnouncementPayload(payload){
+  const text = payload.text || "";
+  const label = payload.label || "Announcement";
+
+  document.getElementById("announcementText").value = text;
+
+  document.getElementById("popupText").textContent =
+    payload.studentCall
+      ? `Name: ${payload.studentCall.name}\n` +
+        `Admission No.: ${payload.studentCall.adNo}\n` +
+        `Program: ${payload.studentCall.program}`
+      : text;
+
+  document.getElementById("popupLabel").textContent = label;
+
+  const current = currentSlot();
+  document.getElementById("popupRemaining").textContent =
+    current
+      ? formatRemaining(minutes(current.end)-nowMinutes()) + " remaining"
+      : "";
+
+  const box = document.querySelector("#announcementPopup .popup-box");
+  box.classList.remove("animate");
+  void box.offsetWidth;
+  box.classList.add("animate");
+
+  document.getElementById("announcementPopup").classList.add("show");
+
+  broadcast(payload);
+  localStorage.setItem("artsFestLiveAnnouncement",JSON.stringify(payload));
+}
+
+function generatePendingAnnouncement(){
+  announceAllPendingStudents();
+}
+
+function aiEditAnnouncement(mode){
+  const field = document.getElementById("announcementText");
+  let text = field.value.trim();
+
+  if(!text){
+    toast("Write or generate an announcement first.");
+    return;
+  }
+
+  text = text.replace(/\s+/g," ").trim();
+
+  if(mode === "professional"){
+    text =
+      "Attention everyone. " +
+      text.replace(/^attention everyone[.!]?\s*/i,"") +
+      " Please remain focused and follow the instructions.";
+  }
+
+  if(mode === "short"){
+    text = text.split(/(?<=[.!?])\s+/).filter(Boolean).slice(0,2).join(" ");
+  }
+
+  if(mode === "friendly"){
+    text =
+      "Attention everyone. " +
+      text.replace(/^attention everyone[.!]?\s*/i,"") +
+      " Keep going and give your best effort.";
+  }
+
+  if(mode === "clear"){
+    text = text
+      .replace(/\bapproximately\b/gi,"about")
+      .replace(/\bplease kindly\b/gi,"please")
+      .replace(/\s+/g," ")
+      .trim();
+  }
+
+  field.value = text;
+  showAnnouncement(text,"AI Edited Announcement");
+  toast("Announcement edited.");
+}
+
+
+/* =========================================================
+   ANNOUNCEMENT ENGINE
+========================================================= */
+
+function setAnnouncement(text,label="Announcement",speakNow=false){
+
+  document.getElementById("announcementText").value = text;
+
+  showAnnouncement(text,label);
+
+  if(speakNow){
+    speak(text);
+  }
+}
+
+function playAnnouncement(){
+
+  const text =
+    document.getElementById("announcementText").value.trim();
+
+  if(!text){
+    toast("Write or generate an announcement first.");
+    return;
+  }
+
+  showAnnouncement(text,"Control Room Announcement");
+  speak(text);
+}
+
+function showAnnouncementOnly(){
+
+  const text =
+    document.getElementById("announcementText").value.trim();
+
+  if(!text){
+    toast("There is no announcement to show.");
+    return;
+  }
+
+  showAnnouncement(text,"Control Room Announcement");
+}
+
+function showAnnouncement(text,label){
+
+  document.getElementById("popupText").textContent = text;
+  document.getElementById("popupLabel").textContent = label;
+
+  const current = currentSlot();
+
+  document.getElementById("popupRemaining").textContent =
+    current
+      ? formatRemaining(minutes(current.end)-nowMinutes()) + " remaining"
+      : "";
+
+  const box = document.querySelector("#announcementPopup .popup-box");
+  box.classList.remove("animate");
+  void box.offsetWidth;
+  box.classList.add("animate");
+
+  document.getElementById("announcementPopup").classList.add("show");
+
+  broadcast({
+    type:"announcement",
+    text,
+    label,
+    time:Date.now()
+  });
+
+  localStorage.setItem("artsFestLiveAnnouncement",
+    JSON.stringify({
+      text,
+      label,
+      time:Date.now()
+    })
+  );
+}
+
+function closePopup(){
+  document.getElementById("announcementPopup")
+    .classList.remove("show");
+}
+
+function clearAnnouncement(){
+  document.getElementById("announcementText").value = "";
+}
+
+
+/* =========================================================
+   VOICE
+========================================================= */
+
+function loadVoices(){
+
+  voices = speechSynthesis.getVoices();
+
+  const select =
+    document.getElementById("voiceSelect");
+
+  select.innerHTML = "";
+
+  const preferred = voices.filter(v =>
+    /en-IN|en-GB|en-US|en-AU/i.test(v.lang)
+  );
+
+  const list = preferred.length ? preferred : voices;
+
+  list.forEach((voice,index)=>{
+
+    const option = document.createElement("option");
+
+    option.value = voices.indexOf(voice);
+
+    option.textContent =
+      `${voice.name} — ${voice.lang}`;
+
+    select.appendChild(option);
+  });
+
+  const saved =
+    localStorage.getItem("artsFestVoice");
+
+  if(saved !== null){
+    select.value = saved;
+  }
+}
+
+speechSynthesis.onvoiceschanged = loadVoices;
+
+setTimeout(loadVoices,500);
+
+setTimeout(()=>{
+  const savedVolume = localStorage.getItem("artsFestAnnouncementVolume");
+  setAnnouncementVolume(savedVolume === null ? 100 : savedVolume);
+},100);
+
+function wait(ms){
+  return new Promise(resolve => setTimeout(resolve,ms));
+}
+
+function stopSpeech(){
+  if("speechSynthesis" in window) speechSynthesis.cancel();
+}
+
+function getAnnouncementVolume(){
+  const el = document.getElementById("announcementVolume");
+  return el ? Number(el.value) / 100 : 1;
+}
+
+function setAnnouncementVolume(value){
+  const v = Math.max(0,Math.min(100,Number(value)));
+  const el = document.getElementById("announcementVolume");
+  const label = document.getElementById("volumeValue");
+  if(el) el.value = v;
+  if(label) label.textContent = `${Math.round(v)}%`;
+  localStorage.setItem("artsFestAnnouncementVolume",String(v));
+}
+
+function stopAnnouncementAudio(){
+  if(announcementChimeTimer){
+    clearTimeout(announcementChimeTimer);
+    announcementChimeTimer = null;
+  }
+  if(announcementAudioContext){
+    try{ announcementAudioContext.close(); }catch(e){}
+    announcementAudioContext = null;
+  }
+  if(announcementChimeResolve){
+    const resolve = announcementChimeResolve;
+    announcementChimeResolve = null;
+    resolve();
+  }
+}
+
+/* Clear, two-tone PA-style chime. It uses the browser AudioContext so no external sound file is required. */
+function playAnnouncementBell(){
+  return new Promise(resolve=>{
+    announcementChimeResolve = resolve;
+    try{
+      stopAnnouncementAudio();
+      announcementChimeResolve = resolve;
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if(!AudioContextClass){ resolve(); return; }
+
+      const ctx = new AudioContextClass();
+      announcementAudioContext = ctx;
+      const volume = getAnnouncementVolume();
+      if(ctx.state === "suspended") ctx.resume().catch(()=>{});
+
+      const master = ctx.createGain();
+      master.gain.setValueAtTime(0.0001,ctx.currentTime);
+      master.gain.linearRampToValueAtTime(Math.max(0.0001,0.34*volume),ctx.currentTime+0.025);
+      master.connect(ctx.destination);
+
+      const notes = [
+        {frequency:659.25, start:0, duration:.38},
+        {frequency:783.99, start:.13, duration:.58},
+        {frequency:1046.50, start:.27, duration:.82}
+      ];
+
+      notes.forEach(note=>{
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = note.frequency;
+        gain.gain.setValueAtTime(0.0001,ctx.currentTime+note.start);
+        gain.gain.exponentialRampToValueAtTime(0.75,ctx.currentTime+note.start+0.025);
+        gain.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+note.start+note.duration);
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(ctx.currentTime+note.start);
+        osc.stop(ctx.currentTime+note.start+note.duration+0.03);
+      });
+
+      master.gain.setValueAtTime(Math.max(0.0001,0.34*volume),ctx.currentTime+0.55);
+      master.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+1.25);
+
+      announcementChimeTimer = setTimeout(()=>{
+        stopAnnouncementAudio();
+      },1400);
+    }catch(e){
+      stopAnnouncementAudio();
+      resolve();
+    }
+  });
+}
+
+function testAnnouncementChime(){
+  announcementStopRequested = false;
+  playAnnouncementBell();
+}
+
+function stopAllAnnouncements(){
+  announcementStopRequested = true;
+  pendingAnnouncementRunning = false;
+  stopSpeech();
+  stopAnnouncementAudio();
+  const popup = document.getElementById("announcementPopup");
+  if(popup) popup.classList.remove("show");
+  toast("All announcements stopped.");
+}
+
+function speakAndWait(text){
+  return new Promise(resolve=>{
+    if(!("speechSynthesis" in window)){
+      resolve();
+      return;
+    }
+
+    speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    const select = document.getElementById("voiceSelect");
+    const index = Number(select.value);
+
+    if(voices[index]) utterance.voice = voices[index];
+
+    utterance.rate = Number(document.getElementById("voiceRate").value);
+    utterance.pitch = .9;
+    utterance.volume = getAnnouncementVolume();
+
+    utterance.onend = resolve;
+    utterance.onerror = resolve;
+
+    speechSynthesis.speak(utterance);
+  });
+}
+
+function speakOfficial(text){
+  playAnnouncementBell().then(()=>{
+    speakAndWait(`This is an announcement from SIBAQ Control Room. ${text} Thank you.`);
+  });
+}
+
+function speak(text){
+  speakOfficial(text);
+}
+
+function speakTest(){
+
+  const text =
+    "Attention everyone. This is the National Arts Fest practice control room. Please stay focused and give your best effort.";
+
+  showAnnouncement(text,"Voice Test");
+  speak(text);
+}
+
+function playMotivation(){
+
+  let text =
+    document.getElementById("motivationText")
+      .value.trim();
+
+  if(!text){
+    generateMotivation();
+    return;
+  }
+
+  showAnnouncement(text,"Motivation");
+  speak(text);
+}
+
+
+/* =========================================================
+   AUTOMATIC ANNOUNCEMENTS
+========================================================= */
+
+function todayKey(){
+  return new Date().toISOString().slice(0,10);
+}
+
+function announcementWasMade(key){
+
+  return lastAnnouncements[
+    todayKey()+"_"+key
+  ];
+}
+
+function markAnnouncement(key){
+
+  lastAnnouncements[
+    todayKey()+"_"+key
+  ] = true;
+
+  localStorage.setItem(
+    "artsFestLastAnnouncements",
+    JSON.stringify(lastAnnouncements)
+  );
+}
+
+function automaticAnnouncements(){
+
+  if(!document.getElementById("autoCoach").checked)
+    return;
+
+  const s = currentSlot();
+
+  if(!s) return;
+
+  const start = minutes(s.start);
+  const end = minutes(s.end);
+  const now = nowMinutes();
+
+  const elapsed = now - start;
+  const remaining = end - now;
+
+  const sessionId = s.start+"_"+s.end;
+
+  /* START */
+
+  if(
+    elapsed === 0 &&
+    document.getElementById("autoStart").checked &&
+    !announcementWasMade("start_"+sessionId)
+  ){
+
+    markAnnouncement("start_"+sessionId);
+
+    const text =
+      `Attention everyone. It is now ${formatClockTime(s.start)}. ` +
+      `${s.title} has started. ` +
+      `${s.description} ` +
+      `Please begin now and stay focused until the session ends.`;
+
+    setAnnouncement(text,"Automatic Start",true);
+  }
+
+
+  /* 45 MINUTE REMINDER */
+
+  if(
+    document.getElementById("auto45").checked &&
+    elapsed > 0 &&
+    elapsed % 45 === 0 &&
+    !announcementWasMade("45_"+sessionId+"_"+elapsed)
+  ){
+
+    markAnnouncement("45_"+sessionId+"_"+elapsed);
+
+    const text =
+      `Attention everyone. You have completed ` +
+      `${formatDuration(elapsed)} of ${s.title}. ` +
+      `Approximately ${formatRemaining(remaining)} remains. ` +
+      `Stay focused and continue your work.`;
+
+    setAnnouncement(text,"45 Minute Reminder",true);
+  }
+
+
+  /* COUNTDOWN */
+
+  if(
+    document.getElementById("autoCountdown").checked &&
+    [30,15,10,5].includes(remaining) &&
+    !announcementWasMade("count_"+sessionId+"_"+remaining)
+  ){
+
+    markAnnouncement("count_"+sessionId+"_"+remaining);
+
+    const text =
+      `Attention everyone. Only ${remaining} minutes remain in ` +
+      `${s.title}. ` +
+      `Please complete your current work and prepare for the next activity.`;
+
+    setAnnouncement(text,"Countdown Reminder",true);
+  }
+}
+
+
+/* =========================================================
+   STUDENTS
+========================================================= */
+
+function addStudent(){
+
+  const student = {
+    id:Date.now()+Math.random(),
+
+    adNo:document.getElementById("adNo").value.trim(),
+    name:document.getElementById("studentName").value.trim(),
+    programCode:document.getElementById("programCode").value.trim(),
+    program:document.getElementById("program").value.trim(),
+    mentor:document.getElementById("mentor").value.trim(),
+
+    completed:false
+  };
+
+  if(
+    !student.adNo ||
+    !student.name ||
+    !student.programCode ||
+    !student.program ||
+    !student.mentor
+  ){
+
+    toast("Please fill all five student fields.");
+    return;
+  }
+
+  students.push(student);
+
+  saveStudents();
+
+  document.getElementById("adNo").value="";
+  document.getElementById("studentName").value="";
+  document.getElementById("programCode").value="";
+  document.getElementById("program").value="";
+  document.getElementById("mentor").value="";
+
+  toast("Student added successfully.");
+}
+
+function renderStudents(){
+  const table = document.getElementById("studentTable");
+  table.innerHTML = "";
+
+  students.forEach((s,index)=>{
+    const complete = isComplete(s);
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td><b>${escapeHtml(s.adNo)}</b></td>
+      <td>${escapeHtml(s.name)}</td>
+      <td>${escapeHtml(s.programCode)}</td>
+      <td>${escapeHtml(s.program)}</td>
+      <td>${escapeHtml(s.mentor)}</td>
+      <td>
+        <input class="check" type="checkbox"
+          aria-label="Mark ${escapeHtml(s.name)} as complete"
+          ${complete ? "checked":""}
+          onchange="toggleComplete(${index},this.checked)">
+      </td>
+      <td class="${complete ? "complete":"pending"}">
+        ${complete ? "✓ Complete":"Pending"}
+      </td>
+      <td>
+        <div class="student-actions">
+          <button class="small-btn" onclick="editStudent(${index})">✏️</button>
+          <button class="small-btn" onclick="removeStudent(${index})">🗑️</button>
+        </div>
+      </td>
+    `;
+
+    table.appendChild(tr);
+  });
+
+  updateReport();
+  updateNextPendingPreview();
+}
+
+function toggleComplete(index,checked){
+  if(!students[index]) return;
+
+  students[index].completed = !!checked;
+
+  /* Remove the old three task flags. */
+  delete students[index].reading;
+  delete students[index].writing;
+  delete students[index].mentorCheck;
+
+  saveStudents();
+}
+
+function isComplete(s){
+  if(typeof s.completed === "boolean") return s.completed;
+
+  /* Supports old saved student data during migration. */
+  return !!(s.reading && s.writing && s.mentorCheck);
+}
+
+function tickAllStudents(){
+  if(!students.length){
+    toast("No students available.");
+    return;
+  }
+
+  students.forEach(s=>{
+    s.completed = true;
+    delete s.reading;
+    delete s.writing;
+    delete s.mentorCheck;
+  });
+
+  saveStudents();
+  renderStudents();
+  toast("All students marked as complete.");
+}
+
+function untickAllStudents(){
+  if(!students.length){
+    toast("No students available.");
+    return;
+  }
+
+  students.forEach(s=>{
+    s.completed = false;
+    delete s.reading;
+    delete s.writing;
+    delete s.mentorCheck;
+  });
+
+  saveStudents();
+  renderStudents();
+  toast("All student tick marks removed.");
+}
+
+function editStudent(index){
+
+  const s = students[index];
+
+  const adNo =
+    prompt("Admission No.",s.adNo);
+
+  if(adNo === null) return;
+
+  const name =
+    prompt("Student Name",s.name);
+
+  if(name === null) return;
+
+  const code =
+    prompt("Program Code",s.programCode);
+
+  if(code === null) return;
+
+  const program =
+    prompt("Program",s.program);
+
+  if(program === null) return;
+
+  const mentor =
+    prompt("Mentor",s.mentor);
+
+  if(mentor === null) return;
+
+  s.adNo = adNo.trim();
+  s.name = name.trim();
+  s.programCode = code.trim();
+  s.program = program.trim();
+  s.mentor = mentor.trim();
+
+  saveStudents();
+
+  toast("Student updated.");
+}
+
+function removeStudent(index){
+
+  if(!confirm(
+    `Remove ${students[index].name} from the checklist?`
+  )) return;
+
+  students.splice(index,1);
+
+  saveStudents();
+}
+
+function updateReport(){
+
+  const total = students.length;
+
+  const completed =
+    students.filter(isComplete).length;
+
+  const pending = total-completed;
+
+  const percent =
+    total ? Math.round(completed/total*100) : 0;
+
+  document.getElementById("totalStudents")
+    .textContent = total;
+
+  document.getElementById("completedStudents")
+    .textContent = completed;
+
+  document.getElementById("pendingStudents")
+    .textContent = pending;
+
+  document.getElementById("completionPercent")
+    .textContent = percent+"%";
+
+  document.getElementById("mainProgress")
+    .style.width = percent+"%";
+
+  const pendingBox =
+    document.getElementById("pendingList");
+
+  const list =
+    students.filter(s=>!isComplete(s));
+
+  if(!list.length){
+
+    pendingBox.innerHTML =
+      `<span class="complete">✓ Everyone has completed today's work.</span>`;
+
+  }else{
+
+    pendingBox.innerHTML = list.map(s=>`
+      <div style="padding:9px 0;border-bottom:1px solid var(--border)">
+        <b>${escapeHtml(s.adNo)}</b> —
+        ${escapeHtml(s.name)}
+        <br>
+        <span class="muted">
+          ${escapeHtml(s.programCode)} |
+          ${escapeHtml(s.program)} |
+          Mentor: ${escapeHtml(s.mentor)}
+        </span>
+      </div>
+    `).join("");
+  }
+
+  updateNextPendingPreview();
+}
+
+function saveStudents(){
+
+  students = students.map(s => ({
+    id:s.id || Date.now()+Math.random(),
+    adNo:s.adNo || "",
+    name:s.name || "",
+    programCode:s.programCode || "",
+    program:s.program || "",
+    mentor:s.mentor || "",
+    source:s.source || "manual",
+    csvFileName:s.csvFileName || "",
+    completed:
+      typeof s.completed === "boolean"
+        ? s.completed
+        : !!(s.reading && s.writing && s.mentorCheck)
+  }));
+
+  localStorage.setItem(
+    "artsFestStudents",
+    JSON.stringify(students)
+  );
+
+  renderStudents();
+
+  broadcast({
+    type:"students",
+    students
+  });
+}
+
+
+/* =========================================================
+   CSV IMPORT / REMOVE UPLOADED CSV
+========================================================= */
+
+function normalizeCSVHeader(value){
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[.\-_]/g," ")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+function parseCSVLine(line){
+  const values = [];
+  let value = "";
+  let quoted = false;
+
+  for(let i=0;i<line.length;i++){
+    const ch = line[i];
+
+    if(ch === '"'){
+      if(quoted && line[i+1] === '"'){
+        value += '"';
+        i++;
+      }else{
+        quoted = !quoted;
+      }
+    }else if(ch === ',' && !quoted){
+      values.push(value.trim());
+      value = "";
+    }else{
+      value += ch;
+    }
+  }
+
+  values.push(value.trim());
+  return values;
+}
+
+function parseCSVText(text){
+  const lines = String(text || "")
+    .replace(/^\uFEFF/,"")
+    .split(/\r?\n/)
+    .filter(line => line.trim() !== "");
+
+  if(!lines.length) return [];
+
+  const headers = parseCSVLine(lines[0]).map(normalizeCSVHeader);
+
+  const aliases = {
+    adNo:["admission no","admission number","ad no","adno","admission"],
+    name:["name","student name","student"],
+    programCode:["program code","programme code","programcode","programme code"],
+    program:["program","programme","program name","programme name"],
+    mentor:["mentor","mentor name"]
+  };
+
+  const findIndex = keys => headers.findIndex(h => keys.includes(h));
+  const indexes = {
+    adNo:findIndex(aliases.adNo),
+    name:findIndex(aliases.name),
+    programCode:findIndex(aliases.programCode),
+    program:findIndex(aliases.program),
+    mentor:findIndex(aliases.mentor)
+  };
+
+  if(indexes.adNo < 0 || indexes.name < 0 || indexes.programCode < 0 || indexes.program < 0){
+    throw new Error("CSV must contain Admission No., Name, Program Code and Program columns. Mentor is optional.");
+  }
+
+  return lines.slice(1).map(parseCSVLine).map(row => ({
+    adNo:row[indexes.adNo] || "",
+    name:row[indexes.name] || "",
+    programCode:row[indexes.programCode] || "",
+    program:row[indexes.program] || "",
+    mentor:indexes.mentor >= 0 ? (row[indexes.mentor] || "") : "",
+    completed:false
+  })).filter(s => s.adNo && s.name && s.programCode && s.program);
+}
+
+function importCSVFile(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function(event){
+    try{
+      const imported = parseCSVText(event.target.result);
+
+      if(!imported.length){
+        toast("No valid student rows were found in the CSV.");
+        return;
+      }
+
+      const duplicateKeys = new Set(
+        students.map(s => `${String(s.adNo).trim().toLowerCase()}|${String(s.name).trim().toLowerCase()}`)
+      );
+
+      let added = 0;
+      imported.forEach(student => {
+        const key = `${student.adNo.trim().toLowerCase()}|${student.name.trim().toLowerCase()}`;
+        if(duplicateKeys.has(key)) return;
+
+        student.id = Date.now()+Math.random();
+        student.source = "csv";
+        student.csvFileName = file.name;
+        students.push(student);
+        duplicateKeys.add(key);
+        added++;
+      });
+
+      saveStudents();
+      localStorage.setItem("artsFestUploadedCSVName",file.name);
+      updateCSVStatus();
+
+      toast(`${added} student${added === 1 ? "":"s"} imported from ${file.name}.`);
+    }catch(error){
+      toast(error.message || "Could not read the CSV file.");
+    }finally{
+      input.value = "";
+    }
+  };
+
+  reader.onerror = function(){
+    toast("Could not read the selected CSV file.");
+    input.value = "";
+  };
+
+  reader.readAsText(file);
+}
+
+function removeUploadedCSV(){
+  const uploadedStudents = students.filter(s => s.source === "csv");
+
+  if(!uploadedStudents.length){
+    toast("There are no uploaded CSV students to remove.");
+    return;
+  }
+
+  const fileNames = [...new Set(uploadedStudents.map(s => s.csvFileName).filter(Boolean))];
+  const label = fileNames.length ? fileNames.join(", ") : "the uploaded CSV";
+
+  if(!confirm(`Remove ${uploadedStudents.length} student${uploadedStudents.length === 1 ? "":"s"} imported from ${label}? Manual students will not be removed.`)){
+    return;
+  }
+
+  students = students.filter(s => s.source !== "csv");
+  localStorage.removeItem("artsFestUploadedCSVName");
+  saveStudents();
+  updateCSVStatus();
+  toast("Uploaded CSV students removed. Manual students are still safe.");
+}
+
+function updateCSVStatus(){
+  const status = document.getElementById("csvStatus");
+  if(!status) return;
+
+  const uploadedStudents = students.filter(s => s.source === "csv");
+  const fileName = localStorage.getItem("artsFestUploadedCSVName") ||
+    [...new Set(uploadedStudents.map(s => s.csvFileName).filter(Boolean))][0] || "";
+
+  if(uploadedStudents.length){
+    status.innerHTML = `📄 Uploaded CSV: <b>${escapeHtml(fileName || "CSV file")}</b> — ${uploadedStudents.length} student${uploadedStudents.length === 1 ? "":"s"}.`;
+  }else{
+    status.textContent = "No CSV students uploaded. You can add students manually or upload a CSV file.";
+  }
+}
+
+/* =========================================================
+   SETTINGS
+========================================================= */
+
+function loadSettings(){
+
+  document.getElementById("autoCoach").checked =
+    settings.autoCoach ?? false;
+
+  document.getElementById("auto45").checked =
+    settings.auto45 ?? true;
+
+  document.getElementById("autoCountdown").checked =
+    settings.autoCountdown ?? true;
+
+  document.getElementById("autoStart").checked =
+    settings.autoStart ?? true;
+}
+
+function saveSettings(){
+
+  settings = {
+    autoCoach:
+      document.getElementById("autoCoach").checked,
+
+    auto45:
+      document.getElementById("auto45").checked,
+
+    autoCountdown:
+      document.getElementById("autoCountdown").checked,
+
+    autoStart:
+      document.getElementById("autoStart").checked
+  };
+
+  localStorage.setItem(
+    "artsFestSettings",
+    JSON.stringify(settings)
+  );
+
+  broadcast({
+    type:"settings",
+    settings
+  });
+
+  toast("Automation settings saved.");
+}
+
+
+/* =========================================================
+   LIVE WALL
+========================================================= */
+
+function openLiveWall(){
+
+  window.open(
+    "live-wall.html",
+    "ArtsFestLiveWall",
+    "width=1400,height=900"
+  );
+}
+
+function broadcastRefresh(){
+
+  broadcast({
+    type:"refresh"
+  });
+
+  toast("Live Wall refresh sent.");
+}
+
+function broadcast(data){
+
+  if(channel){
+    channel.postMessage(data);
+  }
+}
+
+
+/* =========================================================
+   TEST POPUP
+========================================================= */
+
+function testPopup(){
+
+  setAnnouncement(
+    "Attention everyone. This is a test announcement from the National Arts Fest Control Room.",
+    "System Test",
+    true
+  );
+}
+
+
+/* =========================================================
+   CLEAR DATA
+========================================================= */
+
+function clearAllData(){
+
+  if(!confirm(
+    "This will remove all students and saved practice data. Continue?"
+  )) return;
+
+  students=[];
+  localStorage.removeItem("artsFestStudents");
+  localStorage.removeItem("artsFestLiveAnnouncement");
+
+  saveStudents();
+
+  broadcast({
+    type:"clear"
+  });
+
+  toast("Student data cleared.");
+}
+
+
+/* =========================================================
+   UTILITY
+========================================================= */
+
+function escapeHtml(value){
+
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+let toastTimer;
+
+function toast(message){
+
+  const el =
+    document.getElementById("toast");
+
+  el.textContent=message;
+  el.classList.add("show");
+
+  clearTimeout(toastTimer);
+
+  toastTimer=setTimeout(()=>{
+    el.classList.remove("show");
+  },2500);
+}
+
+
+/* =========================================================
+   VOICE SAVE
+========================================================= */
+
+document.getElementById("voiceSelect")
+  .addEventListener("change",function(){
+
+    localStorage.setItem(
+      "artsFestVoice",
+      this.value
+    );
+  });
+
+
+/* =========================================================
+   BROADCAST
+========================================================= */
+
+if(channel){
+
+  channel.onmessage = function(event){
+
+    if(event.data?.type === "refresh"){
+      renderStudents();
+    }
+
+  };
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+loadSettings();
+renderStudents();
+updateCSVStatus();
+renderSchedule();
+updateClock();
+
+setInterval(updateClock,1000);
+
+</script>
+
+</body>
+</html>

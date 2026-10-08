@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>National Arts Fest — Live Wall</title>
+
+<style>
+
+:root{
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --text:#172033;
+  --muted:#667085;
+  --border:#dce2ea;
+  --primary:#5b5ce2;
+  --primary2:#7c3aed;
+  --green:#16a34a;
+  --red:#dc2626;
+  --orange:#ea580c;
+}
+
+body.dark{
+  --bg:#070b16;
+  --card:#111827;
+  --text:#f8fafc;
+  --muted:#9ca3af;
+  --border:#26324a;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,Segoe UI,Arial,sans-serif;
+  transition:.25s;
+}
+
+.header{
+  padding:20px 30px;
+  background:var(--card);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.logo{
+  width:50px;
+  height:50px;
+  border-radius:15px;
+  background:linear-gradient(135deg,var(--primary),var(--primary2));
+  color:white;
+  display:grid;
+  place-items:center;
+  font-size:21px;
+  font-weight:900;
+}
+
+h1{
+  margin:0;
+  font-size:24px;
+}
+
+.header small{
+  color:var(--muted);
+}
+
+.clock{
+  font-size:28px;
+  font-weight:900;
+}
+
+.date{
+  color:var(--muted);
+  text-align:right;
+}
+
+.container{
+  max-width:1500px;
+  margin:auto;
+  padding:25px;
+}
+
+.hero{
+  background:linear-gradient(
+    135deg,
+    var(--primary),
+    var(--primary2)
+  );
+  color:white;
+  border-radius:28px;
+  padding:40px;
+  box-shadow:0 20px 60px rgba(0,0,0,.18);
+  margin-bottom:20px;
+}
+
+.hero-label{
+  text-transform:uppercase;
+  letter-spacing:2px;
+  font-weight:800;
+  opacity:.8;
+}
+
+.hero h2{
+  font-size:42px;
+  margin:10px 0;
+}
+
+.hero p{
+  font-size:19px;
+  max-width:900px;
+  line-height:1.5;
+}
+
+.remaining{
+  font-size:30px;
+  font-weight:900;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  gap:18px;
+}
+
+.card{
+  grid-column:span 4;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:22px;
+}
+
+.card.large{
+  grid-column:span 8;
+}
+
+.card.full{
+  grid-column:span 12;
+}
+
+.card h3{
+  margin-top:0;
+}
+
+.next{
+  font-size:25px;
+  font-weight:900;
+}
+
+.progress{
+  height:15px;
+  border-radius:20px;
+  background:var(--border);
+  overflow:hidden;
+  margin-top:15px;
+}
+
+.progress div{
+  height:100%;
+  background:linear-gradient(
+    90deg,
+    var(--primary),
+    var(--primary2)
+  );
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.stat{
+  text-align:center;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:18px;
+}
+
+.stat b{
+  display:block;
+  font-size:30px;
+}
+
+.stat span{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.motivation{
+  font-size:24px;
+  line-height:1.5;
+  font-weight:800;
+}
+
+.schedule{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+
+.schedule-item{
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:15px;
+}
+
+.schedule-item.active{
+  border:2px solid var(--primary);
+}
+
+.schedule-time{
+  color:var(--primary);
+  font-weight:900;
+}
+
+.schedule-title{
+  font-weight:800;
+  margin-top:5px;
+}
+
+.schedule-desc{
+  color:var(--muted);
+  margin-top:5px;
+  font-size:13px;
+}
+
+.popup{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  background:rgba(0,0,0,.82);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:30px;
+}
+
+.popup.show{
+  display:flex;
+}
+
+.popup-box{
+  max-width:1100px;
+  width:95%;
+  background:var(--card);
+  color:var(--text);
+  border-radius:30px;
+  padding:50px;
+  text-align:center;
+  box-shadow:0 30px 100px rgba(0,0,0,.5);
+}
+.popup-box.pending-call{
+  background:#c62828;
+  color:#fff;
+  border:4px solid #ff5252;
+  box-shadow:0 0 0 8px rgba(198,40,40,.22),0 30px 100px rgba(0,0,0,.55);
+}
+.popup-box.pending-call .popup-label{color:#fff;}
+.popup-box.pending-call .popup-time{color:#fff;}
+.popup-box.animate{
+   animation:livePopupIn .55s cubic-bezier(.2,.8,.2,1),livePopupPulse 1.4s ease .55s;
+}
+@keyframes livePopupIn{
+  0%{opacity:0;transform:translateY(70px) scale(.82) rotateX(10deg)}
+  55%{opacity:1;transform:translateY(-8px) scale(1.03)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes livePopupPulse{
+  0%,100%{box-shadow:0 30px 100px rgba(0,0,0,.5)}
+  50%{box-shadow:0 0 0 14px rgba(91,92,226,.14),0 35px 110px rgba(0,0,0,.55)}
+}
+
+
+.popup-label{
+  color:var(--primary);
+  text-transform:uppercase;
+  letter-spacing:2px;
+  font-weight:900;
+}
+
+.popup-text{
+  font-size:40px;
+  font-weight:900;
+  line-height:1.35;
+  margin:25px 0;
+}
+
+.popup-time{
+  color:var(--muted);
+}
+
+.close{
+  margin-top:25px;
+  padding:13px 25px;
+  border-radius:12px;
+  border:0;
+  background:var(--primary);
+  color:white;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.fullscreen-btn{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  z-index:80;
+  padding:12px 16px;
+  border:0;
+  border-radius:12px;
+  background:var(--card);
+  color:var(--text);
+  border:1px solid var(--border);
+  cursor:pointer;
+}
+
+@media(max-width:900px){
+
+  .card,
+  .card.large{
+    grid-column:span 12;
+  }
+
+  .schedule{
+    grid-template-columns:1fr;
+  }
+
+  .hero h2{
+    font-size:30px;
+  }
+
+  .popup-text{
+    font-size:27px;
+  }
+
+  .header{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .date{
+    text-align:left;
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<header class="header">
+
+  <div class="brand">
+
+    <div class="logo">AF</div>
+
+    <div>
+      <h1>National Arts Fest</h1>
+      <small>Live Practice Wall</small>
+    </div>
+
+  </div>
+
+  <div>
+    <div class="clock" id="clock">--:--</div>
+    <div class="date" id="date">Loading...</div>
+  </div>
+
+</header>
+
+
+<main class="container">
+
+  <section class="hero">
+
+    <div class="hero-label">
+      Current Practice Activity
+    </div>
+
+    <h2 id="currentTitle">
+      Waiting for Schedule
+    </h2>
+
+    <p id="currentDescription">
+      Please wait for the next scheduled activity.
+    </p>
+
+    <div class="remaining" id="remaining">
+      --
+    </div>
+
+  </section>
+
+
+  <div class="grid">
+
+    <!-- NEXT -->
+    <section class="card">
+
+      <h3>➡️ Next Activity</h3>
+
+      <div class="next" id="nextTitle">
+        --
+      </div>
+
+      <p id="nextTime" class="muted">
+        --
+      </p>
+
+    </section>
+
+
+    <!-- STATS -->
+    <section class="card">
+
+      <h3>📊 Today's Progress</h3>
+
+      <div class="stats">
+
+        <div class="stat">
+          <b id="total">0</b>
+          <span>Students</span>
+        </div>
+
+        <div class="stat">
+          <b id="completed">0</b>
+          <span>Complete</span>
+        </div>
+
+        <div class="stat">
+          <b id="pending">0</b>
+          <span>Pending</span>
+        </div>
+
+      </div>
+
+      <div class="progress">
+        <div id="progress"></div>
+      </div>
+
+    </section>
+
+
+    <!-- MOTIVATION -->
+    <section class="card">
+
+      <h3>🔥 Today's Motivation</h3>
+
+      <div class="motivation" id="motivation">
+        Champions are built during practice. Keep going!
+      </div>
+
+    </section>
+
+
+    <!-- SCHEDULE -->
+    <section class="card full">
+
+      <h3>🗓️ Practice Schedule</h3>
+
+      <div class="schedule" id="schedule"></div>
+
+    </section>
+
+  </div>
+
+</main>
+
+
+<button class="fullscreen-btn" onclick="toggleFullscreen()">
+  ⛶ Full Screen
+</button>
+
+
+<!-- ANNOUNCEMENT POPUP -->
+
+<div class="popup" id="popup">
+
+  <div class="popup-box">
+
+    <div class="popup-label" id="popupLabel">
+      ANNOUNCEMENT
+    </div>
+
+    <div class="popup-text" id="popupText">
+      Attention everyone.
+    </div>
+
+    <div class="popup-time" id="popupTime"></div>
+
+    <button class="close" onclick="closePopup()">
+      CLOSE
+    </button>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   SCHEDULE
+========================================================= */
+
+const schedule = [
+  {
+    start:"07:30",
+    end:"09:00",
+    title:"Reading Hour",
+    description:"Take out your reading materials and begin focused reading."
+  },
+  {
+    start:"09:00",
+    end:"09:30",
+    title:"Breakfast Break",
+    description:"Have breakfast, refresh yourself and return on time."
+  },
+  {
+    start:"09:30",
+    end:"11:00",
+    title:"Reading Hour",
+    description:"Continue focused reading and complete your assigned reading."
+  },
+  {
+    start:"11:15",
+    end:"12:45",
+    title:"Writing Hour",
+    description:"Take out your writing materials and work with full concentration."
+  },
+  {
+    start:"12:45",
+    end:"13:50",
+    title:"Lunch & Prayer",
+    description:"Have lunch, complete prayer and take proper rest."
+  },
+  {
+    start:"14:00",
+    end:"16:00",
+    title:"Mentor Check",
+    description:"Keep your completed work ready. Mentors will check your progress."
+  }
+];
+
+let students =
+  JSON.parse(localStorage.getItem("artsFestStudents") || "[]");
+
+let motivationMessages = [
+  "Champions are built during practice. Keep going!",
+  "Every focused minute today is preparing you for competition day.",
+  "Stay calm. Stay focused. Give your best.",
+  "Your preparation today creates your confidence tomorrow.",
+  "Keep going. Your hard work will show on the stage."
+];
+
+
+/* =========================================================
+   CHANNEL
+========================================================= */
+
+const channel = "BroadcastChannel" in window
+  ? new BroadcastChannel("artsFestChannel")
+  : null;
+
+
+/* =========================================================
+   TIME
+========================================================= */
+
+function minutes(time){
+
+  const [h,m] =
+    time.split(":").map(Number);
+
+  return h*60+m;
+}
+
+function nowMinutes(){
+
+  const d = new Date();
+
+  return d.getHours()*60+d.getMinutes();
+}
+
+function formatTime(time){
+
+  const [h,m] =
+    time.split(":").map(Number);
+
+  const suffix =
+    h >= 12 ? "PM":"AM";
+
+  const hour =
+    h % 12 || 12;
+
+  return `${hour}:${String(m).padStart(2,"0")} ${suffix}`;
+}
+
+function formatDuration(mins){
+
+  mins=Math.max(0,Math.round(mins));
+
+  const h=Math.floor(mins/60);
+  const m=mins%60;
+
+  if(h && m)
+    return `${h} hour ${m} minutes`;
+
+  if(h)
+    return `${h} hour`;
+
+  return `${m} minutes`;
+}
+
+
+/* =========================================================
+   CURRENT
+========================================================= */
+
+function currentSlot(){
+
+  const now=nowMinutes();
+
+  return schedule.find(s =>
+    now>=minutes(s.start) &&
+    now<minutes(s.end)
+  ) || null;
+}
+
+function nextSlot(){
+
+  const now=nowMinutes();
+
+  return schedule.find(s =>
+    minutes(s.start)>now
+  ) || null;
+}
+
+
+/* =========================================================
+   UPDATE
+========================================================= */
+
+function update(){
+
+  const d=new Date();
+
+  document.getElementById("clock")
+    .textContent=d.toLocaleTimeString("en-IN");
+
+  document.getElementById("date")
+    .textContent=d.toLocaleDateString("en-IN",{
+      weekday:"long",
+      day:"numeric",
+      month:"long",
+      year:"numeric"
+    });
+
+
+  const current=currentSlot();
+
+  if(current){
+
+    const remaining =
+      minutes(current.end)-nowMinutes();
+
+    document.getElementById("currentTitle")
+      .textContent=current.title;
+
+    document.getElementById("currentDescription")
+      .textContent=current.description;
+
+    document.getElementById("remaining")
+      .textContent=
+      `${formatDuration(remaining)} remaining`;
+
+  }else{
+
+    document.getElementById("currentTitle")
+      .textContent="No Active Session";
+
+    document.getElementById("currentDescription")
+      .textContent=
+      "Please check the schedule for the next activity.";
+
+    const next=nextSlot();
+
+    document.getElementById("remaining")
+      .textContent=
+      next
+      ? `Next at ${formatTime(next.start)}`
+      : "Today's practice is complete";
+  }
+
+
+  const next=nextSlot();
+
+  if(next){
+
+    document.getElementById("nextTitle")
+      .textContent=next.title;
+
+    document.getElementById("nextTime")
+      .textContent=
+      `${formatTime(next.start)} – ${formatTime(next.end)}`;
+
+  }else{
+
+    document.getElementById("nextTitle")
+      .textContent="No more activities";
+
+    document.getElementById("nextTime")
+      .textContent="Schedule complete";
+  }
+
+
+  renderSchedule();
+  updateStats();
+}
+
+
+/* =========================================================
+   SCHEDULE
+========================================================= */
+
+function renderSchedule(){
+
+  const box =
+    document.getElementById("schedule");
+
+  const current =
+    currentSlot();
+
+  box.innerHTML =
+    schedule.map(s=>{
+
+      const active =
+        current &&
+        current.start===s.start &&
+        current.end===s.end;
+
+      return `
+        <div class="schedule-item ${active?"active":""}">
+
+          <div class="schedule-time">
+            ${formatTime(s.start)}
+            –
+            ${formatTime(s.end)}
+          </div>
+
+          <div class="schedule-title">
+            ${escapeHtml(s.title)}
+          </div>
+
+          <div class="schedule-desc">
+            ${escapeHtml(s.description)}
+          </div>
+
+        </div>
+      `;
+
+    }).join("");
+}
+
+
+/* =========================================================
+   STUDENT STATS
+========================================================= */
+
+function isComplete(s){
+  if(typeof s.completed === "boolean") return s.completed;
+  return !!(s.reading && s.writing && s.mentorCheck);
+}
+
+function updateStats(){
+
+  students =
+    JSON.parse(
+      localStorage.getItem("artsFestStudents") || "[]"
+    );
+
+  const total=students.length;
+
+  const complete=
+    students.filter(isComplete).length;
+
+  const pending=total-complete;
+
+  const percent=
+    total
+      ? Math.round(complete/total*100)
+      : 0;
+
+  document.getElementById("total")
+    .textContent=total;
+
+  document.getElementById("completed")
+    .textContent=complete;
+
+  document.getElementById("pending")
+    .textContent=pending;
+
+  document.getElementById("progress")
+    .style.width=percent+"%";
+}
+
+
+/* =========================================================
+   ANNOUNCEMENT
+========================================================= */
+
+function showAnnouncement(data){
+
+  document.getElementById("popupLabel")
+    .textContent=data.label || "ANNOUNCEMENT";
+
+  document.getElementById("popupText")
+    .textContent=data.studentCall
+      ? `Name: ${data.studentCall.name}\n` +
+        `Admission No.: ${data.studentCall.adNo}\n` +
+        `Program Code: ${data.studentCall.programCode}\n` +
+        `Program: ${data.studentCall.program}`
+      : (data.text || "");
+
+  document.getElementById("popupTime")
+    .textContent=new Date().toLocaleTimeString("en-IN");
+
+  const popup = document.getElementById("popup");
+  const box = popup.querySelector(".popup-box");
+  box.classList.toggle("pending-call", !!data.studentCall);
+
+  /* Restart animation for every incoming announcement. */
+  box.classList.remove("animate");
+  void box.offsetWidth;
+  box.classList.add("animate");
+
+  popup.classList.add("show");
+
+  clearTimeout(window.popupTimer);
+  window.popupTimer=setTimeout(closePopup,18000);
+}
+
+function closePopup(){
+
+  document.getElementById("popup")
+    .classList.remove("show");
+}
+
+
+/* =========================================================
+   MOTIVATION
+========================================================= */
+
+function changeMotivation(){
+
+  const text =
+    motivationMessages[
+      Math.floor(Math.random()*motivationMessages.length)
+    ];
+
+  document.getElementById("motivation")
+    .textContent=text;
+}
+
+setInterval(changeMotivation,120000);
+
+
+/* =========================================================
+   FULL SCREEN
+========================================================= */
+
+function toggleFullscreen(){
+
+  if(!document.fullscreenElement){
+
+    document.documentElement.requestFullscreen()
+      .catch(()=>{});
+
+  }else{
+
+    document.exitFullscreen()
+      .catch(()=>{});
+  }
+}
+
+
+/* =========================================================
+   THEME
+========================================================= */
+
+function loadTheme(){
+
+  const dark =
+    localStorage.getItem("artsFestTheme")==="dark";
+
+  document.body.classList.toggle("dark",dark);
+}
+
+loadTheme();
+
+
+/* =========================================================
+   BROADCAST CHANNEL
+========================================================= */
+
+if(channel){
+
+  channel.onmessage=function(event){
+
+    const data=event.data;
+
+    if(!data) return;
+
+    if(data.type==="announcement"){
+
+      showAnnouncement(data);
+
+    }
+
+    if(data.type==="students"){
+
+      students=data.students || [];
+
+      updateStats();
+
+    }
+
+    if(data.type==="clear"){
+
+      students=[];
+
+      updateStats();
+
+    }
+
+    if(data.type==="theme"){
+
+      document.body.classList.toggle(
+        "dark",
+        !!data.dark
+      );
+
+      localStorage.setItem(
+        "artsFestTheme",
+        data.dark ? "dark":"light"
+      );
+
+    }
+
+    if(data.type==="refresh"){
+
+      updateStats();
+      update();
+
+    }
+
+  };
+}
+
+
+/* =========================================================
+   LOCAL STORAGE ANNOUNCEMENT
+========================================================= */
+
+function loadLastAnnouncement(){
+
+  const raw =
+    localStorage.getItem(
+      "artsFestLiveAnnouncement"
+    );
+
+  if(!raw) return;
+
+  try{
+
+    const data=JSON.parse(raw);
+
+    /*
+      Only display an announcement that is less than
+      30 seconds old when the Live Wall opens.
+    */
+
+    if(
+      data.time &&
+      Date.now()-data.time < 30000
+    ){
+
+      showAnnouncement(data);
+    }
+
+  }catch(e){}
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(value){
+
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+update();
+
+loadLastAnnouncement();
+
+setInterval(update,1000);
+
+</script>
+
+</body>
+</html>
