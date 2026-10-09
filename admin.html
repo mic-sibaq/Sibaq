@@ -541,6 +541,29 @@ label{
   flex-wrap:wrap;
 }
 
+
+.qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;margin-top:16px}
+.qr-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;break-inside:avoid}
+.qr-card canvas,.qr-card img{display:block;margin:8px auto;max-width:100%;height:auto}
+.qr-card strong{display:block;overflow-wrap:anywhere}
+.qr-card small{display:block;color:var(--muted);margin-top:4px}
+.qr-download{display:inline-block;margin-top:8px;padding:7px 10px;border-radius:8px;background:var(--primary);color:white;text-decoration:none;font-weight:700}
+@media print{
+  body.qr-print-mode *{visibility:hidden!important}
+  body.qr-print-mode #studentQrSection,body.qr-print-mode #studentQrSection *{visibility:visible!important}
+  body.qr-print-mode #studentQrSection{position:absolute;left:0;top:0;width:100%;border:0;box-shadow:none}
+  body.qr-print-mode #studentQrSection .btn-row,body.qr-print-mode #studentQrSection>p:not(#qrStatus),body.qr-print-mode #studentQrSection .form-grid{display:none!important}
+  body.qr-print-mode .qr-grid{grid-template-columns:repeat(4,1fr);gap:8px}
+  body.qr-print-mode .qr-card{border:1px solid #999;padding:8px;color:#000;background:#fff}
+  body.qr-print-mode .qr-card img,body.qr-print-mode .qr-card canvas{width:125px!important;height:125px!important}
+}
+
+
+.online-profile-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:12px}
+.online-profile-card{border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--card);min-width:0}
+.online-profile-card label{display:block;margin:8px 0 4px;font-size:12px;color:var(--muted);font-weight:700}
+.online-profile-card input,.online-profile-card textarea{width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text)}
+.online-profile-card textarea{min-height:64px;resize:vertical}
 </style>
 </head>
 
@@ -808,6 +831,48 @@ label{
       </div>
     </section>
 
+
+    <!-- STUDENT QR CODE GENERATOR -->
+    <section class="card col-12" id="studentQrSection">
+      <h2>🔳 Student QR Code Generator</h2>
+      <p class="muted">Import your student CSV above. Students are grouped by admission number, so a student listed for several programs receives only one permanent QR code. The QR opens a live profile that can be updated later.</p>
+      <div class="form-grid">
+        <div>
+          <label>Public website URL</label>
+          <input id="qrBaseUrl" value="https://mic-sibaq.vercel.app" placeholder="https://your-site.vercel.app">
+        </div>
+        <div>
+          <label>Student profile page file</label>
+          <input value="student.html" readonly>
+        </div>
+      </div>
+      <p class="muted">CSV headers supported: Admission No / Ad.No / Admission Number, Name, Program Code, Program, Mentor. QR links contain only the unique admission number; profile details are loaded from the online database, so changes appear without reprinting QR codes.</p>
+      <div class="card" style="margin:12px 0;padding:16px;border:1px solid var(--border)">
+        <h3>☁️ Online Student Database</h3>
+        <p class="muted">Set up Supabase and add your Project URL and anon/publishable key in <b>supabase-config.js</b>. Sign in with the admin account you create in Supabase.</p>
+        <div class="form-grid">
+          <div><label>Admin email</label><input id="dbEmail" type="email" autocomplete="username" placeholder="your admin email"></div>
+          <div><label>Admin password</label><input id="dbPassword" type="password" autocomplete="current-password" placeholder="Supabase admin password"></div>
+        </div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn" onclick="signInDatabaseAdmin()">🔐 Sign in</button>
+          <button class="btn secondary" onclick="signOutDatabaseAdmin()">Sign out</button>
+          <button class="btn green" onclick="syncStudentsToDatabase()">☁️ Upload / Update Unique Students</button>
+          <button class="btn" onclick="loadOnlineProfiles()">↻ Load Online Profiles</button>
+        </div>
+        <p class="muted" id="dbStatus" role="status">Database is not connected yet. Follow README.txt setup steps.</p>
+      </div>
+      <div class="btn-row">
+        <button class="btn green" onclick="generateStudentQRCodes()">🔳 Generate One QR per Student</button>
+        <button class="btn" onclick="downloadAllQRCodes()">📦 Download All QR PNGs (ZIP)</button>
+        <button class="btn" onclick="printQRCodes()">🖨️ Print QR Sheet</button>
+        <button class="btn secondary" onclick="clearQRCodes()">Clear Preview</button>
+      </div>
+      <p class="muted" id="qrStatus" role="status">QR codes have not been generated yet.</p>
+      <div id="qrPreview" class="qr-grid"></div>
+      <h3>✏️ Edit Online Profiles</h3><p class="muted">After sign-in, load profiles. Edit name, mentor, programs, or program codes and save. Use one item per line for programs and codes.</p><div id="onlineProfiles" class="online-profile-list"></div>
+    </section>
+
     <!-- PENDING -->
     <section class="card col-6">
       <h2>🚨 Pending Students</h2>
@@ -879,6 +944,8 @@ label{
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 <script>
 /* =========================================================
    DATA
@@ -2515,6 +2582,113 @@ if(channel){
 /* =========================================================
    START
 ========================================================= */
+
+
+/* =========================================================
+   PERMANENT STUDENT QR + SUPABASE DATABASE
+========================================================= */
+let generatedQrItems = [];
+let onlineProfileCache = [];
+function getDbClient(){
+  if(!window.supabase || !window.SIBAQ_SUPABASE_CONFIG || !window.SIBAQ_SUPABASE_CONFIG.url || !window.SIBAQ_SUPABASE_CONFIG.anonKey || window.SIBAQ_SUPABASE_CONFIG.url.includes('YOUR_')) return null;
+  if(!window.__sibaQDb) window.__sibaQDb = window.supabase.createClient(window.SIBAQ_SUPABASE_CONFIG.url,window.SIBAQ_SUPABASE_CONFIG.anonKey);
+  return window.__sibaQDb;
+}
+function setDbStatus(text){ const el=document.getElementById('dbStatus'); if(el) el.textContent=text; }
+function normalizeAdmission(value){ return String(value??'').trim().replace(/\s+/g,' ').toLocaleUpperCase(); }
+function uniqueStudentRoster(){
+  const map=new Map();
+  (students||[]).forEach(s=>{
+    const admissionNo=String(s.adNo??s.admissionNo??s.admission_no??'').trim();
+    const key=normalizeAdmission(admissionNo);
+    if(!key) return;
+    if(!map.has(key)) map.set(key,{admission_no:admissionNo,name:String(s.name||'').trim(),mentor:String(s.mentor||'').trim(),programs:[],program_codes:[]});
+    const p=map.get(key);
+    if(String(s.name||'').trim()) p.name=String(s.name).trim();
+    if(String(s.mentor||'').trim()) p.mentor=String(s.mentor).trim();
+    const program=String(s.program||'').trim(), code=String(s.programCode??s.program_code??'').trim();
+    if(program && !p.programs.some(x=>x.toLocaleLowerCase()===program.toLocaleLowerCase())) p.programs.push(program);
+    if(code && !p.program_codes.some(x=>x.toLocaleLowerCase()===code.toLocaleLowerCase())) p.program_codes.push(code);
+  });
+  return [...map.values()].map(p=>({...p,programs:p.programs.sort((a,b)=>a.localeCompare(b)),program_codes:p.program_codes.sort((a,b)=>a.localeCompare(b))}));
+}
+async function signInDatabaseAdmin(){
+  const db=getDbClient(); if(!db){setDbStatus('Supabase is not configured. Edit supabase-config.js with your Project URL and anon/publishable key, then redeploy.');return;}
+  const email=document.getElementById('dbEmail').value.trim(),password=document.getElementById('dbPassword').value;
+  if(!email||!password){setDbStatus('Enter the admin email and password.');return;}
+  setDbStatus('Signing in…');
+  const {error}=await db.auth.signInWithPassword({email,password});
+  setDbStatus(error?'Sign-in failed: '+error.message:'Signed in successfully. You can now upload and edit online student profiles.');
+  if(!error) await loadOnlineProfiles();
+}
+async function signOutDatabaseAdmin(){const db=getDbClient();if(!db){setDbStatus('Supabase is not configured yet.');return;}const {error}=await db.auth.signOut();setDbStatus(error?'Sign-out failed: '+error.message:'Signed out.');}
+async function syncStudentsToDatabase(){
+  const db=getDbClient();if(!db){setDbStatus('Supabase is not configured. Complete setup in README.txt first.');return;}
+  const {data:{session}}=await db.auth.getSession();if(!session){setDbStatus('Please sign in with the Supabase admin account first.');return;}
+  const roster=uniqueStudentRoster();if(!roster.length){setDbStatus('No students with admission numbers found. Import your CSV first.');return;}
+  setDbStatus(`Uploading ${roster.length} unique students…`);
+  const payload=roster.map(p=>({...p,updated_at:new Date().toISOString()}));
+  const {error}=await db.from('student_profiles').upsert(payload,{onConflict:'admission_no'});
+  if(error){setDbStatus('Upload failed: '+error.message+' — check that the SQL setup was completed.');return;}
+  setDbStatus(`Success: ${roster.length} unique student profiles uploaded/updated. Repeated program rows were combined. Existing QR codes will keep working.`);
+  await loadOnlineProfiles();
+}
+async function loadOnlineProfiles(){
+  const db=getDbClient();if(!db){setDbStatus('Supabase is not configured. Complete setup in README.txt first.');return;}
+  const {data:{session}}=await db.auth.getSession();if(!session){setDbStatus('Sign in first to load and edit online profiles.');return;}
+  setDbStatus('Loading online profiles…');
+  const {data,error}=await db.from('student_profiles').select('*').order('admission_no');
+  if(error){setDbStatus('Could not load profiles: '+error.message);return;}
+  onlineProfileCache=data||[];renderOnlineProfiles(onlineProfileCache);
+  setDbStatus(`Loaded ${onlineProfileCache.length} online profiles. Edit any fields and click Save Profile.`);
+}
+function renderOnlineProfiles(list){
+  const root=document.getElementById('onlineProfiles');if(!root)return;root.innerHTML='';
+  if(!list.length){root.textContent='No online profiles loaded yet.';return;}
+  list.forEach((p,i)=>{
+    const card=document.createElement('div');card.className='online-profile-card';
+    const title=document.createElement('strong');title.textContent=`Admission No.: ${p.admission_no}`;card.appendChild(title);
+    const fields=[['name','Student name',p.name||'','input'],['mentor','Mentor',p.mentor||'','input'],['programs','Programs (one per line)',(p.programs||[]).join('\n'),'textarea'],['program_codes','Program codes (one per line)',(p.program_codes||[]).join('\n'),'textarea']];
+    fields.forEach(([key,label,value,type])=>{const lab=document.createElement('label');lab.textContent=label;const el=document.createElement(type==='textarea'?'textarea':'input');el.value=value;el.dataset.field=key;card.append(lab,el);});
+    const btn=document.createElement('button');btn.className='btn green';btn.style.marginTop='10px';btn.textContent='💾 Save Profile';btn.onclick=()=>saveOnlineProfile(p.admission_no,card);card.appendChild(btn);root.appendChild(card);
+  });
+}
+function linesFromField(value){return [...new Set(String(value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean))];}
+async function saveOnlineProfile(admissionNo,card){
+  const db=getDbClient();if(!db){setDbStatus('Supabase is not configured.');return;}
+  const {data:{session}}=await db.auth.getSession();if(!session){setDbStatus('Sign in first to save profile updates.');return;}
+  const get=k=>card.querySelector(`[data-field="${k}"]`).value.trim();
+  const payload={admission_no:admissionNo,name:get('name'),mentor:get('mentor'),programs:linesFromField(get('programs')),program_codes:linesFromField(get('program_codes')),updated_at:new Date().toISOString()};
+  const {error}=await db.from('student_profiles').upsert(payload,{onConflict:'admission_no'});
+  if(error){setDbStatus('Profile update failed: '+error.message);return;}
+  setDbStatus(`Updated ${admissionNo}. The student's existing QR now shows the new information.`);
+}
+function qrValue(student){return {id:student.admission_no,admissionNo:student.admission_no,name:student.name};}
+function buildStudentProfileUrl(student){
+  const base=(document.getElementById('qrBaseUrl').value.trim()||window.location.origin).replace(/\/+$/,'');
+  return `${base}/student.html?id=${encodeURIComponent(student.admission_no)}`;
+}
+function loadQrLibraries(){return new Promise((resolve,reject)=>{if(window.QRCode&&window.JSZip){resolve();return;}let pending=0;const done=()=>{if(window.QRCode&&window.JSZip)resolve();};const load=(src,test)=>{if(test()){done();return;}pending++;const script=document.createElement('script');script.src=src;script.onload=()=>{pending--;done();};script.onerror=()=>reject(new Error('Could not load QR/ZIP library. Check your internet connection and try again.'));document.head.appendChild(script);};load('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',()=>!!window.QRCode);load('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',()=>!!window.JSZip);});}
+async function generateStudentQRCodes(){
+  const status=document.getElementById('qrStatus'),preview=document.getElementById('qrPreview');
+  const roster=uniqueStudentRoster();
+  if(!roster.length){status.textContent='No students found. Import your CSV above first. Each student needs an admission number.';return;}
+  if(!window.QRCode){status.textContent='Loading QR code tools…';try{await loadQrLibraries();}catch(e){status.textContent=e.message;return;}}
+  generatedQrItems=roster.map(s=>({student:qrValue(s),url:buildStudentProfileUrl(s)}));preview.innerHTML='';
+  for(let i=0;i<generatedQrItems.length;i++){
+    const entry=generatedQrItems[i],card=document.createElement('div');card.className='qr-card';const qrBox=document.createElement('div');qrBox.id='student-qr-'+i;
+    const name=document.createElement('strong');name.textContent=entry.student.name||('Student '+(i+1));const details=document.createElement('small');details.textContent='Admission No.: '+entry.student.admissionNo;
+    const link=document.createElement('a');link.className='qr-download';link.href='#';link.textContent='Download PNG';link.addEventListener('click',async ev=>{ev.preventDefault();const canvas=qrBox.querySelector('canvas'),img=qrBox.querySelector('img'),dataUrl=canvas?canvas.toDataURL('image/png'):(img?img.src:'');if(!dataUrl){alert('QR image is not ready yet.');return;}const a=document.createElement('a');a.href=dataUrl;a.download=safeFileName(entry.student.admissionNo||entry.student.name)+'-QR.png';a.click();});
+    card.append(qrBox,name,details,link);preview.appendChild(card);new QRCode(qrBox,{text:entry.url,width:180,height:180,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+  }
+  status.textContent=`Generated ${generatedQrItems.length} QR codes for ${generatedQrItems.length} unique admission numbers. Before printing, sign in and click “Upload / Update Unique Students” so every profile exists online.`;
+}
+function safeFileName(value){return String(value||'student').normalize('NFKD').replace(/[^a-zA-Z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60)||'student';}
+async function getQrDataUrl(index){const box=document.getElementById('student-qr-'+index);if(!box)return null;const canvas=box.querySelector('canvas'),img=box.querySelector('img');if(canvas)return canvas.toDataURL('image/png');if(img)return img.src;return null;}
+async function downloadAllQRCodes(){if(!generatedQrItems.length)await generateStudentQRCodes();if(!generatedQrItems.length)return;try{if(!window.JSZip)await loadQrLibraries();const zip=new JSZip();for(let i=0;i<generatedQrItems.length;i++){const dataUrl=await getQrDataUrl(i);if(dataUrl)zip.file(`${safeFileName(generatedQrItems[i].student.admissionNo)}-QR.png`,dataUrl.split(',')[1],{base64:true});}const blob=await zip.generateAsync({type:'blob'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='SIBAQ-Student-QR-Codes.zip';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);document.getElementById('qrStatus').textContent=`Downloaded ZIP with ${generatedQrItems.length} unique student QR codes.`;}catch(e){document.getElementById('qrStatus').textContent='ZIP download failed: '+e.message;}}
+function printQRCodes(){if(!generatedQrItems.length){alert('Please generate QR codes first.');return;}document.body.classList.add('qr-print-mode');window.print();setTimeout(()=>document.body.classList.remove('qr-print-mode'),800);}
+function clearQRCodes(){generatedQrItems=[];document.getElementById('qrPreview').innerHTML='';document.getElementById('qrStatus').textContent='QR code preview cleared.';}
+
 
 loadSettings();
 renderStudents();
