@@ -2561,6 +2561,9 @@
             student.source = 'csv'; student.csvFileName = file.name;
             students.push(student);
           });
+          
+          applyProgrammeMentorsToRows();
+
           saveStudents();
           localStorage.setItem('artsFestUploadedCSVName', file.name);
           updateCSVStatus();
@@ -2830,69 +2833,36 @@ function normalizeProgramValue(value) {
     .replace(/\s+/g, " ");
 }
 
-function buildProgramMentorMap() {
-  const byProgram = new Map();
-  const byCode = new Map();
-  const conflicts = [];
+function applyProgrammeMentorsToRows() {
+  const assignments = buildProgramMentorMap().map;
 
-  const csvRows = students.filter(s => s.source === "csv");
-  const rows = csvRows.length ? csvRows : students;
+  const csvStudents = students.filter(
+    student => student.source === "csv"
+  );
 
-  rows.forEach(student => {
+  csvStudents.forEach(student => {
     const program = String(student.program || "").trim();
     const code = String(
       student.programCode ?? student.program_code ?? ""
     ).trim();
-    const mentor = String(student.mentor || "").trim();
 
-    if (!mentor || (!program && !code)) return;
+    const programKey = program
+      ? "program:" + normalizeProgramValue(program)
+      : "";
 
-    const programKey = normalizeProgramValue(program);
-    const codeKey = normalizeProgramValue(code);
+    const codeKey = code
+      ? "code:" + normalizeProgramValue(code)
+      : "";
 
-    let assignment = programKey
-      ? byProgram.get(programKey)
-      : byCode.get(codeKey);
+    // Match the programme first; use the code if needed.
+    const assignment =
+      (programKey && assignments.get(programKey)) ||
+      (codeKey && assignments.get(codeKey));
 
-    if (!assignment) {
-      assignment = { program, code, mentor };
-
-      if (programKey) {
-        byProgram.set(programKey, assignment);
-      }
-
-      if (codeKey && !byCode.has(codeKey)) {
-        byCode.set(codeKey, assignment);
-      }
-    } else if (
-      normalizeProgramValue(assignment.mentor) !==
-      normalizeProgramValue(mentor)
-    ) {
-      const conflictKey = programKey || codeKey;
-
-      if (!conflicts.some(c => c.key === conflictKey)) {
-        conflicts.push({
-          key: conflictKey,
-          program: program || assignment.program,
-          code: code || assignment.code,
-          first: assignment.mentor,
-          other: mentor
-        });
-      }
+    if (assignment && assignment.mentor) {
+      student.mentor = assignment.mentor;
     }
   });
-
-  const map = new Map();
-
-  byProgram.forEach((assignment, key) => {
-    map.set("program:" + key, assignment);
-  });
-
-  byCode.forEach((assignment, key) => {
-    map.set("code:" + key, assignment);
-  });
-
-  return { map, conflicts };
 }
 
 function uniqueStudentRoster() {
