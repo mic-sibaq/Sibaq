@@ -2561,7 +2561,7 @@
             student.source = 'csv'; student.csvFileName = file.name;
             students.push(student);
           });
-          
+
           applyProgrammeMentorsToRows();
 
           saveStudents();
@@ -2819,6 +2819,10 @@
     // programme -> mentor map from all imported rows first, then apply it to every
     // student enrolled in that programme.
     
+/* =========================================================
+   STUDENT + PROGRAMME + MENTOR MANAGEMENT
+   ========================================================= */
+
 function normalizeAdmission(value) {
   return String(value ?? "")
     .trim()
@@ -2829,120 +2833,274 @@ function normalizeAdmission(value) {
 function normalizeProgramValue(value) {
   return String(value ?? "")
     .trim()
-    .toLocaleLowerCase()
-    .replace(/\s+/g, " ");
+    .replace(/\s+/g, " ")
+    .toLocaleLowerCase();
 }
 
-function applyProgrammeMentorsToRows() {
-  const assignments = buildProgramMentorMap().map;
-
-  const csvStudents = students.filter(
-    student => student.source === "csv"
-  );
-
-  csvStudents.forEach(student => {
-    const program = String(student.program || "").trim();
-    const code = String(
-      student.programCode ?? student.program_code ?? ""
-    ).trim();
-
-    const programKey = program
-      ? "program:" + normalizeProgramValue(program)
-      : "";
-
-    const codeKey = code
-      ? "code:" + normalizeProgramValue(code)
-      : "";
-
-    // Match the programme first; use the code if needed.
-    const assignment =
-      (programKey && assignments.get(programKey)) ||
-      (codeKey && assignments.get(codeKey));
-
-    if (assignment && assignment.mentor) {
-      student.mentor = assignment.mentor;
-    }
-  });
+function getStudentAdmission(student) {
+  return String(
+    student?.adNo ??
+    student?.admissionNo ??
+    student?.admission_no ??
+    ""
+  ).trim();
 }
 
-function uniqueStudentRoster() {
-  const studentMap = new Map();
-  const assignments = buildProgramMentorMap().map;
+function getStudentProgramCode(student) {
+  return String(
+    student?.programCode ??
+    student?.program_code ??
+    ""
+  ).trim();
+}
 
-  const csvRows = students.filter(s => s.source === "csv");
-  const rows = csvRows.length ? csvRows : students;
+function getStudentProgram(student) {
+  return String(
+    student?.program ??
+    student?.programme ??
+    ""
+  ).trim();
+}
 
-  rows.forEach(student => {
-    const admissionNo = String(
-      student.adNo ??
-      student.admissionNo ??
-      student.admission_no ??
-      ""
-    ).trim();
+function getStudentMentor(student) {
+  return String(
+    student?.mentor ??
+    student?.programMentor ??
+    student?.program_mentor ??
+    ""
+  ).trim();
+}
 
-    if (!admissionNo) return;
+/*
+  Build a programme-to-mentor map.
 
-    const studentKey = normalizeAdmission(admissionNo);
+  A mentor belongs to a programme, not to an individual student.
+  Programme names are matched first. Programme codes are used
+  as a fallback when a programme name is unavailable.
+*/
+function buildProgramMentorMap() {
+  const byProgram = new Map();
+  const byCode = new Map();
+  const conflicts = [];
 
-    if (!studentMap.has(studentKey)) {
-      studentMap.set(studentKey, {
-        admission_no: admissionNo,
-        name: String(student.name || "").trim(),
-        mentor: "",
-        programs: [],
-        program_codes: [],
-        program_mentors: [],
-        _pairs: new Map()
+  const rows = Array.isArray(students) ? students : [];
+
+  // CSV rows are processed first so imported assignments take priority.
+  const orderedRows = [
+    ...rows.filter(student => student?.source === "csv"),
+    ...rows.filter(student => student?.source !== "csv")
+  ];
+
+  function recordConflict(existing, mentor, program, code) {
+    if (
+      existing.mentor &&
+      mentor &&
+      existing.mentor.toLocaleLowerCase() !==
+        mentor.toLocaleLowerCase()
+    ) {
+      conflicts.push({
+        program: program || existing.program || "",
+        code: code || existing.code || "",
+        first: existing.mentor,
+        other: mentor
       });
     }
+  }
 
-    const profile = studentMap.get(studentKey);
+  orderedRows.forEach(student => {
+    const program = getStudentProgram(student);
+    const code = getStudentProgramCode(student);
+    const mentor = getStudentMentor(student);
 
-    if (student.name) {
-      profile.name = String(student.name).trim();
-    }
-
-    const program = String(student.program || "").trim();
-    const code = String(
-      student.programCode ?? student.program_code ?? ""
-    ).trim();
-
-    if (!program && !code) return;
+    if (!mentor || (!program && !code)) return;
 
     const programKey = normalizeProgramValue(program);
     const codeKey = normalizeProgramValue(code);
 
-    // Programme name takes priority; code is the fallback.
-    const assignment =
-      (programKey && assignments.get("program:" + programKey)) ||
-      (codeKey && assignments.get("code:" + codeKey));
+    let existing = null;
 
-    const pairKey = (codeKey || "") + "|" + (programKey || "");
-
-    if (!profile._pairs.has(pairKey)) {
-      profile._pairs.set(pairKey, {
-        program,
-        code,
-        mentor: assignment ? assignment.mentor : ""
-      });
-    } else if (assignment) {
-      profile._pairs.get(pairKey).mentor = assignment.mentor;
+    // Prefer matching the actual programme name.
+    if (programKey && byProgram.has(programKey)) {
+      existing = byProgram.get(programKey);
     }
+
+    // Use programme code only if no name match was found.
+    if (!existing && codeKey && byCode.has(codeKey)) {
+      existing = byCode.get(codeKey);
+    }
+
+    if (existing) {
+      recordConflict(existing, mentor, program, code);
+
+      // Keep the first non-empty mentor assignment.
+      if (!existing.mentor && mentor) {
+        existing.mentor = mentor;
+      }
+
+      // Register any additional name/code aliases.
+      if (programKey && !byProgram.has(programKey)) {
+        byProgram.set(programKey, existing);
+      }
+
+      if (codeKey && !byCode.has(codeKey)) {
+        byCode.set(codeKey, existing);
+      }
+
+      return;
+    }
+
+    const assignment = {
+      program,
+      code,
+      mentor
+    };
+
+    if (programKey) byProgram.set(programKey, assignment);
+    if (codeKey) byCode.set(codeKey, assignment);
   });
 
-  return [...studentMap.values()].map(profile => {
-    const pairs = [...profile._pairs.values()].sort((a, b) =>
-      (a.code || a.program).localeCompare(b.code || b.program)
+  return {
+    byProgram,
+    byCode,
+    conflicts
+  };
+}
+
+/*
+  Find the mentor for a specific programme.
+*/
+function findProgrammeMentor(program, code, mentorMap) {
+  const programKey = normalizeProgramValue(program);
+  const codeKey = normalizeProgramValue(code);
+
+  if (programKey && mentorMap.byProgram.has(programKey)) {
+    return mentorMap.byProgram.get(programKey).mentor || "";
+  }
+
+  if (codeKey && mentorMap.byCode.has(codeKey)) {
+    return mentorMap.byCode.get(codeKey).mentor || "";
+  }
+
+  return "";
+}
+
+/*
+  Apply the programme mentor to every matching student row.
+  This updates local data before the database sync.
+*/
+function applyProgrammeMentorsToRows() {
+  const mentorMap = buildProgramMentorMap();
+
+  students = (Array.isArray(students) ? students : []).map(student => {
+    const program = getStudentProgram(student);
+    const code = getStudentProgramCode(student);
+
+    const assignedMentor = findProgrammeMentor(
+      program,
+      code,
+      mentorMap
     );
 
-    profile.programs = pairs.map(p => p.program);
-    profile.program_codes = pairs.map(p => p.code);
-    profile.program_mentors = pairs.map(p => p.mentor);
+    return {
+      ...student,
+      mentor: assignedMentor || getStudentMentor(student)
+    };
+  });
 
-    // Compatibility field for older parts of the website.
-    profile.mentor = profile.program_mentors.find(Boolean) || "";
+  if (typeof saveStudents === "function") {
+    saveStudents();
+  }
 
-    delete profile._pairs;
+  return mentorMap.conflicts;
+}
+
+/*
+  Create exactly one database profile per admission number.
+
+  Programme-related arrays use the same index:
+    programs[0]
+    program_codes[0]
+    program_mentors[0]
+
+  These three values describe the same programme assignment.
+*/
+function uniqueStudentRoster() {
+  const roster = new Map();
+  const mentorMap = buildProgramMentorMap();
+
+  (Array.isArray(students) ? students : []).forEach(student => {
+    const admissionNo = getStudentAdmission(student);
+    const admissionKey = normalizeAdmission(admissionNo);
+
+    if (!admissionKey) return;
+
+    if (!roster.has(admissionKey)) {
+      roster.set(admissionKey, {
+        admission_no: admissionNo,
+        name: String(student?.name ?? "").trim(),
+        mentor: "",
+        programs: [],
+        program_codes: [],
+        program_mentors: [],
+        _programKeys: new Set()
+      });
+    }
+
+    const profile = roster.get(admissionKey);
+    const studentName = String(student?.name ?? "").trim();
+
+    if (studentName && !profile.name) {
+      profile.name = studentName;
+    }
+
+    const program = getStudentProgram(student);
+    const code = getStudentProgramCode(student);
+
+    if (!program && !code) return;
+
+    // Avoid adding the same programme more than once.
+    const programKey =
+      normalizeProgramValue(code) +
+      "|" +
+      normalizeProgramValue(program);
+
+    if (profile._programKeys.has(programKey)) return;
+
+    profile._programKeys.add(programKey);
+
+    const programmeMentor =
+      findProgrammeMentor(program, code, mentorMap) ||
+      getStudentMentor(student);
+
+    profile.programs.push(program);
+    profile.program_codes.push(code);
+    profile.program_mentors.push(programmeMentor);
+  });
+
+  return Array.from(roster.values()).map(profile => {
+    // Keep programme ordering predictable while preserving alignment.
+    const assignments = profile.programs.map((program, index) => ({
+      program,
+      code: profile.program_codes[index],
+      mentor: profile.program_mentors[index]
+    }));
+
+    assignments.sort((a, b) => {
+      const aLabel = a.code || a.program;
+      const bLabel = b.code || b.program;
+      return aLabel.localeCompare(bLabel);
+    });
+
+    profile.programs = assignments.map(item => item.program);
+    profile.program_codes = assignments.map(item => item.code);
+    profile.program_mentors = assignments.map(item => item.mentor);
+
+    // Compatibility field for older parts of the admin panel.
+    profile.mentor =
+      profile.program_mentors.find(mentor => Boolean(mentor)) || "";
+
+    delete profile._programKeys;
+
     return profile;
   });
 }
