@@ -24,6 +24,7 @@ STEP 2 — CREATE THE TABLE
 2. Choose New query.
 3. Open supabase-setup.sql from this package, copy all its contents, paste into the SQL Editor, and click Run.
 4. Confirm the query finishes successfully.
+   If the table already exists, run the updated script again; it adds the per-programme mentor column without replacing existing student profiles.
 
 STEP 3 — CREATE AN ADMIN LOGIN
 1. In Supabase open Authentication → Users.
@@ -45,7 +46,7 @@ STEP 5 — DEPLOY TO VERCEL
 
 STEP 6 — UPLOAD STUDENTS AND MAKE QR CODES
 1. Open https://mic-sibaq.vercel.app/admin.html.
-2. Import the CSV in the normal student section. Required columns: Admission No, Name, Program Code, Program. Mentor is optional.
+2. Import the CSV in the normal student section. Required columns: Admission No, Name, Program Code, Program. Mentor is optional; use a Mentor, Mentor Name, Program Mentor, or Programme Mentor column to assign mentors by Program Code. Rows with the same Program Code share that mentor assignment.
 3. Scroll to Student QR Code Generator. Enter the admin email/password and click Sign in.
 4. Click Upload / Update Unique Students. The system groups all program rows for each admission number and uploads one combined profile per student.
 5. Click Generate One QR per Student. Confirm the count equals the number of unique admission numbers (not the number of program rows).
@@ -54,7 +55,7 @@ STEP 6 — UPLOAD STUDENTS AND MAKE QR CODES
 STEP 7 — EDIT AFTER PRINTING
 1. Open the Control Room and sign in.
 2. Click Load Online Profiles.
-3. Edit Name, Mentor, Programs (one per line), or Program Codes (one per line), then click Save Profile.
+3. Edit Name, Mentor, Programs (one per line), Program Codes (one per line), or Mentors per program (one per line in the same order as the program/code lists), then click Save Profile.
 4. The existing QR code remains unchanged. Scan it again to see the updated database record.
 5. If the student participates in additional programs, edit the program and code lists here. Avoid re-uploading an older CSV afterward unless you want its values to replace the edited profile.
 

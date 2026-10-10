@@ -5,8 +5,11 @@ create table if not exists public.student_profiles (
   mentor text not null default '',
   programs text[] not null default '{}',
   program_codes text[] not null default '{}',
+  program_mentors text[] not null default '{}',
   updated_at timestamptz not null default now()
 );
+alter table public.student_profiles
+  add column if not exists program_mentors text[] not null default '{}';
 alter table public.student_profiles enable row level security;
 drop policy if exists "Public can read student profiles" on public.student_profiles;
 create policy "Public can read student profiles" on public.student_profiles for select to anon, authenticated using (true);
