@@ -1,1180 +1,1416 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Arts Fest Control Room</title>
-
-<style>
-:root{
-  --bg:#f4f7fb;
-  --card:#ffffff;
-  --text:#172033;
-  --muted:#667085;
-  --border:#dce2ea;
-  --primary:#5b5ce2;
-  --primary2:#7c3aed;
-  --green:#16a34a;
-  --red:#dc2626;
-  --orange:#ea580c;
-  --yellow:#ca8a04;
-  --shadow:0 10px 30px rgba(0,0,0,.08);
-}
-
-body.dark{
-  --bg:#0b1020;
-  --card:#121a2b;
-  --text:#f5f7ff;
-  --muted:#9aa6bd;
-  --border:#26324a;
-  --primary:#818cf8;
-  --primary2:#a78bfa;
-  --shadow:0 10px 30px rgba(0,0,0,.3);
-}
-
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:Inter,Segoe UI,Arial,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  transition:.25s;
-}
-
-button,input,textarea,select{
-  font:inherit;
-}
-
-button{
-  border:0;
-  cursor:pointer;
-}
-
-.topbar{
-  position:sticky;
-  top:0;
-  z-index:50;
-  background:var(--card);
-  border-bottom:1px solid var(--border);
-  padding:14px 22px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:15px;
-  box-shadow:var(--shadow);
-}
-
-.brand{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
-.logo{
-  width:44px;
-  height:44px;
-  border-radius:13px;
-  background:linear-gradient(135deg,var(--primary),var(--primary2));
-  display:grid;
-  place-items:center;
-  color:white;
-  font-weight:900;
-  font-size:20px;
-}
-
-.brand h1{
-  margin:0;
-  font-size:20px;
-}
-
-.brand small{
-  color:var(--muted);
-}
-
-.top-actions{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-}
-
-.container{
-  max-width:1500px;
-  margin:auto;
-  padding:22px;
-}
-
-.clock-card{
-  background:linear-gradient(135deg,var(--primary),var(--primary2));
-  color:white;
-  border-radius:22px;
-  padding:25px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:20px;
-  box-shadow:var(--shadow);
-  margin-bottom:20px;
-}
-
-.big-clock{
-  font-size:42px;
-  font-weight:900;
-}
-
-.clock-date{
-  opacity:.85;
-  margin-top:5px;
-}
-
-.current-title{
-  font-size:27px;
-  font-weight:900;
-}
-
-.current-sub{
-  opacity:.9;
-  margin-top:6px;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(12,1fr);
-  gap:18px;
-}
-
-.card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:18px;
-  padding:20px;
-  box-shadow:var(--shadow);
-}
-
-.col-12{grid-column:span 12}
-.col-8{grid-column:span 8}
-.col-6{grid-column:span 6}
-.col-4{grid-column:span 4}
-
-.card h2{
-  margin:0 0 15px;
-  font-size:18px;
-}
-
-.card h3{
-  margin:0 0 10px;
-}
-
-.muted{
-  color:var(--muted);
-}
-
-.stats{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:12px;
-}
-
-.stat{
-  padding:18px;
-  border:1px solid var(--border);
-  border-radius:14px;
-  text-align:center;
-}
-
-.stat b{
-  display:block;
-  font-size:28px;
-  margin-bottom:4px;
-}
-
-.stat span{
-  color:var(--muted);
-  font-size:13px;
-}
-
-.btn{
-  padding:11px 15px;
-  border-radius:11px;
-  background:var(--primary);
-  color:white;
-  font-weight:700;
-  transition:.2s;
-}
-
-.btn:hover{
-  transform:translateY(-1px);
-  filter:brightness(1.08);
-}
-
-.btn.secondary{
-  background:var(--card);
-  color:var(--text);
-  border:1px solid var(--border);
-}
-
-.btn.green{background:var(--green)}
-.btn.red{background:var(--red)}
-.btn.orange{background:var(--orange)}
-.btn.dark{background:#111827}
-.btn.yellow{background:var(--yellow)}
-
-.btn-row{
-  display:flex;
-  gap:9px;
-  flex-wrap:wrap;
-}
-
-textarea,
-input,
-select{
-  width:100%;
-  border:1px solid var(--border);
-  background:var(--bg);
-  color:var(--text);
-  border-radius:11px;
-  padding:12px;
-  outline:none;
-}
-
-textarea{
-  min-height:120px;
-  resize:vertical;
-}
-
-input:focus,
-textarea:focus,
-select:focus{
-  border-color:var(--primary);
-}
-
-label{
-  display:block;
-  font-size:13px;
-  font-weight:700;
-  margin-bottom:6px;
-}
-
-.form-grid{
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:10px;
-}
-
-.form-group{
-  margin-bottom:12px;
-}
-
-.progress{
-  height:13px;
-  background:var(--border);
-  border-radius:20px;
-  overflow:hidden;
-}
-
-.progress div{
-  height:100%;
-  background:linear-gradient(90deg,var(--primary),var(--primary2));
-  width:0%;
-  transition:.3s;
-}
-
-.schedule{
-  display:grid;
-  gap:10px;
-}
-
-.schedule-item{
-  display:grid;
-  grid-template-columns:110px 1fr auto;
-  gap:12px;
-  align-items:center;
-  padding:13px;
-  border:1px solid var(--border);
-  border-radius:13px;
-}
-
-.schedule-item.active{
-  border-color:var(--primary);
-  box-shadow:0 0 0 2px rgba(91,92,226,.12);
-}
-
-.schedule-time{
-  font-weight:800;
-}
-
-.badge{
-  display:inline-block;
-  padding:5px 9px;
-  border-radius:20px;
-  background:rgba(91,92,226,.12);
-  color:var(--primary);
-  font-size:12px;
-  font-weight:800;
-}
-
-.student-table{
-  width:100%;
-  border-collapse:collapse;
-}
-
-.student-table th,
-.student-table td{
-  border-bottom:1px solid var(--border);
-  padding:11px 8px;
-  text-align:left;
-  font-size:13px;
-}
-
-.student-table th{
-  color:var(--muted);
-  font-size:12px;
-}
-
-.check{
-  width:18px;
-  height:18px;
-}
-
-.complete{
-  color:var(--green);
-  font-weight:800;
-}
-
-.pending{
-  color:var(--red);
-  font-weight:800;
-}
-
-.student-actions{
-  display:flex;
-  gap:5px;
-}
-
-.small-btn{
-  padding:6px 9px;
-  border-radius:7px;
-  background:var(--bg);
-  border:1px solid var(--border);
-  color:var(--text);
-}
-
-.ai-box{
-  border:2px solid var(--primary);
-  background:rgba(91,92,226,.07);
-  border-radius:15px;
-  padding:15px;
-}
-
-.ai-title{
-  font-weight:900;
-  margin-bottom:8px;
-}
-
-.toggle{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:12px;
-  border:1px solid var(--border);
-  border-radius:12px;
-  margin-bottom:10px;
-}
-
-.toggle input{
-  width:auto;
-}
-
-.toast{
-  position:fixed;
-  right:20px;
-  bottom:20px;
-  z-index:200;
-  background:#111827;
-  color:white;
-  padding:13px 17px;
-  border-radius:10px;
-  opacity:0;
-  transform:translateY(20px);
-  pointer-events:none;
-  transition:.25s;
-}
-
-.toast.show{
-  opacity:1;
-  transform:translateY(0);
-}
-
-.popup{
-  position:fixed;
-  inset:0;
-  z-index:100;
-  display:none;
-  background:rgba(0,0,0,.72);
-  align-items:center;
-  justify-content:center;
-  padding:20px;
-}
-
-.popup.show{
-  display:flex;
-}
-
-.popup-box{
-  width:min(800px,95vw);
-  background:var(--card);
-  border-radius:25px;
-  padding:30px;
-  text-align:center;
-  box-shadow:0 30px 80px rgba(0,0,0,.4);
-}
-.popup-box.animate{
-   animation:popupIn .45s cubic-bezier(.2,.8,.2,1),popupPulse 1.2s ease .45s;
-}
-@keyframes popupIn{
-  0%{opacity:0;transform:translateY(40px) scale(.88) rotateX(8deg)}
-  60%{opacity:1;transform:translateY(-5px) scale(1.02)}
-  100%{opacity:1;transform:translateY(0) scale(1)}
-}
-@keyframes popupPulse{
-  0%,100%{box-shadow:0 30px 80px rgba(0,0,0,.4)}
-  50%{box-shadow:0 0 0 10px rgba(91,92,226,.12),0 30px 90px rgba(0,0,0,.5)}
-}
-.ai-editor{
-  margin-top:14px;padding:14px;border:1px dashed var(--primary);
-  border-radius:14px;background:rgba(91,92,226,.05);
-}
-.ai-editor-title{font-weight:900;margin-bottom:6px}
-.ai-editor .btn{font-size:12px;padding:8px 11px}
-.call-next-card{
-  margin-top:12px;padding:14px;border-radius:14px;
-  border:1px solid var(--border);background:var(--bg);
-}
-.call-next-name{font-size:20px;font-weight:900}
-.call-next-meta{color:var(--muted);margin-top:4px;line-height:1.5}
-
-
-.popup-label{
-  color:var(--primary);
-  font-weight:900;
-  text-transform:uppercase;
-  letter-spacing:1px;
-}
-
-.popup-text{
-  font-size:28px;
-  line-height:1.4;
-  font-weight:800;
-  margin:20px 0;
-}
-
-.remaining{
-  font-size:34px;
-  font-weight:900;
-  color:var(--primary);
-}
-
-@media(max-width:1000px){
-  .col-8,.col-6,.col-4{grid-column:span 12}
-  .form-grid{grid-template-columns:repeat(2,1fr)}
-  .stats{grid-template-columns:repeat(2,1fr)}
-}
-
-@media(max-width:650px){
-  .topbar,.clock-card{
-    flex-direction:column;
-    align-items:flex-start;
-  }
-  .big-clock{font-size:32px}
-  .form-grid{grid-template-columns:1fr}
-  .schedule-item{grid-template-columns:1fr}
-  .student-table{font-size:11px}
-  .container{padding:12px}
-}
-
-
-/* Announcement stop + volume controls */
-.announcement-stop-card{
-  margin-top:16px;
-}
-.stop-all-btn{
-  width:100%;
-  min-height:58px;
-  background:#d91e36 !important;
-  color:#fff !important;
-  border:0 !important;
-  font-size:16px;
-  font-weight:900;
-  letter-spacing:.2px;
-  box-shadow:0 8px 18px rgba(217,30,54,.22);
-}
-.stop-all-btn:hover{
-  background:#b5162b !important;
-  transform:translateY(-1px);
-}
-.stop-help{
-  margin-top:7px;
-  color:#667085;
-  font-size:12px;
-  line-height:1.4;
-}
-.volume-card{
-  margin-top:14px;
-  padding:13px 14px;
-  border:1px solid #d8dfeb;
-  border-radius:14px;
-  background:#f8fafc;
-}
-.volume-title{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-weight:800;
-  margin-bottom:9px;
-}
-#volumeValue{color:#175cd3;}
-#announcementVolume{width:100%; accent-color:#175cd3;}
-.volume-actions{
-  display:flex;
-  gap:8px;
-  margin-top:10px;
-  flex-wrap:wrap;
-}
-
-
-.qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;margin-top:16px}
-.qr-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;break-inside:avoid}
-.qr-card canvas,.qr-card img{display:block;margin:8px auto;max-width:100%;height:auto}
-.qr-card strong{display:block;overflow-wrap:anywhere}
-.qr-card small{display:block;color:var(--muted);margin-top:4px}
-.qr-download{display:inline-block;margin-top:8px;padding:7px 10px;border-radius:8px;background:var(--primary);color:white;text-decoration:none;font-weight:700}
-@media print{
-  body.qr-print-mode *{visibility:hidden!important}
-  body.qr-print-mode #studentQrSection,body.qr-print-mode #studentQrSection *{visibility:visible!important}
-  body.qr-print-mode #studentQrSection{position:absolute;left:0;top:0;width:100%;border:0;box-shadow:none}
-  body.qr-print-mode #studentQrSection .btn-row,body.qr-print-mode #studentQrSection>p:not(#qrStatus),body.qr-print-mode #studentQrSection .form-grid{display:none!important}
-  body.qr-print-mode .qr-grid{grid-template-columns:repeat(4,1fr);gap:8px}
-  body.qr-print-mode .qr-card{border:1px solid #999;padding:8px;color:#000;background:#fff}
-  body.qr-print-mode .qr-card img,body.qr-print-mode .qr-card canvas{width:125px!important;height:125px!important}
-}
-
-
-.online-profile-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:12px}
-.online-profile-card{border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--card);min-width:0}
-.online-profile-card label{display:block;margin:8px 0 4px;font-size:12px;color:var(--muted);font-weight:700}
-.online-profile-card input,.online-profile-card textarea{width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text)}
-.online-profile-card textarea{min-height:64px;resize:vertical}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Arts Fest Control Room</title>
+
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #667085;
+      --border: #dce2ea;
+      --primary: #5b5ce2;
+      --primary2: #7c3aed;
+      --green: #16a34a;
+      --red: #dc2626;
+      --orange: #ea580c;
+      --yellow: #ca8a04;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+    }
+
+    body.dark {
+      --bg: #0b1020;
+      --card: #121a2b;
+      --text: #f5f7ff;
+      --muted: #9aa6bd;
+      --border: #26324a;
+      --primary: #818cf8;
+      --primary2: #a78bfa;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .3);
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: .25s;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, var(--primary), var(--primary2));
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 900;
+      font-size: 20px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .brand small {
+      color: var(--muted);
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .container {
+      max-width: 1500px;
+      margin: auto;
+      padding: 22px;
+    }
+
+    .clock-card {
+      background: linear-gradient(135deg, var(--primary), var(--primary2));
+      color: white;
+      border-radius: 22px;
+      padding: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    .big-clock {
+      font-size: 42px;
+      font-weight: 900;
+    }
+
+    .clock-date {
+      opacity: .85;
+      margin-top: 5px;
+    }
+
+    .current-title {
+      font-size: 27px;
+      font-weight: 900;
+    }
+
+    .current-sub {
+      opacity: .9;
+      margin-top: 6px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .col-12 {
+      grid-column: span 12
+    }
+
+    .col-8 {
+      grid-column: span 8
+    }
+
+    .col-6 {
+      grid-column: span 6
+    }
+
+    .col-4 {
+      grid-column: span 4
+    }
+
+    .card h2 {
+      margin: 0 0 15px;
+      font-size: 18px;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .stat {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      text-align: center;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 28px;
+      margin-bottom: 4px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .btn {
+      padding: 11px 15px;
+      border-radius: 11px;
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+      transition: .2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+
+    .btn.secondary {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn.green {
+      background: var(--green)
+    }
+
+    .btn.red {
+      background: var(--red)
+    }
+
+    .btn.orange {
+      background: var(--orange)
+    }
+
+    .btn.dark {
+      background: #111827
+    }
+
+    .btn.yellow {
+      background: var(--yellow)
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 9px;
+      flex-wrap: wrap;
+    }
+
+    textarea,
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      border-radius: 11px;
+      padding: 12px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--primary);
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .progress {
+      height: 13px;
+      background: var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .progress div {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--primary2));
+      width: 0%;
+      transition: .3s;
+    }
+
+    .schedule {
+      display: grid;
+      gap: 10px;
+    }
+
+    .schedule-item {
+      display: grid;
+      grid-template-columns: 110px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+    }
+
+    .schedule-item.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(91, 92, 226, .12);
+    }
+
+    .schedule-time {
+      font-weight: 800;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 20px;
+      background: rgba(91, 92, 226, .12);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .student-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .student-table th,
+    .student-table td {
+      border-bottom: 1px solid var(--border);
+      padding: 11px 8px;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .student-table th {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .check {
+      width: 18px;
+      height: 18px;
+    }
+
+    .complete {
+      color: var(--green);
+      font-weight: 800;
+    }
+
+    .pending {
+      color: var(--red);
+      font-weight: 800;
+    }
+
+    .student-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    .small-btn {
+      padding: 6px 9px;
+      border-radius: 7px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .ai-box {
+      border: 2px solid var(--primary);
+      background: rgba(91, 92, 226, .07);
+      border-radius: 15px;
+      padding: 15px;
+    }
+
+    .ai-title {
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+
+    .toggle input {
+      width: auto;
+    }
+
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 200;
+      background: #111827;
+      color: white;
+      padding: 13px 17px;
+      border-radius: 10px;
+      opacity: 0;
+      transform: translateY(20px);
+      pointer-events: none;
+      transition: .25s;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .popup {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      background: rgba(0, 0, 0, .72);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .popup.show {
+      display: flex;
+    }
+
+    .popup-box {
+      width: min(800px, 95vw);
+      background: var(--card);
+      border-radius: 25px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .4);
+    }
+
+    .popup-box.animate {
+      animation: popupIn .45s cubic-bezier(.2, .8, .2, 1), popupPulse 1.2s ease .45s;
+    }
+
+    @keyframes popupIn {
+      0% {
+        opacity: 0;
+        transform: translateY(40px) scale(.88) rotateX(8deg)
+      }
+
+      60% {
+        opacity: 1;
+        transform: translateY(-5px) scale(1.02)
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1)
+      }
+    }
+
+    @keyframes popupPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 30px 80px rgba(0, 0, 0, .4)
+      }
+
+      50% {
+        box-shadow: 0 0 0 10px rgba(91, 92, 226, .12), 0 30px 90px rgba(0, 0, 0, .5)
+      }
+    }
+
+    .ai-editor {
+      margin-top: 14px;
+      padding: 14px;
+      border: 1px dashed var(--primary);
+      border-radius: 14px;
+      background: rgba(91, 92, 226, .05);
+    }
+
+    .ai-editor-title {
+      font-weight: 900;
+      margin-bottom: 6px
+    }
+
+    .ai-editor .btn {
+      font-size: 12px;
+      padding: 8px 11px
+    }
+
+    .call-next-card {
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .call-next-name {
+      font-size: 20px;
+      font-weight: 900
+    }
+
+    .call-next-meta {
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.5
+    }
+
+
+    .popup-label {
+      color: var(--primary);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .popup-text {
+      font-size: 28px;
+      line-height: 1.4;
+      font-weight: 800;
+      margin: 20px 0;
+    }
+
+    .remaining {
+      font-size: 34px;
+      font-weight: 900;
+      color: var(--primary);
+    }
+
+    @media(max-width:1000px) {
+
+      .col-8,
+      .col-6,
+      .col-4 {
+        grid-column: span 12
+      }
+
+      .form-grid {
+        grid-template-columns: repeat(2, 1fr)
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, 1fr)
+      }
+    }
+
+    @media(max-width:650px) {
+
+      .topbar,
+      .clock-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .big-clock {
+        font-size: 32px
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr
+      }
+
+      .schedule-item {
+        grid-template-columns: 1fr
+      }
+
+      .student-table {
+        font-size: 11px
+      }
+
+      .container {
+        padding: 12px
+      }
+    }
+
+
+    /* Announcement stop + volume controls */
+    .announcement-stop-card {
+      margin-top: 16px;
+    }
+
+    .stop-all-btn {
+      width: 100%;
+      min-height: 58px;
+      background: #d91e36 !important;
+      color: #fff !important;
+      border: 0 !important;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: .2px;
+      box-shadow: 0 8px 18px rgba(217, 30, 54, .22);
+    }
+
+    .stop-all-btn:hover {
+      background: #b5162b !important;
+      transform: translateY(-1px);
+    }
+
+    .stop-help {
+      margin-top: 7px;
+      color: #667085;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .volume-card {
+      margin-top: 14px;
+      padding: 13px 14px;
+      border: 1px solid #d8dfeb;
+      border-radius: 14px;
+      background: #f8fafc;
+    }
+
+    .volume-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 800;
+      margin-bottom: 9px;
+    }
+
+    #volumeValue {
+      color: #175cd3;
+    }
+
+    #announcementVolume {
+      width: 100%;
+      accent-color: #175cd3;
+    }
+
+    .volume-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+
+    .qr-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 14px;
+      margin-top: 16px
+    }
+
+    .qr-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+      break-inside: avoid
+    }
+
+    .qr-card canvas,
+    .qr-card img {
+      display: block;
+      margin: 8px auto;
+      max-width: 100%;
+      height: auto
+    }
+
+    .qr-card strong {
+      display: block;
+      overflow-wrap: anywhere
+    }
+
+    .qr-card small {
+      display: block;
+      color: var(--muted);
+      margin-top: 4px
+    }
+
+    .qr-download {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      font-weight: 700
+    }
+
+    @media print {
+      body.qr-print-mode * {
+        visibility: hidden !important
+      }
+
+      body.qr-print-mode #studentQrSection,
+      body.qr-print-mode #studentQrSection * {
+        visibility: visible !important
+      }
+
+      body.qr-print-mode #studentQrSection {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        border: 0;
+        box-shadow: none
+      }
+
+      body.qr-print-mode #studentQrSection .btn-row,
+      body.qr-print-mode #studentQrSection>p:not(#qrStatus),
+      body.qr-print-mode #studentQrSection .form-grid {
+        display: none !important
+      }
+
+      body.qr-print-mode .qr-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px
+      }
+
+      body.qr-print-mode .qr-card {
+        border: 1px solid #999;
+        padding: 8px;
+        color: #000;
+        background: #fff
+      }
+
+      body.qr-print-mode .qr-card img,
+      body.qr-print-mode .qr-card canvas {
+        width: 125px !important;
+        height: 125px !important
+      }
+    }
+
+
+    .online-profile-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin-top: 12px
+    }
+
+    .online-profile-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--card);
+      min-width: 0
+    }
+
+    .online-profile-card label {
+      display: block;
+      margin: 8px 0 4px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700
+    }
+
+    .online-profile-card input,
+    .online-profile-card textarea {
+      width: 100%;
+      padding: 9px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text)
+    }
+
+    .online-profile-card textarea {
+      min-height: 64px;
+      resize: vertical
+    }
+  </style>
 </head>
 
 <body>
 
-<header class="topbar">
-  <div class="brand">
-    <div class="logo">AF</div>
-    <div>
-      <h1>National Arts Fest — Control Room</h1>
-      <small>Practice Command Centre</small>
-    </div>
-  </div>
-
-  <div class="top-actions">
-    <button class="btn secondary" onclick="toggleTheme()">🌙 / ☀️ Theme</button>
-    <button class="btn" onclick="openLiveWall()">📺 Live Wall</button>
-  </div>
-</header>
-
-<main class="container">
-
-  <section class="clock-card">
-    <div>
-      <div class="big-clock" id="clock">--:--:--</div>
-      <div class="clock-date" id="date">Loading...</div>
-    </div>
-
-    <div>
-      <div class="current-title" id="currentTitle">No Active Session</div>
-      <div class="current-sub" id="currentDescription">Waiting for schedule...</div>
-      <div style="margin-top:12px">
-        <span class="badge" id="currentRemaining">-- remaining</span>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">AF</div>
+      <div>
+        <h1>National Arts Fest — Control Room</h1>
+        <small>Practice Command Centre</small>
       </div>
     </div>
-  </section>
 
-  <div class="grid">
+    <div class="top-actions">
+      <button class="btn secondary" onclick="toggleTheme()">🌙 / ☀️ Theme</button>
+      <button class="btn" onclick="openLiveWall()">📺 Live Wall</button>
+    </div>
+  </header>
 
-    <!-- STATS -->
-    <section class="card col-12">
-      <h2>📊 Control Room Status</h2>
+  <main class="container">
 
-      <div class="stats">
-        <div class="stat">
-          <b id="totalStudents">0</b>
-          <span>Total Students</span>
-        </div>
-
-        <div class="stat">
-          <b id="completedStudents">0</b>
-          <span>Fully Completed</span>
-        </div>
-
-        <div class="stat">
-          <b id="pendingStudents">0</b>
-          <span>Pending</span>
-        </div>
-
-        <div class="stat">
-          <b id="completionPercent">0%</b>
-          <span>Completion</span>
-        </div>
+    <section class="clock-card">
+      <div>
+        <div class="big-clock" id="clock">--:--:--</div>
+        <div class="clock-date" id="date">Loading...</div>
       </div>
 
-      <div style="margin-top:15px">
-        <div class="progress">
-          <div id="mainProgress"></div>
+      <div>
+        <div class="current-title" id="currentTitle">No Active Session</div>
+        <div class="current-sub" id="currentDescription">Waiting for schedule...</div>
+        <div style="margin-top:12px">
+          <span class="badge" id="currentRemaining">-- remaining</span>
         </div>
       </div>
     </section>
 
-    <!-- ANNOUNCEMENT CONTROL -->
-    <section class="card col-8">
-      <h2>📢 Announcement Control Centre</h2>
+    <div class="grid">
 
-      <div class="ai-box">
-        <div class="ai-title">⚡ Automatic Announcement Assistant</div>
-        <div class="muted">
-          Builds announcements from the current activity, time, remaining time and student status.
+      <!-- STATS -->
+      <section class="card col-12">
+        <h2>📊 Control Room Status</h2>
+
+        <div class="stats">
+          <div class="stat">
+            <b id="totalStudents">0</b>
+            <span>Total Students</span>
+          </div>
+
+          <div class="stat">
+            <b id="completedStudents">0</b>
+            <span>Fully Completed</span>
+          </div>
+
+          <div class="stat">
+            <b id="pendingStudents">0</b>
+            <span>Pending</span>
+          </div>
+
+          <div class="stat">
+            <b id="completionPercent">0%</b>
+            <span>Completion</span>
+          </div>
         </div>
+
+        <div style="margin-top:15px">
+          <div class="progress">
+            <div id="mainProgress"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ANNOUNCEMENT CONTROL -->
+      <section class="card col-8">
+        <h2>📢 Announcement Control Centre</h2>
+
+        <div class="ai-box">
+          <div class="ai-title">⚡ Automatic Announcement Assistant</div>
+          <div class="muted">
+            Builds announcements from the current activity, time, remaining time and student status.
+          </div>
+          <br>
+          <div class="btn-row">
+            <button class="btn" onclick="generateCurrentAnnouncement()">✨ Generate Current</button>
+            <button class="btn secondary" onclick="generateNextAnnouncement()">➡️ Generate Next</button>
+            <button class="btn green" onclick="generateMotivation()">🔥 Generate Motivation</button>
+            <button class="btn red" onclick="callNextPendingStudent()">🚨 Call Next Pending</button>
+          </div>
+        </div>
+
+        <div class="ai-editor">
+          <div class="ai-editor-title">🤖 AI Announcement Editor</div>
+          <div class="muted">Improve, shorten, clean or make the current announcement friendlier. This built-in editor
+            works without an external API.</div>
+          <br>
+          <div class="btn-row">
+            <button class="btn" onclick="aiEditAnnouncement('professional')">✨ AI Improve</button>
+            <button class="btn secondary" onclick="aiEditAnnouncement('short')">⚡ AI Shorten</button>
+            <button class="btn secondary" onclick="aiEditAnnouncement('friendly')">😊 AI Friendly</button>
+            <button class="btn secondary" onclick="aiEditAnnouncement('clear')">🧹 AI Clean</button>
+          </div>
+        </div>
+
         <br>
-        <div class="btn-row">
-          <button class="btn" onclick="generateCurrentAnnouncement()">✨ Generate Current</button>
-          <button class="btn secondary" onclick="generateNextAnnouncement()">➡️ Generate Next</button>
-          <button class="btn green" onclick="generateMotivation()">🔥 Generate Motivation</button>
-          <button class="btn red" onclick="callNextPendingStudent()">🚨 Call Next Pending</button>
-        </div>
-      </div>
+        <label>Announcement Text</label>
+        <textarea id="announcementText" placeholder="Your announcement will appear here..."></textarea>
 
-      <div class="ai-editor">
-        <div class="ai-editor-title">🤖 AI Announcement Editor</div>
-        <div class="muted">Improve, shorten, clean or make the current announcement friendlier. This built-in editor works without an external API.</div>
         <br>
+
         <div class="btn-row">
-          <button class="btn" onclick="aiEditAnnouncement('professional')">✨ AI Improve</button>
-          <button class="btn secondary" onclick="aiEditAnnouncement('short')">⚡ AI Shorten</button>
-          <button class="btn secondary" onclick="aiEditAnnouncement('friendly')">😊 AI Friendly</button>
-          <button class="btn secondary" onclick="aiEditAnnouncement('clear')">🧹 AI Clean</button>
-        </div>
-      </div>
-
-      <br>
-      <label>Announcement Text</label>
-      <textarea id="announcementText"
-        placeholder="Your announcement will appear here..."></textarea>
-
-      <br>
-
-      <div class="btn-row">
-        <button class="btn" onclick="playAnnouncement()">🔊 PLAY</button>
-        <button class="btn secondary" onclick="speakTest()">🎙 Test Voice</button>
-        <button class="btn orange" onclick="showAnnouncementOnly()">👁 Show on Wall</button>
-        <button class="btn secondary" onclick="clearAnnouncement()">Clear</button>
-      </div>
-
-      <br>
-
-      <label>Voice</label>
-      <select id="voiceSelect"></select>
-
-      <br>
-
-      <label>Voice Speed</label>
-      <input id="voiceRate" type="range" min="0.7" max="1.3" step="0.05" value="0.95">
-    </section>
-
-    <!-- AUTOMATION -->
-    <section class="card col-4">
-      <h2>🤖 Automatic Coach</h2>
-
-      <div class="toggle">
-        <input type="checkbox" id="autoCoach">
-        <label for="autoCoach">Automatic announcements</label>
-      </div>
-
-      <div class="toggle">
-        <input type="checkbox" id="auto45" checked>
-        <label for="auto45">45-minute reminders</label>
-      </div>
-
-      <div class="toggle">
-        <input type="checkbox" id="autoCountdown" checked>
-        <label for="autoCountdown">30 / 15 / 10 / 5 min alerts</label>
-      </div>
-
-      <div class="toggle">
-        <input type="checkbox" id="autoStart" checked>
-        <label for="autoStart">Session start announcement</label>
-      </div>
-
-      <button class="btn green" style="width:100%;margin-top:8px"
-        onclick="saveSettings()">
-        💾 Save Automation
-      </button>
-
-      <br><br>
-
-      <h3>Manual Controls</h3>
-
-      <div class="btn-row">
-        <button class="btn" onclick="generateCurrentAnnouncement()">📢 Current</button>
-        <button class="btn secondary" onclick="generateNextAnnouncement()">➡️ Next</button>
-        <button class="btn orange" onclick="generateMotivation()">🔥 Motivate</button>
-      </div>
-
-      <div class="announcement-stop-card">
-        <button class="btn stop-all-btn" onclick="stopAllAnnouncements()">⛔ STOP ALL ANNOUNCEMENTS</button>
-        <div class="stop-help">Stops speech, pending-student announcements, reminders and the announcement queue.</div>
-      </div>
-
-      <div class="volume-card">
-        <div class="volume-title">🔊 Announcement Volume <span id="volumeValue">100%</span></div>
-        <input id="announcementVolume" type="range" min="0" max="100" step="1" value="100"
-          oninput="setAnnouncementVolume(this.value)">
-        <div class="volume-actions">
-          <button class="btn secondary" onclick="testAnnouncementChime()">🔔 Test PA Chime</button>
-          <button class="btn secondary" onclick="setAnnouncementVolume(100)">100%</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- SCHEDULE -->
-    <section class="card col-12">
-      <h2>🗓️ Today's Practice Schedule</h2>
-      <div class="schedule" id="schedule"></div>
-    </section>
-
-    <!-- STUDENT ADD -->
-    <section class="card col-12">
-      <h2>👥 Add Student</h2>
-
-      <div class="form-grid">
-
-        <div>
-          <label>Admission No.</label>
-          <input id="adNo" placeholder="001">
+          <button class="btn" onclick="playAnnouncement()">🔊 PLAY</button>
+          <button class="btn secondary" onclick="speakTest()">🎙 Test Voice</button>
+          <button class="btn orange" onclick="showAnnouncementOnly()">👁 Show on Wall</button>
+          <button class="btn secondary" onclick="clearAnnouncement()">Clear</button>
         </div>
 
-        <div>
-          <label>Name</label>
-          <input id="studentName" placeholder="ARJUN K">
+        <br>
+
+        <label>Voice</label>
+        <select id="voiceSelect"></select>
+
+        <br>
+
+        <label>Voice Speed</label>
+        <input id="voiceRate" type="range" min="0.7" max="1.3" step="0.05" value="0.95">
+      </section>
+
+      <!-- AUTOMATION -->
+      <section class="card col-4">
+        <h2>🤖 Automatic Coach</h2>
+
+        <div class="toggle">
+          <input type="checkbox" id="autoCoach">
+          <label for="autoCoach">Automatic announcements</label>
         </div>
 
-        <div>
-          <label>Program Code</label>
-          <input id="programCode" placeholder="P01">
+        <div class="toggle">
+          <input type="checkbox" id="auto45" checked>
+          <label for="auto45">45-minute reminders</label>
         </div>
 
-        <div>
-          <label>Program</label>
-          <input id="program" placeholder="Malayalam Recitation">
+        <div class="toggle">
+          <input type="checkbox" id="autoCountdown" checked>
+          <label for="autoCountdown">30 / 15 / 10 / 5 min alerts</label>
         </div>
 
-        <div>
-          <label>Mentor</label>
-          <input id="mentor" placeholder="Suresh Sir">
+        <div class="toggle">
+          <input type="checkbox" id="autoStart" checked>
+          <label for="autoStart">Session start announcement</label>
         </div>
 
-      </div>
+        <button class="btn green" style="width:100%;margin-top:8px" onclick="saveSettings()">
+          💾 Save Automation
+        </button>
 
-      <br>
+        <br><br>
 
-      <div class="btn-row">
-        <button class="btn green" onclick="addStudent()">➕ Add Student</button>
-        <button class="btn" onclick="document.getElementById('csvFileInput').click()">📄 Add CSV</button>
-        <button class="btn red" onclick="removeUploadedCSV()">🗑️ Remove Uploaded CSV</button>
-        <input id="csvFileInput" type="file" accept=".csv,text/csv" style="display:none" onchange="importCSVFile(this)">
-      </div>
+        <h3>Manual Controls</h3>
 
-      <p class="muted" id="csvStatus">
-        No CSV students uploaded. You can add students manually or upload a CSV file.
-      </p>
-      <p class="muted">
-        Tick the single <b>Done ✓</b> box for each student when that student has completed the work.
-      </p>
-    </section>
-
-    <!-- STUDENTS -->
-    <section class="card col-12">
-      <h2>📋 Daily Student Checklist</h2>
-
-      <div class="btn-row" style="margin:10px 0 14px">
-        <button class="btn green" onclick="tickAllStudents()">☑️ Tick All Students</button>
-        <button class="btn red" onclick="untickAllStudents()">☐ Remove Tick Mark of All Students</button>
-      </div>
-
-      <div style="overflow:auto">
-        <table class="student-table">
-          <thead>
-            <tr>
-              <th>Ad.No</th>
-              <th>Name</th>
-              <th>Program Code</th>
-              <th>Program</th>
-              <th>Mentor</th>
-              <th>Done ✓</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-
-          <tbody id="studentTable"></tbody>
-        </table>
-      </div>
-    </section>
-
-
-    <!-- STUDENT QR CODE GENERATOR -->
-    <section class="card col-12" id="studentQrSection">
-      <h2>🔳 Student QR Code Generator</h2>
-      <p class="muted">Import your student CSV above. Students are grouped by admission number, so a student listed for several programs receives only one permanent QR code. The QR opens a live profile that can be updated later.</p>
-      <div class="form-grid">
-        <div>
-          <label>Public website URL</label>
-          <input id="qrBaseUrl" value="https://mic-sibaq.vercel.app" placeholder="https://your-site.vercel.app">
+        <div class="btn-row">
+          <button class="btn" onclick="generateCurrentAnnouncement()">📢 Current</button>
+          <button class="btn secondary" onclick="generateNextAnnouncement()">➡️ Next</button>
+          <button class="btn orange" onclick="generateMotivation()">🔥 Motivate</button>
         </div>
-        <div>
-          <label>Student profile page file</label>
-          <input value="student.html" readonly>
+
+        <div class="announcement-stop-card">
+          <button class="btn stop-all-btn" onclick="stopAllAnnouncements()">⛔ STOP ALL ANNOUNCEMENTS</button>
+          <div class="stop-help">Stops speech, pending-student announcements, reminders and the announcement queue.
+          </div>
         </div>
-      </div>
-      <p class="muted">CSV headers supported: Admission No / Ad.No / Admission Number, Name, Program Code, Program, Mentor. QR links contain only the unique admission number; profile details are loaded from the online database, so changes appear without reprinting QR codes.</p>
-      <div class="card" style="margin:12px 0;padding:16px;border:1px solid var(--border)">
-        <h3>☁️ Online Student Database</h3>
-        <p class="muted">Set up Supabase and add your Project URL and anon/publishable key in <b>supabase-config.js</b>. Sign in with the admin account you create in Supabase.</p>
+
+        <div class="volume-card">
+          <div class="volume-title">🔊 Announcement Volume <span id="volumeValue">100%</span></div>
+          <input id="announcementVolume" type="range" min="0" max="100" step="1" value="100"
+            oninput="setAnnouncementVolume(this.value)">
+          <div class="volume-actions">
+            <button class="btn secondary" onclick="testAnnouncementChime()">🔔 Test PA Chime</button>
+            <button class="btn secondary" onclick="setAnnouncementVolume(100)">100%</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCHEDULE -->
+      <section class="card col-12">
+        <h2>🗓️ Today's Practice Schedule</h2>
+        <div class="schedule" id="schedule"></div>
+      </section>
+
+      <!-- STUDENT ADD -->
+      <section class="card col-12">
+        <h2>👥 Add Student</h2>
+
         <div class="form-grid">
-          <div><label>Admin email</label><input id="dbEmail" type="email" autocomplete="username" placeholder="your admin email"></div>
-          <div><label>Admin password</label><input id="dbPassword" type="password" autocomplete="current-password" placeholder="Supabase admin password"></div>
+
+          <div>
+            <label>Admission No.</label>
+            <input id="adNo" placeholder="001">
+          </div>
+
+          <div>
+            <label>Name</label>
+            <input id="studentName" placeholder="ARJUN K">
+          </div>
+
+          <div>
+            <label>Program Code</label>
+            <input id="programCode" placeholder="P01">
+          </div>
+
+          <div>
+            <label>Program</label>
+            <input id="program" placeholder="Malayalam Recitation">
+          </div>
+
+          <div>
+            <label>Mentor</label>
+            <input id="mentor" placeholder="Suresh Sir">
+          </div>
+
         </div>
-        <div class="btn-row" style="margin-top:10px">
-          <button class="btn" onclick="signInDatabaseAdmin()">🔐 Sign in</button>
-          <button class="btn secondary" onclick="signOutDatabaseAdmin()">Sign out</button>
-          <button class="btn green" onclick="syncStudentsToDatabase()">☁️ Upload / Update Unique Students</button>
-          <button class="btn" onclick="loadOnlineProfiles()">↻ Load Online Profiles</button>
+
+        <br>
+
+        <div class="btn-row">
+          <button class="btn green" onclick="addStudent()">➕ Add Student</button>
+          <button class="btn" onclick="document.getElementById('csvFileInput').click()">📄 Add CSV</button>
+          <button class="btn red" onclick="removeUploadedCSV()">🗑️ Remove Uploaded CSV</button>
+          <input id="csvFileInput" type="file" accept=".csv,text/csv" style="display:none"
+            onchange="importCSVFile(this)">
         </div>
-        <p class="muted" id="dbStatus" role="status">Database is not connected yet. Follow README.txt setup steps.</p>
-      </div>
-      <div class="btn-row">
-        <button class="btn green" onclick="generateStudentQRCodes()">🔳 Generate One QR per Student</button>
-        <button class="btn" onclick="downloadAllQRCodes()">📦 Download All QR PNGs (ZIP)</button>
-        <button class="btn" onclick="printQRCodes()">🖨️ Print QR Sheet</button>
-        <button class="btn secondary" onclick="clearQRCodes()">Clear Preview</button>
-      </div>
-      <p class="muted" id="qrStatus" role="status">QR codes have not been generated yet.</p>
-      <div id="qrPreview" class="qr-grid"></div>
-      <h3>✏️ Edit Online Profiles</h3><p class="muted">After sign-in, load profiles. Edit name, mentor, programs, or program codes and save. Use one item per line for programs and codes.</p><div id="onlineProfiles" class="online-profile-list"></div>
-    </section>
 
-    <!-- PENDING -->
-    <section class="card col-6">
-      <h2>🚨 Pending Students</h2>
-      <div id="pendingList" class="muted">No pending students.</div>
+        <p class="muted" id="csvStatus">
+          No CSV students uploaded. You can add students manually or upload a CSV file.
+        </p>
+        <p class="muted">
+          Tick the single <b>Done ✓</b> box for each student when that student has completed the work.
+        </p>
+      </section>
 
-      <div class="call-next-card">
-        <div class="muted">Next pending student</div>
-        <div class="call-next-name" id="nextPendingName">No pending student</div>
-        <div class="call-next-meta" id="nextPendingMeta"></div>
-      </div>
+      <!-- STUDENTS -->
+      <section class="card col-12">
+        <h2>📋 Daily Student Checklist</h2>
 
-      <br>
+        <div class="btn-row" style="margin:10px 0 14px">
+          <button class="btn green" onclick="tickAllStudents()">☑️ Tick All Students</button>
+          <button class="btn red" onclick="untickAllStudents()">☐ Remove Tick Mark of All Students</button>
+        </div>
 
-      <div class="btn-row">
-        <button class="btn red" onclick="announceAllPendingStudents()">🔔 Announce All Pending Students</button>
-        <button class="btn secondary" onclick="resetPendingCaller()">↺ Start From First</button>
-      </div>
-      <p class="muted" style="margin-bottom:0">
-        One click calls every pending student in order. Each student appears as a separate animated popup on the Live Wall.
-      </p>
-    </section>
+        <div style="overflow:auto">
+          <table class="student-table">
+            <thead>
+              <tr>
+                <th>Ad.No</th>
+                <th>Name</th>
+                <th>Program Code</th>
+                <th>Program</th>
+                <th>Mentor</th>
+                <th>Done ✓</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
 
-    <!-- MOTIVATION -->
-    <section class="card col-6">
-      <h2>🔥 Motivation Control</h2>
+            <tbody id="studentTable"></tbody>
+          </table>
+        </div>
+      </section>
 
-      <textarea id="motivationText"
-        placeholder="Enter motivation or leave blank to generate automatically..."></textarea>
 
-      <br>
+      <!-- STUDENT QR CODE GENERATOR -->
+      <section class="card col-12" id="studentQrSection">
+        <h2>🔳 Student QR Code Generator</h2>
+        <p class="muted">Import your student CSV above. Students are grouped by admission number, so a student listed
+          for several programs receives only one permanent QR code. The QR opens a live profile that can be updated
+          later.</p>
+        <div class="form-grid">
+          <div>
+            <label>Public website URL</label>
+            <input id="qrBaseUrl" value="https://mic-sibaq.vercel.app" placeholder="https://your-site.vercel.app">
+          </div>
+          <div>
+            <label>Student profile page file</label>
+            <input value="student.html" readonly>
+          </div>
+        </div>
+        <p class="muted">CSV headers supported: Admission No / Ad.No / Admission Number, Name, Program Code, Program,
+          Mentor. QR links contain only the unique admission number; profile details are loaded from the online
+          database, so changes appear without reprinting QR codes.</p>
+        <div class="card" style="margin:12px 0;padding:16px;border:1px solid var(--border)">
+          <h3>☁️ Online Student Database</h3>
+          <p class="muted">Set up Supabase and add your Project URL and anon/publishable key in
+            <b>supabase-config.js</b>. Sign in with the admin account you create in Supabase.</p>
+          <div class="form-grid">
+            <div><label>Admin email</label><input id="dbEmail" type="email" autocomplete="username"
+                placeholder="your admin email"></div>
+            <div><label>Admin password</label><input id="dbPassword" type="password" autocomplete="current-password"
+                placeholder="Supabase admin password"></div>
+          </div>
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn" onclick="signInDatabaseAdmin()">🔐 Sign in</button>
+            <button class="btn secondary" onclick="signOutDatabaseAdmin()">Sign out</button>
+            <button class="btn green" onclick="syncStudentsToDatabase()">☁️ Upload / Update Unique Students</button>
+            <button class="btn" onclick="loadOnlineProfiles()">↻ Load Online Profiles</button>
+          </div>
+          <p class="muted" id="dbStatus" role="status">Database is not connected yet. Follow README.txt setup steps.</p>
+        </div>
+        <div class="btn-row">
+          <button class="btn green" onclick="generateStudentQRCodes()">🔳 Generate One QR per Student</button>
+          <button class="btn" onclick="downloadAllQRCodes()">📦 Download All QR PNGs (ZIP)</button>
+          <button class="btn" onclick="printQRCodes()">🖨️ Print QR Sheet</button>
+          <button class="btn secondary" onclick="clearQRCodes()">Clear Preview</button>
+        </div>
+        <p class="muted" id="qrStatus" role="status">QR codes have not been generated yet.</p>
+        <div id="qrPreview" class="qr-grid"></div>
+        <h3>✏️ Edit Online Profiles</h3>
+        <p class="muted">After sign-in, load profiles. Edit name, mentor, programs, or program codes and save. Use one
+          item per line for programs and codes.</p>
+        <div id="onlineProfiles" class="online-profile-list"></div>
+      </section>
 
-      <div class="btn-row">
-        <button class="btn green" onclick="generateMotivation()">✨ Generate</button>
-        <button class="btn" onclick="playMotivation()">🔊 Play Motivation</button>
-      </div>
-    </section>
+      <!-- PENDING -->
+      <section class="card col-6">
+        <h2>🚨 Pending Students</h2>
+        <div id="pendingList" class="muted">No pending students.</div>
 
-    <!-- SYSTEM -->
-    <section class="card col-12">
-      <h2>🛠️ System Controls</h2>
+        <div class="call-next-card">
+          <div class="muted">Next pending student</div>
+          <div class="call-next-name" id="nextPendingName">No pending student</div>
+          <div class="call-next-meta" id="nextPendingMeta"></div>
+        </div>
 
-      <div class="btn-row">
-        <button class="btn" onclick="openLiveWall()">📺 Open Live Wall</button>
-        <button class="btn secondary" onclick="broadcastRefresh()">🔄 Refresh Live Wall</button>
-        <button class="btn yellow" onclick="testPopup()">🖥 Test Popup</button>
-        <button class="btn red" onclick="clearAllData()">⚠️ Clear All Data</button>
-      </div>
-    </section>
+        <br>
 
-  </div>
-</main>
+        <div class="btn-row">
+          <button class="btn red" onclick="announceAllPendingStudents()">🔔 Announce All Pending Students</button>
+          <button class="btn secondary" onclick="resetPendingCaller()">↺ Start From First</button>
+        </div>
+        <p class="muted" style="margin-bottom:0">
+          One click calls every pending student in order. Each student appears as a separate animated popup on the Live
+          Wall.
+        </p>
+      </section>
 
-<!-- ANNOUNCEMENT POPUP -->
-<div class="popup" id="announcementPopup">
-  <div class="popup-box">
-    <div class="popup-label" id="popupLabel">ANNOUNCEMENT</div>
+      <!-- MOTIVATION -->
+      <section class="card col-6">
+        <h2>🔥 Motivation Control</h2>
 
-    <div class="popup-text" id="popupText">
-      Attention everyone.
+        <textarea id="motivationText"
+          placeholder="Enter motivation or leave blank to generate automatically..."></textarea>
+
+        <br>
+
+        <div class="btn-row">
+          <button class="btn green" onclick="generateMotivation()">✨ Generate</button>
+          <button class="btn" onclick="playMotivation()">🔊 Play Motivation</button>
+        </div>
+      </section>
+
+      <!-- SYSTEM -->
+      <section class="card col-12">
+        <h2>🛠️ System Controls</h2>
+
+        <div class="btn-row">
+          <button class="btn" onclick="openLiveWall()">📺 Open Live Wall</button>
+          <button class="btn secondary" onclick="broadcastRefresh()">🔄 Refresh Live Wall</button>
+          <button class="btn yellow" onclick="testPopup()">🖥 Test Popup</button>
+          <button class="btn red" onclick="clearAllData()">⚠️ Clear All Data</button>
+        </div>
+      </section>
+
     </div>
+  </main>
 
-    <div class="remaining" id="popupRemaining"></div>
+  <!-- ANNOUNCEMENT POPUP -->
+  <div class="popup" id="announcementPopup">
+    <div class="popup-box">
+      <div class="popup-label" id="popupLabel">ANNOUNCEMENT</div>
 
-    <br>
+      <div class="popup-text" id="popupText">
+        Attention everyone.
+      </div>
 
-    <button class="btn" onclick="closePopup()">OK</button>
+      <div class="remaining" id="popupRemaining"></div>
+
+      <br>
+
+      <button class="btn" onclick="closePopup()">OK</button>
+    </div>
   </div>
-</div>
 
-<div class="toast" id="toast"></div>
+  <div class="toast" id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js"></script>
-<script>
-/* =========================================================
-   DATA
-========================================================= */
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script>
+    /* =========================================================
+       DATA
+    ========================================================= */
 
-const schedule = [
-  {
-    start:"07:30",
-    end:"09:00",
-    title:"Reading Hour",
-    description:"Take out your reading materials and begin focused reading."
-  },
-  {
-    start:"09:00",
-    end:"09:30",
-    title:"Breakfast Break",
-    description:"Have breakfast, refresh yourself and return on time."
-  },
-  {
-    start:"09:30",
-    end:"11:00",
-    title:"Reading Hour",
-    description:"Continue focused reading and complete your assigned reading."
-  },
-  {
-    start:"11:15",
-    end:"12:45",
-    title:"Writing Hour",
-    description:"Take out your writing materials and work with full concentration."
-  },
-  {
-    start:"12:45",
-    end:"13:50",
-    title:"Lunch & Prayer",
-    description:"Have lunch, complete prayer and take proper rest."
-  },
-  {
-    start:"14:00",
-    end:"16:00",
-    title:"Mentor Check",
-    description:"Keep your completed work ready. Mentors will check your progress."
-  }
-];
+    const schedule = [
+      {
+        start: "07:30",
+        end: "09:00",
+        title: "Reading Hour",
+        description: "Take out your reading materials and begin focused reading."
+      },
+      {
+        start: "09:00",
+        end: "09:30",
+        title: "Breakfast Break",
+        description: "Have breakfast, refresh yourself and return on time."
+      },
+      {
+        start: "09:30",
+        end: "11:00",
+        title: "Reading Hour",
+        description: "Continue focused reading and complete your assigned reading."
+      },
+      {
+        start: "11:15",
+        end: "12:45",
+        title: "Writing Hour",
+        description: "Take out your writing materials and work with full concentration."
+      },
+      {
+        start: "12:45",
+        end: "13:50",
+        title: "Lunch & Prayer",
+        description: "Have lunch, complete prayer and take proper rest."
+      },
+      {
+        start: "14:00",
+        end: "16:00",
+        title: "Mentor Check",
+        description: "Keep your completed work ready. Mentors will check your progress."
+      }
+    ];
 
-let students = JSON.parse(localStorage.getItem("artsFestStudents") || "[]");
+    let students = JSON.parse(localStorage.getItem("artsFestStudents") || "[]");
 
-/* One-time migration from the old three-checkbox model. */
-students = students.map(s => ({
-  ...s,
-  completed:
-    typeof s.completed === "boolean"
-      ? s.completed
-      : !!(s.reading && s.writing && s.mentorCheck)
-}));
+    /* One-time migration from the old three-checkbox model. */
+    students = students.map(s => ({
+      ...s,
+      completed:
+        typeof s.completed === "boolean"
+          ? s.completed
+          : !!(s.reading && s.writing && s.mentorCheck)
+    }));
 
-let settings = JSON.parse(localStorage.getItem("artsFestSettings") || "{}");
+    let settings = JSON.parse(localStorage.getItem("artsFestSettings") || "{}");
 
-let lastAnnouncements =
-  JSON.parse(localStorage.getItem("artsFestLastAnnouncements") || "{}");
+    let lastAnnouncements =
+      JSON.parse(localStorage.getItem("artsFestLastAnnouncements") || "{}");
 
-let voices = [];
+    let voices = [];
 
-const channel = "BroadcastChannel" in window
-  ? new BroadcastChannel("artsFestChannel")
-  : null;
-
-
-/* =========================================================
-   THEME
-========================================================= */
-
-function loadTheme(){
-  const theme = localStorage.getItem("artsFestTheme") || "light";
-  document.body.classList.toggle("dark",theme === "dark");
-}
-
-function toggleTheme(){
-  const dark = !document.body.classList.contains("dark");
-  document.body.classList.toggle("dark",dark);
-  localStorage.setItem("artsFestTheme",dark ? "dark":"light");
-
-  broadcast({
-    type:"theme",
-    dark
-  });
-}
-
-loadTheme();
+    const channel = "BroadcastChannel" in window
+      ? new BroadcastChannel("artsFestChannel")
+      : null;
 
 
-/* =========================================================
-   TIME
-========================================================= */
+    /* =========================================================
+       THEME
+    ========================================================= */
 
-function minutes(time){
-  const [h,m] = time.split(":").map(Number);
-  return h * 60 + m;
-}
+    function loadTheme() {
+      const theme = localStorage.getItem("artsFestTheme") || "light";
+      document.body.classList.toggle("dark", theme === "dark");
+    }
 
-function nowMinutes(){
-  const d = new Date();
-  return d.getHours()*60 + d.getMinutes();
-}
+    function toggleTheme() {
+      const dark = !document.body.classList.contains("dark");
+      document.body.classList.toggle("dark", dark);
+      localStorage.setItem("artsFestTheme", dark ? "dark" : "light");
 
-function formatClockTime(time){
-  const [h,m] = time.split(":").map(Number);
+      broadcast({
+        type: "theme",
+        dark
+      });
+    }
 
-  const suffix = h >= 12 ? "PM" : "AM";
-  const hour = h % 12 || 12;
-
-  return `${hour}:${String(m).padStart(2,"0")} ${suffix}`;
-}
-
-function formatDuration(mins){
-  mins = Math.max(0,Math.round(mins));
-
-  const h = Math.floor(mins/60);
-  const m = mins%60;
-
-  if(h && m) return `${h} hour ${m} minutes`;
-  if(h) return `${h} hour`;
-  return `${m} minutes`;
-}
-
-function formatRemaining(mins){
-  mins = Math.max(0,Math.round(mins));
-
-  if(mins < 1) return "less than a minute";
-
-  return formatDuration(mins);
-}
+    loadTheme();
 
 
-/* =========================================================
-   CURRENT / NEXT SESSION
-========================================================= */
+    /* =========================================================
+       TIME
+    ========================================================= */
 
-function currentSlot(){
+    function minutes(time) {
+      const [h, m] = time.split(":").map(Number);
+      return h * 60 + m;
+    }
 
-  const now = nowMinutes();
+    function nowMinutes() {
+      const d = new Date();
+      return d.getHours() * 60 + d.getMinutes();
+    }
 
-  return schedule.find(s =>
-    now >= minutes(s.start) &&
-    now < minutes(s.end)
-  ) || null;
-}
+    function formatClockTime(time) {
+      const [h, m] = time.split(":").map(Number);
 
-function nextSlot(){
+      const suffix = h >= 12 ? "PM" : "AM";
+      const hour = h % 12 || 12;
 
-  const now = nowMinutes();
+      return `${hour}:${String(m).padStart(2, "0")} ${suffix}`;
+    }
 
-  return schedule.find(s =>
-    minutes(s.start) > now
-  ) || null;
-}
+    function formatDuration(mins) {
+      mins = Math.max(0, Math.round(mins));
 
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
 
-/* =========================================================
-   CLOCK
-========================================================= */
+      if (h && m) return `${h} hour ${m} minutes`;
+      if (h) return `${h} hour`;
+      return `${m} minutes`;
+    }
 
-function updateClock(){
+    function formatRemaining(mins) {
+      mins = Math.max(0, Math.round(mins));
 
-  const d = new Date();
+      if (mins < 1) return "less than a minute";
 
-  document.getElementById("clock").textContent =
-    d.toLocaleTimeString("en-IN");
-
-  document.getElementById("date").textContent =
-    d.toLocaleDateString("en-IN",{
-      weekday:"long",
-      year:"numeric",
-      month:"long",
-      day:"numeric"
-    });
-
-  const current = currentSlot();
-
-  if(current){
-
-    const remaining =
-      minutes(current.end) - nowMinutes();
-
-    document.getElementById("currentTitle").textContent =
-      current.title;
-
-    document.getElementById("currentDescription").textContent =
-      current.description;
-
-    document.getElementById("currentRemaining").textContent =
-      formatRemaining(remaining) + " remaining";
-
-  }else{
-
-    document.getElementById("currentTitle").textContent =
-      "No Active Session";
-
-    document.getElementById("currentDescription").textContent =
-      "There is currently no scheduled practice activity.";
-
-    const next = nextSlot();
-
-    document.getElementById("currentRemaining").textContent =
-      next ? "Next: " + formatClockTime(next.start) : "Schedule finished";
-  }
-
-  renderSchedule();
-  automaticAnnouncements();
-}
+      return formatDuration(mins);
+    }
 
 
-/* =========================================================
-   SCHEDULE UI
-========================================================= */
+    /* =========================================================
+       CURRENT / NEXT SESSION
+    ========================================================= */
 
-function renderSchedule(){
+    function currentSlot() {
 
-  const box = document.getElementById("schedule");
-  const current = currentSlot();
+      const now = nowMinutes();
 
-  box.innerHTML = schedule.map((s,index)=>{
+      return schedule.find(s =>
+        now >= minutes(s.start) &&
+        now < minutes(s.end)
+      ) || null;
+    }
 
-    const active =
-      current &&
-      current.start === s.start &&
-      current.end === s.end;
+    function nextSlot() {
 
-    return `
-      <div class="schedule-item ${active ? "active":""}">
+      const now = nowMinutes();
+
+      return schedule.find(s =>
+        minutes(s.start) > now
+      ) || null;
+    }
+
+
+    /* =========================================================
+       CLOCK
+    ========================================================= */
+
+    function updateClock() {
+
+      const d = new Date();
+
+      document.getElementById("clock").textContent =
+        d.toLocaleTimeString("en-IN");
+
+      document.getElementById("date").textContent =
+        d.toLocaleDateString("en-IN", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric"
+        });
+
+      const current = currentSlot();
+
+      if (current) {
+
+        const remaining =
+          minutes(current.end) - nowMinutes();
+
+        document.getElementById("currentTitle").textContent =
+          current.title;
+
+        document.getElementById("currentDescription").textContent =
+          current.description;
+
+        document.getElementById("currentRemaining").textContent =
+          formatRemaining(remaining) + " remaining";
+
+      } else {
+
+        document.getElementById("currentTitle").textContent =
+          "No Active Session";
+
+        document.getElementById("currentDescription").textContent =
+          "There is currently no scheduled practice activity.";
+
+        const next = nextSlot();
+
+        document.getElementById("currentRemaining").textContent =
+          next ? "Next: " + formatClockTime(next.start) : "Schedule finished";
+      }
+
+      renderSchedule();
+      automaticAnnouncements();
+    }
+
+
+    /* =========================================================
+       SCHEDULE UI
+    ========================================================= */
+
+    function renderSchedule() {
+
+      const box = document.getElementById("schedule");
+      const current = currentSlot();
+
+      box.innerHTML = schedule.map((s, index) => {
+
+        const active =
+          current &&
+          current.start === s.start &&
+          current.end === s.end;
+
+        return `
+      <div class="schedule-item ${active ? "active" : ""}">
         <div class="schedule-time">
           ${formatClockTime(s.start)}<br>
           <span class="muted">to ${formatClockTime(s.end)}</span>
@@ -1192,821 +1428,821 @@ function renderSchedule(){
       </div>
     `;
 
-  }).join("");
-}
-
-function announceSchedule(index){
-
-  const s = schedule[index];
-
-  const text =
-    `Attention everyone. It is now ${formatClockTime(s.start)}. ` +
-    `${s.title} is scheduled from ${formatClockTime(s.start)} ` +
-    `to ${formatClockTime(s.end)}. ` +
-    `${s.description}`;
-
-  setAnnouncement(text,"Schedule Announcement",true);
-}
-
-
-/* =========================================================
-   ANNOUNCEMENT GENERATOR
-========================================================= */
-
-function generateCurrentAnnouncement(){
-
-  const s = currentSlot();
-
-  if(!s){
-
-    const next = nextSlot();
-
-    const text = next
-      ? `Attention everyone. There is no active session right now. ` +
-        `The next activity is ${next.title} at ${formatClockTime(next.start)}.`
-      : `Attention everyone. Today's scheduled practice activities are complete. ` +
-        `Please finish any pending work and prepare for tomorrow.`;
-
-    setAnnouncement(text,"Control Room",true);
-    return;
-  }
-
-  const remaining =
-    minutes(s.end) - nowMinutes();
-
-  const text =
-    `Attention everyone. It is now ${new Date().toLocaleTimeString("en-IN",{
-      hour:"numeric",
-      minute:"2-digit"
-    })}. ` +
-    `${s.title} is currently in progress. ` +
-    `${s.description} ` +
-    `You have approximately ${formatRemaining(remaining)} remaining. ` +
-    `Please stay focused and complete your work on time.`;
-
-  setAnnouncement(text,"Current Activity",true);
-}
-
-function generateNextAnnouncement(){
-
-  const next = nextSlot();
-
-  if(!next){
-
-    setAnnouncement(
-      "There are no more scheduled activities for today.",
-      "Next Activity",
-      true
-    );
-
-    return;
-  }
-
-  const text =
-    `Attention everyone. The next scheduled activity is ` +
-    `${next.title}, starting at ${formatClockTime(next.start)}. ` +
-    `${next.description} ` +
-    `Please be ready before the starting time.`;
-
-  setAnnouncement(text,"Next Activity",true);
-}
-
-function generateMotivation(){
-
-  const custom =
-    document.getElementById("motivationText").value.trim();
-
-  const messages = [
-    "Keep going everyone. Every focused minute today is helping you become stronger for the National Arts Fest.",
-    "Stay disciplined. Practice today creates confidence on competition day.",
-    "Do not compare yourself with others. Improve yourself one step at a time.",
-    "Your preparation is your advantage. Stay focused, stay calm and keep practicing.",
-    "Champions are built during practice. Give your best effort right now.",
-    "One more focused session can make a big difference. Keep going, everyone."
-  ];
-
-  const text =
-    custom ||
-    messages[Math.floor(Math.random()*messages.length)];
-
-  document.getElementById("motivationText").value = text;
-
-  setAnnouncement(text,"Motivation",true);
-}
-
-let pendingCallIndex = Number(localStorage.getItem("artsFestPendingCallIndex") || 0);
-let pendingAnnouncementRunning = false;
-let announcementStopRequested = false;
-let announcementAudioContext = null;
-let announcementChimeTimer = null;
-let announcementChimeResolve = null;
-
-function getPendingStudents(){
-  return students.filter(s => !isComplete(s));
-}
-
-function resetPendingCaller(){
-  pendingCallIndex = 0;
-  localStorage.setItem("artsFestPendingCallIndex","0");
-  updateNextPendingPreview();
-  toast("Pending caller reset to the first student.");
-}
-
-function updateNextPendingPreview(){
-  const pending = getPendingStudents();
-  if(pendingCallIndex >= pending.length) pendingCallIndex = 0;
-
-  const next = pending[pendingCallIndex];
-  const nameEl = document.getElementById("nextPendingName");
-  const metaEl = document.getElementById("nextPendingMeta");
-  if(!nameEl || !metaEl) return;
-
-  if(!next){
-    nameEl.textContent = "No pending student";
-    metaEl.textContent = "All students are complete.";
-    return;
-  }
-
-  nameEl.textContent = next.name;
-  metaEl.textContent = `Ad.No: ${next.adNo} • ${next.programCode} • ${next.program}`;
-}
-
-/* Formal announcement sequence:
-   1. Bell
-   2. "This is an announcement from SIBAQ Control Room."
-   3. Pending student details, one student at a time
-   4. "Thank you."
-   Each student gets its own Live Wall popup. */
-async function announceAllPendingStudents(){
-  if(pendingAnnouncementRunning){
-    toast("A pending-student announcement is already running.");
-    return;
-  }
-
-  const pending = getPendingStudents();
-
-  if(!pending.length){
-    await runOfficialAnnouncement(
-      "Excellent work everyone. All students have completed today's checklist."
-    );
-    return;
-  }
-
-  pendingAnnouncementRunning = true;
-  announcementStopRequested = false;
-
-  try{
-    stopSpeech();
-
-    await playAnnouncementBell();
-
-    await speakAndWait(
-      "This is an announcement from SIBAQ Control Room."
-    );
-
-    await wait(450);
-
-    for(let i=0;i<pending.length;i++){
-      if(announcementStopRequested) break;
-      const student = pending[i];
-
-      /* Voice announcement: ONLY the student's name.
-         Admission number, program code and program remain visual-only on the Live Wall. */
-      const voiceText = `${student.name}.`;
-
-      showStudentCall(student,voiceText,false);
-
-      await speakAndWait(voiceText);
-
-      if(announcementStopRequested) break;
-
-      /* Give the Live Wall time to clearly show this student before the next one. */
-      await wait(900);
+      }).join("");
     }
 
-    if(!announcementStopRequested){
-      await speakAndWait(
-        "The last student called, please contact the control room immediately."
-      );
-      if(!announcementStopRequested) await speakAndWait("Thank you.");
+    function announceSchedule(index) {
+
+      const s = schedule[index];
+
+      const text =
+        `Attention everyone. It is now ${formatClockTime(s.start)}. ` +
+        `${s.title} is scheduled from ${formatClockTime(s.start)} ` +
+        `to ${formatClockTime(s.end)}. ` +
+        `${s.description}`;
+
+      setAnnouncement(text, "Schedule Announcement", true);
     }
 
-    pendingCallIndex = 0;
-    localStorage.setItem("artsFestPendingCallIndex","0");
-    updateNextPendingPreview();
 
-    toast(`Announcement completed for ${pending.length} pending student${pending.length === 1 ? "" : "s"}.`);
-  } finally {
-    pendingAnnouncementRunning = false;
-  }
-}
+    /* =========================================================
+       ANNOUNCEMENT GENERATOR
+    ========================================================= */
 
-async function runOfficialAnnouncement(text){
-  pendingAnnouncementRunning = true;
-  announcementStopRequested = false;
-  try{
-    stopSpeech();
-    await playAnnouncementBell();
-    if(!announcementStopRequested){
-      await speakAndWait(
-        `This is an announcement from SIBAQ Control Room. ${text} Thank you.`
-      );
+    function generateCurrentAnnouncement() {
+
+      const s = currentSlot();
+
+      if (!s) {
+
+        const next = nextSlot();
+
+        const text = next
+          ? `Attention everyone. There is no active session right now. ` +
+          `The next activity is ${next.title} at ${formatClockTime(next.start)}.`
+          : `Attention everyone. Today's scheduled practice activities are complete. ` +
+          `Please finish any pending work and prepare for tomorrow.`;
+
+        setAnnouncement(text, "Control Room", true);
+        return;
+      }
+
+      const remaining =
+        minutes(s.end) - nowMinutes();
+
+      const text =
+        `Attention everyone. It is now ${new Date().toLocaleTimeString("en-IN", {
+          hour: "numeric",
+          minute: "2-digit"
+        })}. ` +
+        `${s.title} is currently in progress. ` +
+        `${s.description} ` +
+        `You have approximately ${formatRemaining(remaining)} remaining. ` +
+        `Please stay focused and complete your work on time.`;
+
+      setAnnouncement(text, "Current Activity", true);
     }
-  } finally {
-    pendingAnnouncementRunning = false;
-  }
-}
 
-/* Kept for compatibility with older buttons/bookmarks. */
-async function callNextPendingStudent(){
-  const pending = getPendingStudents();
-  if(!pending.length){
-    await runOfficialAnnouncement(
-      "Excellent work everyone. All students have completed today's checklist."
-    );
-    return;
-  }
+    function generateNextAnnouncement() {
 
-  const student = pending[pendingCallIndex % pending.length];
-  pendingCallIndex = (pendingCallIndex + 1) % pending.length;
-  localStorage.setItem("artsFestPendingCallIndex",String(pendingCallIndex));
-  updateNextPendingPreview();
+      const next = nextSlot();
 
-  announcementStopRequested = false;
-  stopSpeech();
-  await playAnnouncementBell();
-  if(announcementStopRequested) return;
-  await speakAndWait("This is an announcement from SIBAQ Control Room.");
+      if (!next) {
 
-  /* Voice: name only. Details are shown only in the Live Wall popup. */
-  const voiceText = `${student.name}.`;
+        setAnnouncement(
+          "There are no more scheduled activities for today.",
+          "Next Activity",
+          true
+        );
 
-  if(announcementStopRequested) return;
-  showStudentCall(student,voiceText,false);
-  await speakAndWait(voiceText);
-  if(!announcementStopRequested) await speakAndWait("Thank you.");
-}
+        return;
+      }
 
-function showStudentCall(student,voiceText,speakNow=false){
-  document.getElementById("announcementText").value = voiceText;
+      const text =
+        `Attention everyone. The next scheduled activity is ` +
+        `${next.title}, starting at ${formatClockTime(next.start)}. ` +
+        `${next.description} ` +
+        `Please be ready before the starting time.`;
 
-  const payload = {
-    type:"announcement",
-    label:"SIBAQ CONTROL ROOM • PENDING STUDENT",
-    text:voiceText,
-    studentCall:{
-      name:student.name,
-      adNo:student.adNo,
-      programCode:student.programCode,
-      program:student.program
-    },
-    time:Date.now()
-  };
+      setAnnouncement(text, "Next Activity", true);
+    }
 
-  showAnnouncementPayload(payload);
+    function generateMotivation() {
 
-  if(speakNow) speakOfficial(voiceText);
-}
+      const custom =
+        document.getElementById("motivationText").value.trim();
 
-function showAnnouncementPayload(payload){
-  const text = payload.text || "";
-  const label = payload.label || "Announcement";
-
-  document.getElementById("announcementText").value = text;
-
-  document.getElementById("popupText").textContent =
-    payload.studentCall
-      ? `Name: ${payload.studentCall.name}\n` +
-        `Admission No.: ${payload.studentCall.adNo}\n` +
-        `Program: ${payload.studentCall.program}`
-      : text;
-
-  document.getElementById("popupLabel").textContent = label;
-
-  const current = currentSlot();
-  document.getElementById("popupRemaining").textContent =
-    current
-      ? formatRemaining(minutes(current.end)-nowMinutes()) + " remaining"
-      : "";
-
-  const box = document.querySelector("#announcementPopup .popup-box");
-  box.classList.remove("animate");
-  void box.offsetWidth;
-  box.classList.add("animate");
-
-  document.getElementById("announcementPopup").classList.add("show");
-
-  broadcast(payload);
-  localStorage.setItem("artsFestLiveAnnouncement",JSON.stringify(payload));
-}
-
-function generatePendingAnnouncement(){
-  announceAllPendingStudents();
-}
-
-function aiEditAnnouncement(mode){
-  const field = document.getElementById("announcementText");
-  let text = field.value.trim();
-
-  if(!text){
-    toast("Write or generate an announcement first.");
-    return;
-  }
-
-  text = text.replace(/\s+/g," ").trim();
-
-  if(mode === "professional"){
-    text =
-      "Attention everyone. " +
-      text.replace(/^attention everyone[.!]?\s*/i,"") +
-      " Please remain focused and follow the instructions.";
-  }
-
-  if(mode === "short"){
-    text = text.split(/(?<=[.!?])\s+/).filter(Boolean).slice(0,2).join(" ");
-  }
-
-  if(mode === "friendly"){
-    text =
-      "Attention everyone. " +
-      text.replace(/^attention everyone[.!]?\s*/i,"") +
-      " Keep going and give your best effort.";
-  }
-
-  if(mode === "clear"){
-    text = text
-      .replace(/\bapproximately\b/gi,"about")
-      .replace(/\bplease kindly\b/gi,"please")
-      .replace(/\s+/g," ")
-      .trim();
-  }
-
-  field.value = text;
-  showAnnouncement(text,"AI Edited Announcement");
-  toast("Announcement edited.");
-}
-
-
-/* =========================================================
-   ANNOUNCEMENT ENGINE
-========================================================= */
-
-function setAnnouncement(text,label="Announcement",speakNow=false){
-
-  document.getElementById("announcementText").value = text;
-
-  showAnnouncement(text,label);
-
-  if(speakNow){
-    speak(text);
-  }
-}
-
-function playAnnouncement(){
-
-  const text =
-    document.getElementById("announcementText").value.trim();
-
-  if(!text){
-    toast("Write or generate an announcement first.");
-    return;
-  }
-
-  showAnnouncement(text,"Control Room Announcement");
-  speak(text);
-}
-
-function showAnnouncementOnly(){
-
-  const text =
-    document.getElementById("announcementText").value.trim();
-
-  if(!text){
-    toast("There is no announcement to show.");
-    return;
-  }
-
-  showAnnouncement(text,"Control Room Announcement");
-}
-
-function showAnnouncement(text,label){
-
-  document.getElementById("popupText").textContent = text;
-  document.getElementById("popupLabel").textContent = label;
-
-  const current = currentSlot();
-
-  document.getElementById("popupRemaining").textContent =
-    current
-      ? formatRemaining(minutes(current.end)-nowMinutes()) + " remaining"
-      : "";
-
-  const box = document.querySelector("#announcementPopup .popup-box");
-  box.classList.remove("animate");
-  void box.offsetWidth;
-  box.classList.add("animate");
-
-  document.getElementById("announcementPopup").classList.add("show");
-
-  broadcast({
-    type:"announcement",
-    text,
-    label,
-    time:Date.now()
-  });
-
-  localStorage.setItem("artsFestLiveAnnouncement",
-    JSON.stringify({
-      text,
-      label,
-      time:Date.now()
-    })
-  );
-}
-
-function closePopup(){
-  document.getElementById("announcementPopup")
-    .classList.remove("show");
-}
-
-function clearAnnouncement(){
-  document.getElementById("announcementText").value = "";
-}
-
-
-/* =========================================================
-   VOICE
-========================================================= */
-
-function loadVoices(){
-
-  voices = speechSynthesis.getVoices();
-
-  const select =
-    document.getElementById("voiceSelect");
-
-  select.innerHTML = "";
-
-  const preferred = voices.filter(v =>
-    /en-IN|en-GB|en-US|en-AU/i.test(v.lang)
-  );
-
-  const list = preferred.length ? preferred : voices;
-
-  list.forEach((voice,index)=>{
-
-    const option = document.createElement("option");
-
-    option.value = voices.indexOf(voice);
-
-    option.textContent =
-      `${voice.name} — ${voice.lang}`;
-
-    select.appendChild(option);
-  });
-
-  const saved =
-    localStorage.getItem("artsFestVoice");
-
-  if(saved !== null){
-    select.value = saved;
-  }
-}
-
-speechSynthesis.onvoiceschanged = loadVoices;
-
-setTimeout(loadVoices,500);
-
-setTimeout(()=>{
-  const savedVolume = localStorage.getItem("artsFestAnnouncementVolume");
-  setAnnouncementVolume(savedVolume === null ? 100 : savedVolume);
-},100);
-
-function wait(ms){
-  return new Promise(resolve => setTimeout(resolve,ms));
-}
-
-function stopSpeech(){
-  if("speechSynthesis" in window) speechSynthesis.cancel();
-}
-
-function getAnnouncementVolume(){
-  const el = document.getElementById("announcementVolume");
-  return el ? Number(el.value) / 100 : 1;
-}
-
-function setAnnouncementVolume(value){
-  const v = Math.max(0,Math.min(100,Number(value)));
-  const el = document.getElementById("announcementVolume");
-  const label = document.getElementById("volumeValue");
-  if(el) el.value = v;
-  if(label) label.textContent = `${Math.round(v)}%`;
-  localStorage.setItem("artsFestAnnouncementVolume",String(v));
-}
-
-function stopAnnouncementAudio(){
-  if(announcementChimeTimer){
-    clearTimeout(announcementChimeTimer);
-    announcementChimeTimer = null;
-  }
-  if(announcementAudioContext){
-    try{ announcementAudioContext.close(); }catch(e){}
-    announcementAudioContext = null;
-  }
-  if(announcementChimeResolve){
-    const resolve = announcementChimeResolve;
-    announcementChimeResolve = null;
-    resolve();
-  }
-}
-
-/* Clear, two-tone PA-style chime. It uses the browser AudioContext so no external sound file is required. */
-function playAnnouncementBell(){
-  return new Promise(resolve=>{
-    announcementChimeResolve = resolve;
-    try{
-      stopAnnouncementAudio();
-      announcementChimeResolve = resolve;
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if(!AudioContextClass){ resolve(); return; }
-
-      const ctx = new AudioContextClass();
-      announcementAudioContext = ctx;
-      const volume = getAnnouncementVolume();
-      if(ctx.state === "suspended") ctx.resume().catch(()=>{});
-
-      const master = ctx.createGain();
-      master.gain.setValueAtTime(0.0001,ctx.currentTime);
-      master.gain.linearRampToValueAtTime(Math.max(0.0001,0.34*volume),ctx.currentTime+0.025);
-      master.connect(ctx.destination);
-
-      const notes = [
-        {frequency:659.25, start:0, duration:.38},
-        {frequency:783.99, start:.13, duration:.58},
-        {frequency:1046.50, start:.27, duration:.82}
+      const messages = [
+        "Keep going everyone. Every focused minute today is helping you become stronger for the National Arts Fest.",
+        "Stay disciplined. Practice today creates confidence on competition day.",
+        "Do not compare yourself with others. Improve yourself one step at a time.",
+        "Your preparation is your advantage. Stay focused, stay calm and keep practicing.",
+        "Champions are built during practice. Give your best effort right now.",
+        "One more focused session can make a big difference. Keep going, everyone."
       ];
 
-      notes.forEach(note=>{
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.value = note.frequency;
-        gain.gain.setValueAtTime(0.0001,ctx.currentTime+note.start);
-        gain.gain.exponentialRampToValueAtTime(0.75,ctx.currentTime+note.start+0.025);
-        gain.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+note.start+note.duration);
-        osc.connect(gain);
-        gain.connect(master);
-        osc.start(ctx.currentTime+note.start);
-        osc.stop(ctx.currentTime+note.start+note.duration+0.03);
+      const text =
+        custom ||
+        messages[Math.floor(Math.random() * messages.length)];
+
+      document.getElementById("motivationText").value = text;
+
+      setAnnouncement(text, "Motivation", true);
+    }
+
+    let pendingCallIndex = Number(localStorage.getItem("artsFestPendingCallIndex") || 0);
+    let pendingAnnouncementRunning = false;
+    let announcementStopRequested = false;
+    let announcementAudioContext = null;
+    let announcementChimeTimer = null;
+    let announcementChimeResolve = null;
+
+    function getPendingStudents() {
+      return students.filter(s => !isComplete(s));
+    }
+
+    function resetPendingCaller() {
+      pendingCallIndex = 0;
+      localStorage.setItem("artsFestPendingCallIndex", "0");
+      updateNextPendingPreview();
+      toast("Pending caller reset to the first student.");
+    }
+
+    function updateNextPendingPreview() {
+      const pending = getPendingStudents();
+      if (pendingCallIndex >= pending.length) pendingCallIndex = 0;
+
+      const next = pending[pendingCallIndex];
+      const nameEl = document.getElementById("nextPendingName");
+      const metaEl = document.getElementById("nextPendingMeta");
+      if (!nameEl || !metaEl) return;
+
+      if (!next) {
+        nameEl.textContent = "No pending student";
+        metaEl.textContent = "All students are complete.";
+        return;
+      }
+
+      nameEl.textContent = next.name;
+      metaEl.textContent = `Ad.No: ${next.adNo} • ${next.programCode} • ${next.program}`;
+    }
+
+    /* Formal announcement sequence:
+       1. Bell
+       2. "This is an announcement from SIBAQ Control Room."
+       3. Pending student details, one student at a time
+       4. "Thank you."
+       Each student gets its own Live Wall popup. */
+    async function announceAllPendingStudents() {
+      if (pendingAnnouncementRunning) {
+        toast("A pending-student announcement is already running.");
+        return;
+      }
+
+      const pending = getPendingStudents();
+
+      if (!pending.length) {
+        await runOfficialAnnouncement(
+          "Excellent work everyone. All students have completed today's checklist."
+        );
+        return;
+      }
+
+      pendingAnnouncementRunning = true;
+      announcementStopRequested = false;
+
+      try {
+        stopSpeech();
+
+        await playAnnouncementBell();
+
+        await speakAndWait(
+          "This is an announcement from SIBAQ Control Room."
+        );
+
+        await wait(450);
+
+        for (let i = 0; i < pending.length; i++) {
+          if (announcementStopRequested) break;
+          const student = pending[i];
+
+          /* Voice announcement: ONLY the student's name.
+             Admission number, program code and program remain visual-only on the Live Wall. */
+          const voiceText = `${student.name}.`;
+
+          showStudentCall(student, voiceText, false);
+
+          await speakAndWait(voiceText);
+
+          if (announcementStopRequested) break;
+
+          /* Give the Live Wall time to clearly show this student before the next one. */
+          await wait(900);
+        }
+
+        if (!announcementStopRequested) {
+          await speakAndWait(
+            "The last student called, please contact the control room immediately."
+          );
+          if (!announcementStopRequested) await speakAndWait("Thank you.");
+        }
+
+        pendingCallIndex = 0;
+        localStorage.setItem("artsFestPendingCallIndex", "0");
+        updateNextPendingPreview();
+
+        toast(`Announcement completed for ${pending.length} pending student${pending.length === 1 ? "" : "s"}.`);
+      } finally {
+        pendingAnnouncementRunning = false;
+      }
+    }
+
+    async function runOfficialAnnouncement(text) {
+      pendingAnnouncementRunning = true;
+      announcementStopRequested = false;
+      try {
+        stopSpeech();
+        await playAnnouncementBell();
+        if (!announcementStopRequested) {
+          await speakAndWait(
+            `This is an announcement from SIBAQ Control Room. ${text} Thank you.`
+          );
+        }
+      } finally {
+        pendingAnnouncementRunning = false;
+      }
+    }
+
+    /* Kept for compatibility with older buttons/bookmarks. */
+    async function callNextPendingStudent() {
+      const pending = getPendingStudents();
+      if (!pending.length) {
+        await runOfficialAnnouncement(
+          "Excellent work everyone. All students have completed today's checklist."
+        );
+        return;
+      }
+
+      const student = pending[pendingCallIndex % pending.length];
+      pendingCallIndex = (pendingCallIndex + 1) % pending.length;
+      localStorage.setItem("artsFestPendingCallIndex", String(pendingCallIndex));
+      updateNextPendingPreview();
+
+      announcementStopRequested = false;
+      stopSpeech();
+      await playAnnouncementBell();
+      if (announcementStopRequested) return;
+      await speakAndWait("This is an announcement from SIBAQ Control Room.");
+
+      /* Voice: name only. Details are shown only in the Live Wall popup. */
+      const voiceText = `${student.name}.`;
+
+      if (announcementStopRequested) return;
+      showStudentCall(student, voiceText, false);
+      await speakAndWait(voiceText);
+      if (!announcementStopRequested) await speakAndWait("Thank you.");
+    }
+
+    function showStudentCall(student, voiceText, speakNow = false) {
+      document.getElementById("announcementText").value = voiceText;
+
+      const payload = {
+        type: "announcement",
+        label: "SIBAQ CONTROL ROOM • PENDING STUDENT",
+        text: voiceText,
+        studentCall: {
+          name: student.name,
+          adNo: student.adNo,
+          programCode: student.programCode,
+          program: student.program
+        },
+        time: Date.now()
+      };
+
+      showAnnouncementPayload(payload);
+
+      if (speakNow) speakOfficial(voiceText);
+    }
+
+    function showAnnouncementPayload(payload) {
+      const text = payload.text || "";
+      const label = payload.label || "Announcement";
+
+      document.getElementById("announcementText").value = text;
+
+      document.getElementById("popupText").textContent =
+        payload.studentCall
+          ? `Name: ${payload.studentCall.name}\n` +
+          `Admission No.: ${payload.studentCall.adNo}\n` +
+          `Program: ${payload.studentCall.program}`
+          : text;
+
+      document.getElementById("popupLabel").textContent = label;
+
+      const current = currentSlot();
+      document.getElementById("popupRemaining").textContent =
+        current
+          ? formatRemaining(minutes(current.end) - nowMinutes()) + " remaining"
+          : "";
+
+      const box = document.querySelector("#announcementPopup .popup-box");
+      box.classList.remove("animate");
+      void box.offsetWidth;
+      box.classList.add("animate");
+
+      document.getElementById("announcementPopup").classList.add("show");
+
+      broadcast(payload);
+      localStorage.setItem("artsFestLiveAnnouncement", JSON.stringify(payload));
+    }
+
+    function generatePendingAnnouncement() {
+      announceAllPendingStudents();
+    }
+
+    function aiEditAnnouncement(mode) {
+      const field = document.getElementById("announcementText");
+      let text = field.value.trim();
+
+      if (!text) {
+        toast("Write or generate an announcement first.");
+        return;
+      }
+
+      text = text.replace(/\s+/g, " ").trim();
+
+      if (mode === "professional") {
+        text =
+          "Attention everyone. " +
+          text.replace(/^attention everyone[.!]?\s*/i, "") +
+          " Please remain focused and follow the instructions.";
+      }
+
+      if (mode === "short") {
+        text = text.split(/(?<=[.!?])\s+/).filter(Boolean).slice(0, 2).join(" ");
+      }
+
+      if (mode === "friendly") {
+        text =
+          "Attention everyone. " +
+          text.replace(/^attention everyone[.!]?\s*/i, "") +
+          " Keep going and give your best effort.";
+      }
+
+      if (mode === "clear") {
+        text = text
+          .replace(/\bapproximately\b/gi, "about")
+          .replace(/\bplease kindly\b/gi, "please")
+          .replace(/\s+/g, " ")
+          .trim();
+      }
+
+      field.value = text;
+      showAnnouncement(text, "AI Edited Announcement");
+      toast("Announcement edited.");
+    }
+
+
+    /* =========================================================
+       ANNOUNCEMENT ENGINE
+    ========================================================= */
+
+    function setAnnouncement(text, label = "Announcement", speakNow = false) {
+
+      document.getElementById("announcementText").value = text;
+
+      showAnnouncement(text, label);
+
+      if (speakNow) {
+        speak(text);
+      }
+    }
+
+    function playAnnouncement() {
+
+      const text =
+        document.getElementById("announcementText").value.trim();
+
+      if (!text) {
+        toast("Write or generate an announcement first.");
+        return;
+      }
+
+      showAnnouncement(text, "Control Room Announcement");
+      speak(text);
+    }
+
+    function showAnnouncementOnly() {
+
+      const text =
+        document.getElementById("announcementText").value.trim();
+
+      if (!text) {
+        toast("There is no announcement to show.");
+        return;
+      }
+
+      showAnnouncement(text, "Control Room Announcement");
+    }
+
+    function showAnnouncement(text, label) {
+
+      document.getElementById("popupText").textContent = text;
+      document.getElementById("popupLabel").textContent = label;
+
+      const current = currentSlot();
+
+      document.getElementById("popupRemaining").textContent =
+        current
+          ? formatRemaining(minutes(current.end) - nowMinutes()) + " remaining"
+          : "";
+
+      const box = document.querySelector("#announcementPopup .popup-box");
+      box.classList.remove("animate");
+      void box.offsetWidth;
+      box.classList.add("animate");
+
+      document.getElementById("announcementPopup").classList.add("show");
+
+      broadcast({
+        type: "announcement",
+        text,
+        label,
+        time: Date.now()
       });
 
-      master.gain.setValueAtTime(Math.max(0.0001,0.34*volume),ctx.currentTime+0.55);
-      master.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+1.25);
+      localStorage.setItem("artsFestLiveAnnouncement",
+        JSON.stringify({
+          text,
+          label,
+          time: Date.now()
+        })
+      );
+    }
 
-      announcementChimeTimer = setTimeout(()=>{
-        stopAnnouncementAudio();
-      },1400);
-    }catch(e){
+    function closePopup() {
+      document.getElementById("announcementPopup")
+        .classList.remove("show");
+    }
+
+    function clearAnnouncement() {
+      document.getElementById("announcementText").value = "";
+    }
+
+
+    /* =========================================================
+       VOICE
+    ========================================================= */
+
+    function loadVoices() {
+
+      voices = speechSynthesis.getVoices();
+
+      const select =
+        document.getElementById("voiceSelect");
+
+      select.innerHTML = "";
+
+      const preferred = voices.filter(v =>
+        /en-IN|en-GB|en-US|en-AU/i.test(v.lang)
+      );
+
+      const list = preferred.length ? preferred : voices;
+
+      list.forEach((voice, index) => {
+
+        const option = document.createElement("option");
+
+        option.value = voices.indexOf(voice);
+
+        option.textContent =
+          `${voice.name} — ${voice.lang}`;
+
+        select.appendChild(option);
+      });
+
+      const saved =
+        localStorage.getItem("artsFestVoice");
+
+      if (saved !== null) {
+        select.value = saved;
+      }
+    }
+
+    speechSynthesis.onvoiceschanged = loadVoices;
+
+    setTimeout(loadVoices, 500);
+
+    setTimeout(() => {
+      const savedVolume = localStorage.getItem("artsFestAnnouncementVolume");
+      setAnnouncementVolume(savedVolume === null ? 100 : savedVolume);
+    }, 100);
+
+    function wait(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function stopSpeech() {
+      if ("speechSynthesis" in window) speechSynthesis.cancel();
+    }
+
+    function getAnnouncementVolume() {
+      const el = document.getElementById("announcementVolume");
+      return el ? Number(el.value) / 100 : 1;
+    }
+
+    function setAnnouncementVolume(value) {
+      const v = Math.max(0, Math.min(100, Number(value)));
+      const el = document.getElementById("announcementVolume");
+      const label = document.getElementById("volumeValue");
+      if (el) el.value = v;
+      if (label) label.textContent = `${Math.round(v)}%`;
+      localStorage.setItem("artsFestAnnouncementVolume", String(v));
+    }
+
+    function stopAnnouncementAudio() {
+      if (announcementChimeTimer) {
+        clearTimeout(announcementChimeTimer);
+        announcementChimeTimer = null;
+      }
+      if (announcementAudioContext) {
+        try { announcementAudioContext.close(); } catch (e) { }
+        announcementAudioContext = null;
+      }
+      if (announcementChimeResolve) {
+        const resolve = announcementChimeResolve;
+        announcementChimeResolve = null;
+        resolve();
+      }
+    }
+
+    /* Clear, two-tone PA-style chime. It uses the browser AudioContext so no external sound file is required. */
+    function playAnnouncementBell() {
+      return new Promise(resolve => {
+        announcementChimeResolve = resolve;
+        try {
+          stopAnnouncementAudio();
+          announcementChimeResolve = resolve;
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) { resolve(); return; }
+
+          const ctx = new AudioContextClass();
+          announcementAudioContext = ctx;
+          const volume = getAnnouncementVolume();
+          if (ctx.state === "suspended") ctx.resume().catch(() => { });
+
+          const master = ctx.createGain();
+          master.gain.setValueAtTime(0.0001, ctx.currentTime);
+          master.gain.linearRampToValueAtTime(Math.max(0.0001, 0.34 * volume), ctx.currentTime + 0.025);
+          master.connect(ctx.destination);
+
+          const notes = [
+            { frequency: 659.25, start: 0, duration: .38 },
+            { frequency: 783.99, start: .13, duration: .58 },
+            { frequency: 1046.50, start: .27, duration: .82 }
+          ];
+
+          notes.forEach(note => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.value = note.frequency;
+            gain.gain.setValueAtTime(0.0001, ctx.currentTime + note.start);
+            gain.gain.exponentialRampToValueAtTime(0.75, ctx.currentTime + note.start + 0.025);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + note.start + note.duration);
+            osc.connect(gain);
+            gain.connect(master);
+            osc.start(ctx.currentTime + note.start);
+            osc.stop(ctx.currentTime + note.start + note.duration + 0.03);
+          });
+
+          master.gain.setValueAtTime(Math.max(0.0001, 0.34 * volume), ctx.currentTime + 0.55);
+          master.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.25);
+
+          announcementChimeTimer = setTimeout(() => {
+            stopAnnouncementAudio();
+          }, 1400);
+        } catch (e) {
+          stopAnnouncementAudio();
+          resolve();
+        }
+      });
+    }
+
+    function testAnnouncementChime() {
+      announcementStopRequested = false;
+      playAnnouncementBell();
+    }
+
+    function stopAllAnnouncements() {
+      announcementStopRequested = true;
+      pendingAnnouncementRunning = false;
+      stopSpeech();
       stopAnnouncementAudio();
-      resolve();
-    }
-  });
-}
-
-function testAnnouncementChime(){
-  announcementStopRequested = false;
-  playAnnouncementBell();
-}
-
-function stopAllAnnouncements(){
-  announcementStopRequested = true;
-  pendingAnnouncementRunning = false;
-  stopSpeech();
-  stopAnnouncementAudio();
-  const popup = document.getElementById("announcementPopup");
-  if(popup) popup.classList.remove("show");
-  toast("All announcements stopped.");
-}
-
-function speakAndWait(text){
-  return new Promise(resolve=>{
-    if(!("speechSynthesis" in window)){
-      resolve();
-      return;
+      const popup = document.getElementById("announcementPopup");
+      if (popup) popup.classList.remove("show");
+      toast("All announcements stopped.");
     }
 
-    speechSynthesis.cancel();
+    function speakAndWait(text) {
+      return new Promise(resolve => {
+        if (!("speechSynthesis" in window)) {
+          resolve();
+          return;
+        }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    const select = document.getElementById("voiceSelect");
-    const index = Number(select.value);
+        speechSynthesis.cancel();
 
-    if(voices[index]) utterance.voice = voices[index];
+        const utterance = new SpeechSynthesisUtterance(text);
+        const select = document.getElementById("voiceSelect");
+        const index = Number(select.value);
 
-    utterance.rate = Number(document.getElementById("voiceRate").value);
-    utterance.pitch = .9;
-    utterance.volume = getAnnouncementVolume();
+        if (voices[index]) utterance.voice = voices[index];
 
-    utterance.onend = resolve;
-    utterance.onerror = resolve;
+        utterance.rate = Number(document.getElementById("voiceRate").value);
+        utterance.pitch = .9;
+        utterance.volume = getAnnouncementVolume();
 
-    speechSynthesis.speak(utterance);
-  });
-}
+        utterance.onend = resolve;
+        utterance.onerror = resolve;
 
-function speakOfficial(text){
-  playAnnouncementBell().then(()=>{
-    speakAndWait(`This is an announcement from SIBAQ Control Room. ${text} Thank you.`);
-  });
-}
+        speechSynthesis.speak(utterance);
+      });
+    }
 
-function speak(text){
-  speakOfficial(text);
-}
+    function speakOfficial(text) {
+      playAnnouncementBell().then(() => {
+        speakAndWait(`This is an announcement from SIBAQ Control Room. ${text} Thank you.`);
+      });
+    }
 
-function speakTest(){
+    function speak(text) {
+      speakOfficial(text);
+    }
 
-  const text =
-    "Attention everyone. This is the National Arts Fest practice control room. Please stay focused and give your best effort.";
+    function speakTest() {
 
-  showAnnouncement(text,"Voice Test");
-  speak(text);
-}
+      const text =
+        "Attention everyone. This is the National Arts Fest practice control room. Please stay focused and give your best effort.";
 
-function playMotivation(){
+      showAnnouncement(text, "Voice Test");
+      speak(text);
+    }
 
-  let text =
-    document.getElementById("motivationText")
-      .value.trim();
+    function playMotivation() {
 
-  if(!text){
-    generateMotivation();
-    return;
-  }
+      let text =
+        document.getElementById("motivationText")
+          .value.trim();
 
-  showAnnouncement(text,"Motivation");
-  speak(text);
-}
+      if (!text) {
+        generateMotivation();
+        return;
+      }
 
-
-/* =========================================================
-   AUTOMATIC ANNOUNCEMENTS
-========================================================= */
-
-function todayKey(){
-  return new Date().toISOString().slice(0,10);
-}
-
-function announcementWasMade(key){
-
-  return lastAnnouncements[
-    todayKey()+"_"+key
-  ];
-}
-
-function markAnnouncement(key){
-
-  lastAnnouncements[
-    todayKey()+"_"+key
-  ] = true;
-
-  localStorage.setItem(
-    "artsFestLastAnnouncements",
-    JSON.stringify(lastAnnouncements)
-  );
-}
-
-function automaticAnnouncements(){
-
-  if(!document.getElementById("autoCoach").checked)
-    return;
-
-  const s = currentSlot();
-
-  if(!s) return;
-
-  const start = minutes(s.start);
-  const end = minutes(s.end);
-  const now = nowMinutes();
-
-  const elapsed = now - start;
-  const remaining = end - now;
-
-  const sessionId = s.start+"_"+s.end;
-
-  /* START */
-
-  if(
-    elapsed === 0 &&
-    document.getElementById("autoStart").checked &&
-    !announcementWasMade("start_"+sessionId)
-  ){
-
-    markAnnouncement("start_"+sessionId);
-
-    const text =
-      `Attention everyone. It is now ${formatClockTime(s.start)}. ` +
-      `${s.title} has started. ` +
-      `${s.description} ` +
-      `Please begin now and stay focused until the session ends.`;
-
-    setAnnouncement(text,"Automatic Start",true);
-  }
+      showAnnouncement(text, "Motivation");
+      speak(text);
+    }
 
 
-  /* 45 MINUTE REMINDER */
+    /* =========================================================
+       AUTOMATIC ANNOUNCEMENTS
+    ========================================================= */
 
-  if(
-    document.getElementById("auto45").checked &&
-    elapsed > 0 &&
-    elapsed % 45 === 0 &&
-    !announcementWasMade("45_"+sessionId+"_"+elapsed)
-  ){
+    function todayKey() {
+      return new Date().toISOString().slice(0, 10);
+    }
 
-    markAnnouncement("45_"+sessionId+"_"+elapsed);
+    function announcementWasMade(key) {
 
-    const text =
-      `Attention everyone. You have completed ` +
-      `${formatDuration(elapsed)} of ${s.title}. ` +
-      `Approximately ${formatRemaining(remaining)} remains. ` +
-      `Stay focused and continue your work.`;
+      return lastAnnouncements[
+        todayKey() + "_" + key
+      ];
+    }
 
-    setAnnouncement(text,"45 Minute Reminder",true);
-  }
+    function markAnnouncement(key) {
+
+      lastAnnouncements[
+        todayKey() + "_" + key
+      ] = true;
+
+      localStorage.setItem(
+        "artsFestLastAnnouncements",
+        JSON.stringify(lastAnnouncements)
+      );
+    }
+
+    function automaticAnnouncements() {
+
+      if (!document.getElementById("autoCoach").checked)
+        return;
+
+      const s = currentSlot();
+
+      if (!s) return;
+
+      const start = minutes(s.start);
+      const end = minutes(s.end);
+      const now = nowMinutes();
+
+      const elapsed = now - start;
+      const remaining = end - now;
+
+      const sessionId = s.start + "_" + s.end;
+
+      /* START */
+
+      if (
+        elapsed === 0 &&
+        document.getElementById("autoStart").checked &&
+        !announcementWasMade("start_" + sessionId)
+      ) {
+
+        markAnnouncement("start_" + sessionId);
+
+        const text =
+          `Attention everyone. It is now ${formatClockTime(s.start)}. ` +
+          `${s.title} has started. ` +
+          `${s.description} ` +
+          `Please begin now and stay focused until the session ends.`;
+
+        setAnnouncement(text, "Automatic Start", true);
+      }
 
 
-  /* COUNTDOWN */
+      /* 45 MINUTE REMINDER */
 
-  if(
-    document.getElementById("autoCountdown").checked &&
-    [30,15,10,5].includes(remaining) &&
-    !announcementWasMade("count_"+sessionId+"_"+remaining)
-  ){
+      if (
+        document.getElementById("auto45").checked &&
+        elapsed > 0 &&
+        elapsed % 45 === 0 &&
+        !announcementWasMade("45_" + sessionId + "_" + elapsed)
+      ) {
 
-    markAnnouncement("count_"+sessionId+"_"+remaining);
+        markAnnouncement("45_" + sessionId + "_" + elapsed);
 
-    const text =
-      `Attention everyone. Only ${remaining} minutes remain in ` +
-      `${s.title}. ` +
-      `Please complete your current work and prepare for the next activity.`;
+        const text =
+          `Attention everyone. You have completed ` +
+          `${formatDuration(elapsed)} of ${s.title}. ` +
+          `Approximately ${formatRemaining(remaining)} remains. ` +
+          `Stay focused and continue your work.`;
 
-    setAnnouncement(text,"Countdown Reminder",true);
-  }
-}
+        setAnnouncement(text, "45 Minute Reminder", true);
+      }
 
 
-/* =========================================================
-   STUDENTS
-========================================================= */
+      /* COUNTDOWN */
 
-function addStudent(){
+      if (
+        document.getElementById("autoCountdown").checked &&
+        [30, 15, 10, 5].includes(remaining) &&
+        !announcementWasMade("count_" + sessionId + "_" + remaining)
+      ) {
 
-  const student = {
-    id:Date.now()+Math.random(),
+        markAnnouncement("count_" + sessionId + "_" + remaining);
 
-    adNo:document.getElementById("adNo").value.trim(),
-    name:document.getElementById("studentName").value.trim(),
-    programCode:document.getElementById("programCode").value.trim(),
-    program:document.getElementById("program").value.trim(),
-    mentor:document.getElementById("mentor").value.trim(),
+        const text =
+          `Attention everyone. Only ${remaining} minutes remain in ` +
+          `${s.title}. ` +
+          `Please complete your current work and prepare for the next activity.`;
 
-    completed:false
-  };
+        setAnnouncement(text, "Countdown Reminder", true);
+      }
+    }
 
-  if(
-    !student.adNo ||
-    !student.name ||
-    !student.programCode ||
-    !student.program ||
-    !student.mentor
-  ){
 
-    toast("Please fill all five student fields.");
-    return;
-  }
+    /* =========================================================
+       STUDENTS
+    ========================================================= */
 
-  students.push(student);
+    function addStudent() {
 
-  saveStudents();
+      const student = {
+        id: Date.now() + Math.random(),
 
-  document.getElementById("adNo").value="";
-  document.getElementById("studentName").value="";
-  document.getElementById("programCode").value="";
-  document.getElementById("program").value="";
-  document.getElementById("mentor").value="";
+        adNo: document.getElementById("adNo").value.trim(),
+        name: document.getElementById("studentName").value.trim(),
+        programCode: document.getElementById("programCode").value.trim(),
+        program: document.getElementById("program").value.trim(),
+        mentor: document.getElementById("mentor").value.trim(),
 
-  toast("Student added successfully.");
-}
+        completed: false
+      };
 
-function renderStudents(){
-  const table = document.getElementById("studentTable");
-  table.innerHTML = "";
+      if (
+        !student.adNo ||
+        !student.name ||
+        !student.programCode ||
+        !student.program ||
+        !student.mentor
+      ) {
 
-  students.forEach((s,index)=>{
-    const complete = isComplete(s);
-    const tr = document.createElement("tr");
+        toast("Please fill all five student fields.");
+        return;
+      }
 
-    tr.innerHTML = `
+      students.push(student);
+
+      saveStudents();
+
+      document.getElementById("adNo").value = "";
+      document.getElementById("studentName").value = "";
+      document.getElementById("programCode").value = "";
+      document.getElementById("program").value = "";
+      document.getElementById("mentor").value = "";
+
+      toast("Student added successfully.");
+    }
+
+    function renderStudents() {
+      const table = document.getElementById("studentTable");
+      table.innerHTML = "";
+
+      students.forEach((s, index) => {
+        const complete = isComplete(s);
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
       <td><b>${escapeHtml(s.adNo)}</b></td>
       <td>${escapeHtml(s.name)}</td>
       <td>${escapeHtml(s.programCode)}</td>
@@ -2015,11 +2251,11 @@ function renderStudents(){
       <td>
         <input class="check" type="checkbox"
           aria-label="Mark ${escapeHtml(s.name)} as complete"
-          ${complete ? "checked":""}
+          ${complete ? "checked" : ""}
           onchange="toggleComplete(${index},this.checked)">
       </td>
-      <td class="${complete ? "complete":"pending"}">
-        ${complete ? "✓ Complete":"Pending"}
+      <td class="${complete ? "complete" : "pending"}">
+        ${complete ? "✓ Complete" : "Pending"}
       </td>
       <td>
         <div class="student-actions">
@@ -2029,161 +2265,161 @@ function renderStudents(){
       </td>
     `;
 
-    table.appendChild(tr);
-  });
+        table.appendChild(tr);
+      });
 
-  updateReport();
-  updateNextPendingPreview();
-}
+      updateReport();
+      updateNextPendingPreview();
+    }
 
-function toggleComplete(index,checked){
-  if(!students[index]) return;
+    function toggleComplete(index, checked) {
+      if (!students[index]) return;
 
-  students[index].completed = !!checked;
+      students[index].completed = !!checked;
 
-  /* Remove the old three task flags. */
-  delete students[index].reading;
-  delete students[index].writing;
-  delete students[index].mentorCheck;
+      /* Remove the old three task flags. */
+      delete students[index].reading;
+      delete students[index].writing;
+      delete students[index].mentorCheck;
 
-  saveStudents();
-}
+      saveStudents();
+    }
 
-function isComplete(s){
-  if(typeof s.completed === "boolean") return s.completed;
+    function isComplete(s) {
+      if (typeof s.completed === "boolean") return s.completed;
 
-  /* Supports old saved student data during migration. */
-  return !!(s.reading && s.writing && s.mentorCheck);
-}
+      /* Supports old saved student data during migration. */
+      return !!(s.reading && s.writing && s.mentorCheck);
+    }
 
-function tickAllStudents(){
-  if(!students.length){
-    toast("No students available.");
-    return;
-  }
+    function tickAllStudents() {
+      if (!students.length) {
+        toast("No students available.");
+        return;
+      }
 
-  students.forEach(s=>{
-    s.completed = true;
-    delete s.reading;
-    delete s.writing;
-    delete s.mentorCheck;
-  });
+      students.forEach(s => {
+        s.completed = true;
+        delete s.reading;
+        delete s.writing;
+        delete s.mentorCheck;
+      });
 
-  saveStudents();
-  renderStudents();
-  toast("All students marked as complete.");
-}
+      saveStudents();
+      renderStudents();
+      toast("All students marked as complete.");
+    }
 
-function untickAllStudents(){
-  if(!students.length){
-    toast("No students available.");
-    return;
-  }
+    function untickAllStudents() {
+      if (!students.length) {
+        toast("No students available.");
+        return;
+      }
 
-  students.forEach(s=>{
-    s.completed = false;
-    delete s.reading;
-    delete s.writing;
-    delete s.mentorCheck;
-  });
+      students.forEach(s => {
+        s.completed = false;
+        delete s.reading;
+        delete s.writing;
+        delete s.mentorCheck;
+      });
 
-  saveStudents();
-  renderStudents();
-  toast("All student tick marks removed.");
-}
+      saveStudents();
+      renderStudents();
+      toast("All student tick marks removed.");
+    }
 
-function editStudent(index){
+    function editStudent(index) {
 
-  const s = students[index];
+      const s = students[index];
 
-  const adNo =
-    prompt("Admission No.",s.adNo);
+      const adNo =
+        prompt("Admission No.", s.adNo);
 
-  if(adNo === null) return;
+      if (adNo === null) return;
 
-  const name =
-    prompt("Student Name",s.name);
+      const name =
+        prompt("Student Name", s.name);
 
-  if(name === null) return;
+      if (name === null) return;
 
-  const code =
-    prompt("Program Code",s.programCode);
+      const code =
+        prompt("Program Code", s.programCode);
 
-  if(code === null) return;
+      if (code === null) return;
 
-  const program =
-    prompt("Program",s.program);
+      const program =
+        prompt("Program", s.program);
 
-  if(program === null) return;
+      if (program === null) return;
 
-  const mentor =
-    prompt("Mentor",s.mentor);
+      const mentor =
+        prompt("Mentor", s.mentor);
 
-  if(mentor === null) return;
+      if (mentor === null) return;
 
-  s.adNo = adNo.trim();
-  s.name = name.trim();
-  s.programCode = code.trim();
-  s.program = program.trim();
-  s.mentor = mentor.trim();
+      s.adNo = adNo.trim();
+      s.name = name.trim();
+      s.programCode = code.trim();
+      s.program = program.trim();
+      s.mentor = mentor.trim();
 
-  saveStudents();
+      saveStudents();
 
-  toast("Student updated.");
-}
+      toast("Student updated.");
+    }
 
-function removeStudent(index){
+    function removeStudent(index) {
 
-  if(!confirm(
-    `Remove ${students[index].name} from the checklist?`
-  )) return;
+      if (!confirm(
+        `Remove ${students[index].name} from the checklist?`
+      )) return;
 
-  students.splice(index,1);
+      students.splice(index, 1);
 
-  saveStudents();
-}
+      saveStudents();
+    }
 
-function updateReport(){
+    function updateReport() {
 
-  const total = students.length;
+      const total = students.length;
 
-  const completed =
-    students.filter(isComplete).length;
+      const completed =
+        students.filter(isComplete).length;
 
-  const pending = total-completed;
+      const pending = total - completed;
 
-  const percent =
-    total ? Math.round(completed/total*100) : 0;
+      const percent =
+        total ? Math.round(completed / total * 100) : 0;
 
-  document.getElementById("totalStudents")
-    .textContent = total;
+      document.getElementById("totalStudents")
+        .textContent = total;
 
-  document.getElementById("completedStudents")
-    .textContent = completed;
+      document.getElementById("completedStudents")
+        .textContent = completed;
 
-  document.getElementById("pendingStudents")
-    .textContent = pending;
+      document.getElementById("pendingStudents")
+        .textContent = pending;
 
-  document.getElementById("completionPercent")
-    .textContent = percent+"%";
+      document.getElementById("completionPercent")
+        .textContent = percent + "%";
 
-  document.getElementById("mainProgress")
-    .style.width = percent+"%";
+      document.getElementById("mainProgress")
+        .style.width = percent + "%";
 
-  const pendingBox =
-    document.getElementById("pendingList");
+      const pendingBox =
+        document.getElementById("pendingList");
 
-  const list =
-    students.filter(s=>!isComplete(s));
+      const list =
+        students.filter(s => !isComplete(s));
 
-  if(!list.length){
+      if (!list.length) {
 
-    pendingBox.innerHTML =
-      `<span class="complete">✓ Everyone has completed today's work.</span>`;
+        pendingBox.innerHTML =
+          `<span class="complete">✓ Everyone has completed today's work.</span>`;
 
-  }else{
+      } else {
 
-    pendingBox.innerHTML = list.map(s=>`
+        pendingBox.innerHTML = list.map(s => `
       <div style="padding:9px 0;border-bottom:1px solid var(--border)">
         <b>${escapeHtml(s.adNo)}</b> —
         ${escapeHtml(s.name)}
@@ -2195,520 +2431,485 @@ function updateReport(){
         </span>
       </div>
     `).join("");
-  }
-
-  updateNextPendingPreview();
-}
-
-function saveStudents(){
-
-  students = students.map(s => ({
-    id:s.id || Date.now()+Math.random(),
-    adNo:s.adNo || "",
-    name:s.name || "",
-    programCode:s.programCode || "",
-    program:s.program || "",
-    mentor:s.mentor || "",
-    source:s.source || "manual",
-    csvFileName:s.csvFileName || "",
-    completed:
-      typeof s.completed === "boolean"
-        ? s.completed
-        : !!(s.reading && s.writing && s.mentorCheck)
-  }));
-
-  localStorage.setItem(
-    "artsFestStudents",
-    JSON.stringify(students)
-  );
-
-  renderStudents();
-
-  broadcast({
-    type:"students",
-    students
-  });
-}
-
-
-/* =========================================================
-   CSV IMPORT / REMOVE UPLOADED CSV
-========================================================= */
-
-function normalizeCSVHeader(value){
-  return String(value || "")
-    .toLowerCase()
-    .replace(/[.\-_]/g," ")
-    .replace(/\s+/g," ")
-    .trim();
-}
-
-function parseCSVLine(line){
-  const values = [];
-  let value = "";
-  let quoted = false;
-
-  for(let i=0;i<line.length;i++){
-    const ch = line[i];
-
-    if(ch === '"'){
-      if(quoted && line[i+1] === '"'){
-        value += '"';
-        i++;
-      }else{
-        quoted = !quoted;
       }
-    }else if(ch === ',' && !quoted){
-      values.push(value.trim());
-      value = "";
-    }else{
-      value += ch;
+
+      updateNextPendingPreview();
     }
-  }
 
-  values.push(value.trim());
-  return values;
-}
+    function saveStudents() {
 
-function parseCSVText(text){
-  const lines = String(text || "")
-    .replace(/^\uFEFF/,"")
-    .split(/\r?\n/)
-    .filter(line => line.trim() !== "");
+      students = students.map(s => ({
+        id: s.id || Date.now() + Math.random(),
+        adNo: s.adNo || "",
+        name: s.name || "",
+        programCode: s.programCode || "",
+        program: s.program || "",
+        mentor: s.mentor || "",
+        source: s.source || "manual",
+        csvFileName: s.csvFileName || "",
+        completed:
+          typeof s.completed === "boolean"
+            ? s.completed
+            : !!(s.reading && s.writing && s.mentorCheck)
+      }));
 
-  if(!lines.length) return [];
+      localStorage.setItem(
+        "artsFestStudents",
+        JSON.stringify(students)
+      );
 
-  const headers = parseCSVLine(lines[0]).map(normalizeCSVHeader);
+      renderStudents();
 
-  const aliases = {
-    adNo:["admission no","admission number","ad no","adno","admission"],
-    name:["name","student name","student"],
-    programCode:["program code","programme code","programcode","programme code"],
-    program:["program","programme","program name","programme name"],
-    mentor:["mentor","mentor name"]
-  };
+      broadcast({
+        type: "students",
+        students
+      });
+    }
 
-  const findIndex = keys => headers.findIndex(h => keys.includes(h));
-  const indexes = {
-    adNo:findIndex(aliases.adNo),
-    name:findIndex(aliases.name),
-    programCode:findIndex(aliases.programCode),
-    program:findIndex(aliases.program),
-    mentor:findIndex(aliases.mentor)
-  };
 
-  if(indexes.adNo < 0 || indexes.name < 0 || indexes.programCode < 0 || indexes.program < 0){
-    throw new Error("CSV must contain Admission No., Name, Program Code and Program columns. Mentor is optional.");
-  }
+    /* =========================================================
+       CSV IMPORT / REMOVE UPLOADED CSV
+    ========================================================= */
 
-  return lines.slice(1).map(parseCSVLine).map(row => ({
-    adNo:row[indexes.adNo] || "",
-    name:row[indexes.name] || "",
-    programCode:row[indexes.programCode] || "",
-    program:row[indexes.program] || "",
-    mentor:indexes.mentor >= 0 ? (row[indexes.mentor] || "") : "",
-    completed:false
-  })).filter(s => s.adNo && s.name && s.programCode && s.program);
-}
+    function normalizeCSVHeader(value) {
+      return String(value || "")
+        .toLowerCase()
+        .replace(/[.\-_]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
 
-function importCSVFile(input){
-  const file = input.files && input.files[0];
-  if(!file) return;
+    // RFC-4180-style CSV parser: preserves commas, escaped quotes, and newlines inside quoted cells.
+    function parseCSVRows(text) {
+      const source = String(text || '').replace(/^\uFEFF/, '');
+      const rows = []; let row = [], cell = '', quoted = false;
+      for (let i = 0; i < source.length; i++) {
+        const ch = source[i];
+        if (ch === '"') {
+          if (quoted && source[i + 1] === '"') { cell += '"'; i++; }
+          else quoted = !quoted;
+        } else if (ch === ',' && !quoted) { row.push(cell); cell = ''; }
+        else if ((ch === '\n' || ch === '\r') && !quoted) {
+          if (ch === '\r' && source[i + 1] === '\n') i++;
+          row.push(cell); cell = '';
+          if (row.some(value => String(value).trim() !== '')) rows.push(row);
+          row = [];
+        } else cell += ch;
+      }
+      if (cell !== '' || row.length) { row.push(cell); if (row.some(value => String(value).trim() !== '')) rows.push(row); }
+      return rows;
+    }
 
-  const reader = new FileReader();
+    function parseCSVText(text) {
+      const rows = parseCSVRows(text);
+      if (!rows.length) return [];
+      const originalHeaders = rows[0].map(value => String(value ?? '').trim());
+      const headers = originalHeaders.map(normalizeCSVHeader);
+      const aliases = {
+        adNo: ['admission no', 'admission number', 'ad no', 'adno', 'admission', 'ad no.'],
+        name: ['name', 'student name', 'student'],
+        programCode: ['program code', 'programme code', 'programcode', 'programme code'],
+        program: ['program', 'programme', 'program name', 'programme name'],
+        mentor: ['mentor', 'mentor name']
+      };
+      const findIndex = keys => headers.findIndex(h => keys.includes(h));
+      const indexes = { adNo: findIndex(aliases.adNo), name: findIndex(aliases.name), programCode: findIndex(aliases.programCode), program: findIndex(aliases.program), mentor: findIndex(aliases.mentor) };
+      if (indexes.adNo < 0 || indexes.name < 0 || indexes.programCode < 0 || indexes.program < 0) {
+        throw new Error('CSV must contain Admission No., Name, Program Code and Program columns. Mentor is optional. Other columns will be preserved in the imported row data.');
+      }
+      // Keep every non-empty CSV record, including repeated programme rows and rows with missing values.
+      // The original headers and cell values are retained in csvOriginalRow for traceability.
+      return rows.slice(1).map((row, index) => {
+        const raw = {};
+        originalHeaders.forEach((header, column) => { raw[header || ('Column ' + (column + 1))] = String(row[column] ?? ''); });
+        return {
+          adNo: String(row[indexes.adNo] ?? '').trim(),
+          name: String(row[indexes.name] ?? '').trim(),
+          programCode: String(row[indexes.programCode] ?? '').trim(),
+          program: String(row[indexes.program] ?? '').trim(),
+          mentor: indexes.mentor >= 0 ? String(row[indexes.mentor] ?? '').trim() : '',
+          completed: false,
+          csvOriginalRow: raw,
+          csvOriginalHeaders: originalHeaders.slice(),
+          csvOriginalCells: row.map(value => String(value ?? '')),
+          csvRowNumber: index + 2
+        };
+      });
+    }
 
-  reader.onload = function(event){
-    try{
-      const imported = parseCSVText(event.target.result);
+    function importCSVFile(input) {
+      const file = input.files && input.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        try {
+          const imported = parseCSVText(event.target.result);
+          if (!imported.length) { toast('No data rows were found in the CSV.'); return; }
+          // Re-uploading the same filename replaces its previous import, but every row
+          // in the selected file is imported, even repeated programme/student rows.
+          students = students.filter(s => !(s.source === 'csv' && s.csvFileName === file.name));
+          imported.forEach((student, index) => {
+            student.id = Date.now() + Math.random() + index;
+            student.source = 'csv'; student.csvFileName = file.name;
+            students.push(student);
+          });
+          saveStudents();
+          localStorage.setItem('artsFestUploadedCSVName', file.name);
+          updateCSVStatus();
+          const validProfiles = new Set(imported.map(s => normalizeAdmission(s.adNo)).filter(Boolean)).size;
+          toast(`${imported.length} of ${imported.length} CSV data rows imported from ${file.name}. No repeated programme rows were skipped. ${validProfiles} unique admission numbers detected for student profiles.`);
+        } catch (error) { toast(error.message || 'Could not read the CSV file.'); }
+        finally { input.value = ''; }
+      };
+      reader.onerror = function () { toast('Could not read the selected CSV file.'); input.value = ''; };
+      reader.readAsText(file);
+    }
 
-      if(!imported.length){
-        toast("No valid student rows were found in the CSV.");
+    function removeUploadedCSV() {
+      const uploadedStudents = students.filter(s => s.source === "csv");
+
+      if (!uploadedStudents.length) {
+        toast("There are no uploaded CSV students to remove.");
         return;
       }
 
-      // A student may participate in several programmes. Deduplicate by the
-      // student + programme combination, not by student alone.
-      const makeProgramKey = student => [
-        String(student.adNo || "").trim().toLocaleLowerCase(),
-        String(student.programCode || student.program_code || "").trim().toLocaleLowerCase(),
-        String(student.program || "").trim().toLocaleLowerCase()
-      ].join("|");
+      const fileNames = [...new Set(uploadedStudents.map(s => s.csvFileName).filter(Boolean))];
+      const label = fileNames.length ? fileNames.join(", ") : "the uploaded CSV";
 
-      const duplicateKeys = new Set(students.map(makeProgramKey));
-      let added = 0;
-      let skippedDuplicates = 0;
+      if (!confirm(`Remove ${uploadedStudents.length} student${uploadedStudents.length === 1 ? "" : "s"} imported from ${label}? Manual students will not be removed.`)) {
+        return;
+      }
 
-      imported.forEach(student => {
-        const key = makeProgramKey(student);
-        if(duplicateKeys.has(key)){
-          skippedDuplicates++;
-          return;
-        }
+      students = students.filter(s => s.source !== "csv");
+      localStorage.removeItem("artsFestUploadedCSVName");
+      saveStudents();
+      updateCSVStatus();
+      toast("Uploaded CSV students removed. Manual students are still safe.");
+    }
 
-        student.id = Date.now()+Math.random();
-        student.source = "csv";
-        student.csvFileName = file.name;
-        students.push(student);
-        duplicateKeys.add(key);
-        added++;
+    function updateCSVStatus() {
+      const status = document.getElementById("csvStatus");
+      if (!status) return;
+
+      const uploadedStudents = students.filter(s => s.source === "csv");
+      const fileName = localStorage.getItem("artsFestUploadedCSVName") ||
+        [...new Set(uploadedStudents.map(s => s.csvFileName).filter(Boolean))][0] || "";
+
+      if (uploadedStudents.length) {
+        status.innerHTML = `📄 Uploaded CSV: <b>${escapeHtml(fileName || "CSV file")}</b> — ${uploadedStudents.length} CSV rows retained, including repeated programme rows.`;
+      } else {
+        status.textContent = "No CSV students uploaded. You can add students manually or upload a CSV file.";
+      }
+    }
+
+    /* =========================================================
+       SETTINGS
+    ========================================================= */
+
+    function loadSettings() {
+
+      document.getElementById("autoCoach").checked =
+        settings.autoCoach ?? false;
+
+      document.getElementById("auto45").checked =
+        settings.auto45 ?? true;
+
+      document.getElementById("autoCountdown").checked =
+        settings.autoCountdown ?? true;
+
+      document.getElementById("autoStart").checked =
+        settings.autoStart ?? true;
+    }
+
+    function saveSettings() {
+
+      settings = {
+        autoCoach:
+          document.getElementById("autoCoach").checked,
+
+        auto45:
+          document.getElementById("auto45").checked,
+
+        autoCountdown:
+          document.getElementById("autoCountdown").checked,
+
+        autoStart:
+          document.getElementById("autoStart").checked
+      };
+
+      localStorage.setItem(
+        "artsFestSettings",
+        JSON.stringify(settings)
+      );
+
+      broadcast({
+        type: "settings",
+        settings
       });
 
+      toast("Automation settings saved.");
+    }
+
+
+    /* =========================================================
+       LIVE WALL
+    ========================================================= */
+
+    function openLiveWall() {
+
+      window.open(
+        "live-wall.html",
+        "ArtsFestLiveWall",
+        "width=1400,height=900"
+      );
+    }
+
+    function broadcastRefresh() {
+
+      broadcast({
+        type: "refresh"
+      });
+
+      toast("Live Wall refresh sent.");
+    }
+
+    function broadcast(data) {
+
+      if (channel) {
+        channel.postMessage(data);
+      }
+    }
+
+
+    /* =========================================================
+       TEST POPUP
+    ========================================================= */
+
+    function testPopup() {
+
+      setAnnouncement(
+        "Attention everyone. This is a test announcement from the National Arts Fest Control Room.",
+        "System Test",
+        true
+      );
+    }
+
+
+    /* =========================================================
+       CLEAR DATA
+    ========================================================= */
+
+    function clearAllData() {
+
+      if (!confirm(
+        "This will remove all students and saved practice data. Continue?"
+      )) return;
+
+      students = [];
+      localStorage.removeItem("artsFestStudents");
+      localStorage.removeItem("artsFestLiveAnnouncement");
+
       saveStudents();
-      localStorage.setItem("artsFestUploadedCSVName",file.name);
-      updateCSVStatus();
 
-      toast(`${added} programme row${added === 1 ? "":"s"} imported from ${file.name}${skippedDuplicates ? `; ${skippedDuplicates} duplicate programme row${skippedDuplicates === 1 ? " was":"s were"} skipped` : ""}.`);
-    }catch(error){
-      toast(error.message || "Could not read the CSV file.");
-    }finally{
-      input.value = "";
-    }
-  };
+      broadcast({
+        type: "clear"
+      });
 
-  reader.onerror = function(){
-    toast("Could not read the selected CSV file.");
-    input.value = "";
-  };
-
-  reader.readAsText(file);
-}
-
-function removeUploadedCSV(){
-  const uploadedStudents = students.filter(s => s.source === "csv");
-
-  if(!uploadedStudents.length){
-    toast("There are no uploaded CSV students to remove.");
-    return;
-  }
-
-  const fileNames = [...new Set(uploadedStudents.map(s => s.csvFileName).filter(Boolean))];
-  const label = fileNames.length ? fileNames.join(", ") : "the uploaded CSV";
-
-  if(!confirm(`Remove ${uploadedStudents.length} student${uploadedStudents.length === 1 ? "":"s"} imported from ${label}? Manual students will not be removed.`)){
-    return;
-  }
-
-  students = students.filter(s => s.source !== "csv");
-  localStorage.removeItem("artsFestUploadedCSVName");
-  saveStudents();
-  updateCSVStatus();
-  toast("Uploaded CSV students removed. Manual students are still safe.");
-}
-
-function updateCSVStatus(){
-  const status = document.getElementById("csvStatus");
-  if(!status) return;
-
-  const uploadedStudents = students.filter(s => s.source === "csv");
-  const fileName = localStorage.getItem("artsFestUploadedCSVName") ||
-    [...new Set(uploadedStudents.map(s => s.csvFileName).filter(Boolean))][0] || "";
-
-  if(uploadedStudents.length){
-    status.innerHTML = `📄 Uploaded CSV: <b>${escapeHtml(fileName || "CSV file")}</b> — ${uploadedStudents.length} student${uploadedStudents.length === 1 ? "":"s"}.`;
-  }else{
-    status.textContent = "No CSV students uploaded. You can add students manually or upload a CSV file.";
-  }
-}
-
-/* =========================================================
-   SETTINGS
-========================================================= */
-
-function loadSettings(){
-
-  document.getElementById("autoCoach").checked =
-    settings.autoCoach ?? false;
-
-  document.getElementById("auto45").checked =
-    settings.auto45 ?? true;
-
-  document.getElementById("autoCountdown").checked =
-    settings.autoCountdown ?? true;
-
-  document.getElementById("autoStart").checked =
-    settings.autoStart ?? true;
-}
-
-function saveSettings(){
-
-  settings = {
-    autoCoach:
-      document.getElementById("autoCoach").checked,
-
-    auto45:
-      document.getElementById("auto45").checked,
-
-    autoCountdown:
-      document.getElementById("autoCountdown").checked,
-
-    autoStart:
-      document.getElementById("autoStart").checked
-  };
-
-  localStorage.setItem(
-    "artsFestSettings",
-    JSON.stringify(settings)
-  );
-
-  broadcast({
-    type:"settings",
-    settings
-  });
-
-  toast("Automation settings saved.");
-}
-
-
-/* =========================================================
-   LIVE WALL
-========================================================= */
-
-function openLiveWall(){
-
-  window.open(
-    "live-wall.html",
-    "ArtsFestLiveWall",
-    "width=1400,height=900"
-  );
-}
-
-function broadcastRefresh(){
-
-  broadcast({
-    type:"refresh"
-  });
-
-  toast("Live Wall refresh sent.");
-}
-
-function broadcast(data){
-
-  if(channel){
-    channel.postMessage(data);
-  }
-}
-
-
-/* =========================================================
-   TEST POPUP
-========================================================= */
-
-function testPopup(){
-
-  setAnnouncement(
-    "Attention everyone. This is a test announcement from the National Arts Fest Control Room.",
-    "System Test",
-    true
-  );
-}
-
-
-/* =========================================================
-   CLEAR DATA
-========================================================= */
-
-function clearAllData(){
-
-  if(!confirm(
-    "This will remove all students and saved practice data. Continue?"
-  )) return;
-
-  students=[];
-  localStorage.removeItem("artsFestStudents");
-  localStorage.removeItem("artsFestLiveAnnouncement");
-
-  saveStudents();
-
-  broadcast({
-    type:"clear"
-  });
-
-  toast("Student data cleared.");
-}
-
-
-/* =========================================================
-   UTILITY
-========================================================= */
-
-function escapeHtml(value){
-
-  return String(value ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
-let toastTimer;
-
-function toast(message){
-
-  const el =
-    document.getElementById("toast");
-
-  el.textContent=message;
-  el.classList.add("show");
-
-  clearTimeout(toastTimer);
-
-  toastTimer=setTimeout(()=>{
-    el.classList.remove("show");
-  },2500);
-}
-
-
-/* =========================================================
-   VOICE SAVE
-========================================================= */
-
-document.getElementById("voiceSelect")
-  .addEventListener("change",function(){
-
-    localStorage.setItem(
-      "artsFestVoice",
-      this.value
-    );
-  });
-
-
-/* =========================================================
-   BROADCAST
-========================================================= */
-
-if(channel){
-
-  channel.onmessage = function(event){
-
-    if(event.data?.type === "refresh"){
-      renderStudents();
+      toast("Student data cleared.");
     }
 
-  };
-}
+
+    /* =========================================================
+       UTILITY
+    ========================================================= */
+
+    function escapeHtml(value) {
+
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    let toastTimer;
+
+    function toast(message) {
+
+      const el =
+        document.getElementById("toast");
+
+      el.textContent = message;
+      el.classList.add("show");
+
+      clearTimeout(toastTimer);
+
+      toastTimer = setTimeout(() => {
+        el.classList.remove("show");
+      }, 2500);
+    }
 
 
-/* =========================================================
-   START
-========================================================= */
+    /* =========================================================
+       VOICE SAVE
+    ========================================================= */
+
+    document.getElementById("voiceSelect")
+      .addEventListener("change", function () {
+
+        localStorage.setItem(
+          "artsFestVoice",
+          this.value
+        );
+      });
 
 
-/* =========================================================
-   PERMANENT STUDENT QR + SUPABASE DATABASE
-========================================================= */
-let generatedQrItems = [];
-let onlineProfileCache = [];
-function getDbClient(){
-  if(!window.supabase || !window.SIBAQ_SUPABASE_CONFIG || !window.SIBAQ_SUPABASE_CONFIG.url || !window.SIBAQ_SUPABASE_CONFIG.anonKey || window.SIBAQ_SUPABASE_CONFIG.url.includes('YOUR_')) return null;
-  if(!window.__sibaQDb) window.__sibaQDb = window.supabase.createClient(window.SIBAQ_SUPABASE_CONFIG.url,window.SIBAQ_SUPABASE_CONFIG.anonKey);
-  return window.__sibaQDb;
-}
-function setDbStatus(text){ const el=document.getElementById('dbStatus'); if(el) el.textContent=text; }
-function normalizeAdmission(value){ return String(value??'').trim().replace(/\s+/g,' ').toLocaleUpperCase(); }
-function uniqueStudentRoster(){
-  const map=new Map();
-  (students||[]).forEach(s=>{
-    const admissionNo=String(s.adNo??s.admissionNo??s.admission_no??'').trim();
-    const key=normalizeAdmission(admissionNo);
-    if(!key) return;
-    if(!map.has(key)) map.set(key,{admission_no:admissionNo,name:String(s.name||'').trim(),mentor:String(s.mentor||'').trim(),programs:[],program_codes:[]});
-    const p=map.get(key);
-    if(String(s.name||'').trim()) p.name=String(s.name).trim();
-    if(String(s.mentor||'').trim()) p.mentor=String(s.mentor).trim();
-    const program=String(s.program||'').trim(), code=String(s.programCode??s.program_code??'').trim();
-    if(program && !p.programs.some(x=>x.toLocaleLowerCase()===program.toLocaleLowerCase())) p.programs.push(program);
-    if(code && !p.program_codes.some(x=>x.toLocaleLowerCase()===code.toLocaleLowerCase())) p.program_codes.push(code);
-  });
-  return [...map.values()].map(p=>({...p,programs:p.programs.sort((a,b)=>a.localeCompare(b)),program_codes:p.program_codes.sort((a,b)=>a.localeCompare(b))}));
-}
-async function signInDatabaseAdmin(){
-  const db=getDbClient(); if(!db){setDbStatus('Supabase is not configured. Edit supabase-config.js with your Project URL and anon/publishable key, then redeploy.');return;}
-  const email=document.getElementById('dbEmail').value.trim(),password=document.getElementById('dbPassword').value;
-  if(!email||!password){setDbStatus('Enter the admin email and password.');return;}
-  setDbStatus('Signing in…');
-  const {error}=await db.auth.signInWithPassword({email,password});
-  setDbStatus(error?'Sign-in failed: '+error.message:'Signed in successfully. You can now upload and edit online student profiles.');
-  if(!error) await loadOnlineProfiles();
-}
-async function signOutDatabaseAdmin(){const db=getDbClient();if(!db){setDbStatus('Supabase is not configured yet.');return;}const {error}=await db.auth.signOut();setDbStatus(error?'Sign-out failed: '+error.message:'Signed out.');}
-async function syncStudentsToDatabase(){
-  const db=getDbClient();if(!db){setDbStatus('Supabase is not configured. Complete setup in README.txt first.');return;}
-  const {data:{session}}=await db.auth.getSession();if(!session){setDbStatus('Please sign in with the Supabase admin account first.');return;}
-  const roster=uniqueStudentRoster();if(!roster.length){setDbStatus('No students with admission numbers found. Import your CSV first.');return;}
-  setDbStatus(`Uploading ${roster.length} unique students…`);
-  const payload=roster.map(p=>({...p,updated_at:new Date().toISOString()}));
-  const {error}=await db.from('student_profiles').upsert(payload,{onConflict:'admission_no'});
-  if(error){setDbStatus('Upload failed: '+error.message+' — check that the SQL setup was completed.');return;}
-  setDbStatus(`Success: ${roster.length} unique student profiles uploaded/updated. Repeated program rows were combined. Existing QR codes will keep working.`);
-  await loadOnlineProfiles();
-}
-async function loadOnlineProfiles(){
-  const db=getDbClient();if(!db){setDbStatus('Supabase is not configured. Complete setup in README.txt first.');return;}
-  const {data:{session}}=await db.auth.getSession();if(!session){setDbStatus('Sign in first to load and edit online profiles.');return;}
-  setDbStatus('Loading online profiles…');
-  const {data,error}=await db.from('student_profiles').select('*').order('admission_no');
-  if(error){setDbStatus('Could not load profiles: '+error.message);return;}
-  onlineProfileCache=data||[];renderOnlineProfiles(onlineProfileCache);
-  setDbStatus(`Loaded ${onlineProfileCache.length} online profiles. Edit any fields and click Save Profile.`);
-}
-function renderOnlineProfiles(list){
-  const root=document.getElementById('onlineProfiles');if(!root)return;root.innerHTML='';
-  if(!list.length){root.textContent='No online profiles loaded yet.';return;}
-  list.forEach((p,i)=>{
-    const card=document.createElement('div');card.className='online-profile-card';
-    const title=document.createElement('strong');title.textContent=`Admission No.: ${p.admission_no}`;card.appendChild(title);
-    const fields=[['name','Student name',p.name||'','input'],['mentor','Mentor',p.mentor||'','input'],['programs','Programs (one per line)',(p.programs||[]).join('\n'),'textarea'],['program_codes','Program codes (one per line)',(p.program_codes||[]).join('\n'),'textarea']];
-    fields.forEach(([key,label,value,type])=>{const lab=document.createElement('label');lab.textContent=label;const el=document.createElement(type==='textarea'?'textarea':'input');el.value=value;el.dataset.field=key;card.append(lab,el);});
-    const btn=document.createElement('button');btn.className='btn green';btn.style.marginTop='10px';btn.textContent='💾 Save Profile';btn.onclick=()=>saveOnlineProfile(p.admission_no,card);card.appendChild(btn);root.appendChild(card);
-  });
-}
-function linesFromField(value){return [...new Set(String(value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean))];}
-async function saveOnlineProfile(admissionNo,card){
-  const db=getDbClient();if(!db){setDbStatus('Supabase is not configured.');return;}
-  const {data:{session}}=await db.auth.getSession();if(!session){setDbStatus('Sign in first to save profile updates.');return;}
-  const get=k=>card.querySelector(`[data-field="${k}"]`).value.trim();
-  const payload={admission_no:admissionNo,name:get('name'),mentor:get('mentor'),programs:linesFromField(get('programs')),program_codes:linesFromField(get('program_codes')),updated_at:new Date().toISOString()};
-  const {error}=await db.from('student_profiles').upsert(payload,{onConflict:'admission_no'});
-  if(error){setDbStatus('Profile update failed: '+error.message);return;}
-  setDbStatus(`Updated ${admissionNo}. The student's existing QR now shows the new information.`);
-}
-function qrValue(student){return {id:student.admission_no,admissionNo:student.admission_no,name:student.name};}
-function buildStudentProfileUrl(student){
-  const base=(document.getElementById('qrBaseUrl').value.trim()||window.location.origin).replace(/\/+$/,'');
-  return `${base}/student.html?id=${encodeURIComponent(student.admission_no)}`;
-}
-function loadQrLibraries(){return new Promise((resolve,reject)=>{if(window.QRCode&&window.JSZip){resolve();return;}let pending=0;const done=()=>{if(window.QRCode&&window.JSZip)resolve();};const load=(src,test)=>{if(test()){done();return;}pending++;const script=document.createElement('script');script.src=src;script.onload=()=>{pending--;done();};script.onerror=()=>reject(new Error('Could not load QR/ZIP library. Check your internet connection and try again.'));document.head.appendChild(script);};load('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',()=>!!window.QRCode);load('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',()=>!!window.JSZip);});}
-async function generateStudentQRCodes(){
-  const status=document.getElementById('qrStatus'),preview=document.getElementById('qrPreview');
-  const roster=uniqueStudentRoster();
-  if(!roster.length){status.textContent='No students found. Import your CSV above first. Each student needs an admission number.';return;}
-  if(!window.QRCode){status.textContent='Loading QR code tools…';try{await loadQrLibraries();}catch(e){status.textContent=e.message;return;}}
-  generatedQrItems=roster.map(s=>({student:qrValue(s),url:buildStudentProfileUrl(s)}));preview.innerHTML='';
-  for(let i=0;i<generatedQrItems.length;i++){
-    const entry=generatedQrItems[i],card=document.createElement('div');card.className='qr-card';const qrBox=document.createElement('div');qrBox.id='student-qr-'+i;
-    const name=document.createElement('strong');name.textContent=entry.student.name||('Student '+(i+1));const details=document.createElement('small');details.textContent='Admission No.: '+entry.student.admissionNo;
-    const link=document.createElement('a');link.className='qr-download';link.href='#';link.textContent='Download PNG';link.addEventListener('click',async ev=>{ev.preventDefault();const canvas=qrBox.querySelector('canvas'),img=qrBox.querySelector('img'),dataUrl=canvas?canvas.toDataURL('image/png'):(img?img.src:'');if(!dataUrl){alert('QR image is not ready yet.');return;}const a=document.createElement('a');a.href=dataUrl;a.download=safeFileName(entry.student.admissionNo||entry.student.name)+'-QR.png';a.click();});
-    card.append(qrBox,name,details,link);preview.appendChild(card);new QRCode(qrBox,{text:entry.url,width:180,height:180,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
-  }
-  status.textContent=`Generated ${generatedQrItems.length} QR codes for ${generatedQrItems.length} unique admission numbers. Before printing, sign in and click “Upload / Update Unique Students” so every profile exists online.`;
-}
-function safeFileName(value){return String(value||'student').normalize('NFKD').replace(/[^a-zA-Z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60)||'student';}
-async function getQrDataUrl(index){const box=document.getElementById('student-qr-'+index);if(!box)return null;const canvas=box.querySelector('canvas'),img=box.querySelector('img');if(canvas)return canvas.toDataURL('image/png');if(img)return img.src;return null;}
-async function downloadAllQRCodes(){if(!generatedQrItems.length)await generateStudentQRCodes();if(!generatedQrItems.length)return;try{if(!window.JSZip)await loadQrLibraries();const zip=new JSZip();for(let i=0;i<generatedQrItems.length;i++){const dataUrl=await getQrDataUrl(i);if(dataUrl)zip.file(`${safeFileName(generatedQrItems[i].student.admissionNo)}-QR.png`,dataUrl.split(',')[1],{base64:true});}const blob=await zip.generateAsync({type:'blob'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='SIBAQ-Student-QR-Codes.zip';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);document.getElementById('qrStatus').textContent=`Downloaded ZIP with ${generatedQrItems.length} unique student QR codes.`;}catch(e){document.getElementById('qrStatus').textContent='ZIP download failed: '+e.message;}}
-function printQRCodes(){if(!generatedQrItems.length){alert('Please generate QR codes first.');return;}document.body.classList.add('qr-print-mode');window.print();setTimeout(()=>document.body.classList.remove('qr-print-mode'),800);}
-function clearQRCodes(){generatedQrItems=[];document.getElementById('qrPreview').innerHTML='';document.getElementById('qrStatus').textContent='QR code preview cleared.';}
+    /* =========================================================
+       BROADCAST
+    ========================================================= */
+
+    if (channel) {
+
+      channel.onmessage = function (event) {
+
+        if (event.data?.type === "refresh") {
+          renderStudents();
+        }
+
+      };
+    }
 
 
-loadSettings();
-renderStudents();
-updateCSVStatus();
-renderSchedule();
-updateClock();
+    /* =========================================================
+       START
+    ========================================================= */
 
-setInterval(updateClock,1000);
 
-</script>
+    /* =========================================================
+       PERMANENT STUDENT QR + SUPABASE DATABASE
+    ========================================================= */
+    let generatedQrItems = [];
+    let onlineProfileCache = [];
+    function getDbClient() {
+      if (!window.supabase || !window.SIBAQ_SUPABASE_CONFIG || !window.SIBAQ_SUPABASE_CONFIG.url || !window.SIBAQ_SUPABASE_CONFIG.anonKey || window.SIBAQ_SUPABASE_CONFIG.url.includes('YOUR_')) return null;
+      if (!window.__sibaQDb) window.__sibaQDb = window.supabase.createClient(window.SIBAQ_SUPABASE_CONFIG.url, window.SIBAQ_SUPABASE_CONFIG.anonKey);
+      return window.__sibaQDb;
+    }
+    function setDbStatus(text) { const el = document.getElementById('dbStatus'); if (el) el.textContent = text; }
+    function normalizeAdmission(value) { return String(value ?? '').trim().replace(/\s+/g, ' ').toLocaleUpperCase(); }
+    function uniqueStudentRoster() {
+      const map = new Map();
+      (students || []).forEach(s => {
+        const admissionNo = String(s.adNo ?? s.admissionNo ?? s.admission_no ?? '').trim();
+        const key = normalizeAdmission(admissionNo);
+        if (!key) return;
+        if (!map.has(key)) map.set(key, { admission_no: admissionNo, name: String(s.name || '').trim(), mentor: String(s.mentor || '').trim(), programs: [], program_codes: [], _programPairs: [] });
+        const p = map.get(key);
+        if (String(s.name || '').trim()) p.name = String(s.name).trim();
+        if (String(s.mentor || '').trim()) p.mentor = String(s.mentor).trim();
+        const program = String(s.program || '').trim();
+        const code = String(s.programCode ?? s.program_code ?? '').trim();
+        if (program || code) {
+          const pairKey = (code.toLocaleLowerCase()) + '|' + (program.toLocaleLowerCase());
+          if (!p._programPairs.some(item => item.key === pairKey)) p._programPairs.push({ key: pairKey, program, code });
+        }
+      });
+      return [...map.values()].map(p => {
+        p._programPairs.sort((a, b) => (a.code || a.program).localeCompare(b.code || b.program));
+        p.programs = p._programPairs.map(x => x.program);
+        p.program_codes = p._programPairs.map(x => x.code);
+        delete p._programPairs;
+        return p;
+      });
+    }
+    async function signInDatabaseAdmin() {
+      const db = getDbClient(); if (!db) { setDbStatus('Supabase is not configured. Edit supabase-config.js with your Project URL and anon/publishable key, then redeploy.'); return; }
+      const email = document.getElementById('dbEmail').value.trim(), password = document.getElementById('dbPassword').value;
+      if (!email || !password) { setDbStatus('Enter the admin email and password.'); return; }
+      setDbStatus('Signing in…');
+      const { error } = await db.auth.signInWithPassword({ email, password });
+      setDbStatus(error ? 'Sign-in failed: ' + error.message : 'Signed in successfully. You can now upload and edit online student profiles.');
+      if (!error) await loadOnlineProfiles();
+    }
+    async function signOutDatabaseAdmin() { const db = getDbClient(); if (!db) { setDbStatus('Supabase is not configured yet.'); return; } const { error } = await db.auth.signOut(); setDbStatus(error ? 'Sign-out failed: ' + error.message : 'Signed out.'); }
+    async function syncStudentsToDatabase() {
+      const db = getDbClient(); if (!db) { setDbStatus('Supabase is not configured. Complete setup in README.txt first.'); return; }
+      const { data: { session } } = await db.auth.getSession(); if (!session) { setDbStatus('Please sign in with the Supabase admin account first.'); return; }
+      const roster = uniqueStudentRoster(); if (!roster.length) { setDbStatus('No students with admission numbers found. Import your CSV first.'); return; }
+      setDbStatus(`Uploading ${roster.length} unique students…`);
+      const payload = roster.map(p => ({ ...p, updated_at: new Date().toISOString() }));
+      const { error } = await db.from('student_profiles').upsert(payload, { onConflict: 'admission_no' });
+      if (error) { setDbStatus('Upload failed: ' + error.message + ' — check that the SQL setup was completed.'); return; }
+      setDbStatus(`Success: ${roster.length} unique student profiles uploaded/updated. Repeated program rows were combined. Existing QR codes will keep working.`);
+      await loadOnlineProfiles();
+    }
+    async function loadOnlineProfiles() {
+      const db = getDbClient(); if (!db) { setDbStatus('Supabase is not configured. Complete setup in README.txt first.'); return; }
+      const { data: { session } } = await db.auth.getSession(); if (!session) { setDbStatus('Sign in first to load and edit online profiles.'); return; }
+      setDbStatus('Loading online profiles…');
+      const { data, error } = await db.from('student_profiles').select('*').order('admission_no');
+      if (error) { setDbStatus('Could not load profiles: ' + error.message); return; }
+      onlineProfileCache = data || []; renderOnlineProfiles(onlineProfileCache);
+      setDbStatus(`Loaded ${onlineProfileCache.length} online profiles. Edit any fields and click Save Profile.`);
+    }
+    function renderOnlineProfiles(list) {
+      const root = document.getElementById('onlineProfiles'); if (!root) return; root.innerHTML = '';
+      if (!list.length) { root.textContent = 'No online profiles loaded yet.'; return; }
+      list.forEach((p, i) => {
+        const card = document.createElement('div'); card.className = 'online-profile-card';
+        const title = document.createElement('strong'); title.textContent = `Admission No.: ${p.admission_no}`; card.appendChild(title);
+        const fields = [['name', 'Student name', p.name || '', 'input'], ['mentor', 'Mentor', p.mentor || '', 'input'], ['programs', 'Programs (one per line)', (p.programs || []).join('\n'), 'textarea'], ['program_codes', 'Program codes (one per line)', (p.program_codes || []).join('\n'), 'textarea']];
+        fields.forEach(([key, label, value, type]) => { const lab = document.createElement('label'); lab.textContent = label; const el = document.createElement(type === 'textarea' ? 'textarea' : 'input'); el.value = value; el.dataset.field = key; card.append(lab, el); });
+        const btn = document.createElement('button'); btn.className = 'btn green'; btn.style.marginTop = '10px'; btn.textContent = '💾 Save Profile'; btn.onclick = () => saveOnlineProfile(p.admission_no, card); card.appendChild(btn); root.appendChild(card);
+      });
+    }
+    function linesFromField(value) { return [...new Set(String(value || '').split(/\r?\n/).map(x => x.trim()).filter(Boolean))]; }
+    async function saveOnlineProfile(admissionNo, card) {
+      const db = getDbClient(); if (!db) { setDbStatus('Supabase is not configured.'); return; }
+      const { data: { session } } = await db.auth.getSession(); if (!session) { setDbStatus('Sign in first to save profile updates.'); return; }
+      const get = k => card.querySelector(`[data-field="${k}"]`).value.trim();
+      const payload = { admission_no: admissionNo, name: get('name'), mentor: get('mentor'), programs: linesFromField(get('programs')), program_codes: linesFromField(get('program_codes')), updated_at: new Date().toISOString() };
+      const { error } = await db.from('student_profiles').upsert(payload, { onConflict: 'admission_no' });
+      if (error) { setDbStatus('Profile update failed: ' + error.message); return; }
+      setDbStatus(`Updated ${admissionNo}. The student's existing QR now shows the new information.`);
+    }
+    function qrValue(student) { return { id: student.admission_no, admissionNo: student.admission_no, name: student.name }; }
+    function buildStudentProfileUrl(student) {
+      const base = (document.getElementById('qrBaseUrl').value.trim() || window.location.origin).replace(/\/+$/, '');
+      return `${base}/student.html?id=${encodeURIComponent(student.admission_no)}`;
+    }
+    function loadQrLibraries() { return new Promise((resolve, reject) => { if (window.QRCode && window.JSZip) { resolve(); return; } let pending = 0; const done = () => { if (window.QRCode && window.JSZip) resolve(); }; const load = (src, test) => { if (test()) { done(); return; } pending++; const script = document.createElement('script'); script.src = src; script.onload = () => { pending--; done(); }; script.onerror = () => reject(new Error('Could not load QR/ZIP library. Check your internet connection and try again.')); document.head.appendChild(script); }; load('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js', () => !!window.QRCode); load('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', () => !!window.JSZip); }); }
+    async function generateStudentQRCodes() {
+      const status = document.getElementById('qrStatus'), preview = document.getElementById('qrPreview');
+      const roster = uniqueStudentRoster();
+      if (!roster.length) { status.textContent = 'No students found. Import your CSV above first. Each student needs an admission number.'; return; }
+      if (!window.QRCode) { status.textContent = 'Loading QR code tools…'; try { await loadQrLibraries(); } catch (e) { status.textContent = e.message; return; } }
+      generatedQrItems = roster.map(s => ({ student: qrValue(s), url: buildStudentProfileUrl(s) })); preview.innerHTML = '';
+      for (let i = 0; i < generatedQrItems.length; i++) {
+        const entry = generatedQrItems[i], card = document.createElement('div'); card.className = 'qr-card'; const qrBox = document.createElement('div'); qrBox.id = 'student-qr-' + i;
+        const name = document.createElement('strong'); name.textContent = entry.student.name || ('Student ' + (i + 1)); const details = document.createElement('small'); details.textContent = 'Admission No.: ' + entry.student.admissionNo;
+        const link = document.createElement('a'); link.className = 'qr-download'; link.href = '#'; link.textContent = 'Download PNG'; link.addEventListener('click', async ev => { ev.preventDefault(); const canvas = qrBox.querySelector('canvas'), img = qrBox.querySelector('img'), dataUrl = canvas ? canvas.toDataURL('image/png') : (img ? img.src : ''); if (!dataUrl) { alert('QR image is not ready yet.'); return; } const a = document.createElement('a'); a.href = dataUrl; a.download = safeFileName(entry.student.admissionNo || entry.student.name) + '-QR.png'; a.click(); });
+        card.append(qrBox, name, details, link); preview.appendChild(card); new QRCode(qrBox, { text: entry.url, width: 180, height: 180, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+      }
+      status.textContent = `Generated ${generatedQrItems.length} QR codes for ${generatedQrItems.length} unique admission numbers. Before printing, sign in and click “Upload / Update Unique Students” so every profile exists online.`;
+    }
+    function safeFileName(value) { return String(value || 'student').normalize('NFKD').replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'student'; }
+    async function getQrDataUrl(index) { const box = document.getElementById('student-qr-' + index); if (!box) return null; const canvas = box.querySelector('canvas'), img = box.querySelector('img'); if (canvas) return canvas.toDataURL('image/png'); if (img) return img.src; return null; }
+    async function downloadAllQRCodes() { if (!generatedQrItems.length) await generateStudentQRCodes(); if (!generatedQrItems.length) return; try { if (!window.JSZip) await loadQrLibraries(); const zip = new JSZip(); for (let i = 0; i < generatedQrItems.length; i++) { const dataUrl = await getQrDataUrl(i); if (dataUrl) zip.file(`${safeFileName(generatedQrItems[i].student.admissionNo)}-QR.png`, dataUrl.split(',')[1], { base64: true }); } const blob = await zip.generateAsync({ type: 'blob' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'SIBAQ-Student-QR-Codes.zip'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1500); document.getElementById('qrStatus').textContent = `Downloaded ZIP with ${generatedQrItems.length} unique student QR codes.`; } catch (e) { document.getElementById('qrStatus').textContent = 'ZIP download failed: ' + e.message; } }
+    function printQRCodes() { if (!generatedQrItems.length) { alert('Please generate QR codes first.'); return; } document.body.classList.add('qr-print-mode'); window.print(); setTimeout(() => document.body.classList.remove('qr-print-mode'), 800); }
+    function clearQRCodes() { generatedQrItems = []; document.getElementById('qrPreview').innerHTML = ''; document.getElementById('qrStatus').textContent = 'QR code preview cleared.'; }
+
+
+    loadSettings();
+    renderStudents();
+    updateCSVStatus();
+    renderSchedule();
+    updateClock();
+
+    setInterval(updateClock, 1000);
+
+  </script>
 
 </body>
+
 </html>
