@@ -2425,8 +2425,11 @@
     }
 
     function renderStudents() {
-      const table = document.getElementById("studentTable");
-      table.innerHTML = "";
+      
+const table = document.getElementById("studentTable");
+if (!table) return;
+table.innerHTML = "";
+
 
       students.forEach((s, index) => {
         const complete = isComplete(s);
