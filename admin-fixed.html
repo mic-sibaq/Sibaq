@@ -4811,8 +4811,9 @@ function clearIndividualGraph() {
     msg.className = "status-callout muted";
   }
 
-  safeDestroyChart(chartIndividualTrajectory);
-  safeDestroyChart(chartIndividualQuality);
+  chartIndividualProgression = safeDestroyChart(chartIndividualProgression);
+  chartIndividualRating = safeDestroyChart(chartIndividualRating);
+  chartIndividualPrograms = safeDestroyChart(chartIndividualPrograms);
 }
 
 function loadSampleIndividualGraph() {
