@@ -1079,7 +1079,8 @@
         <div class="card" style="margin:12px 0;padding:16px;border:1px solid var(--border)">
           <h3>☁️ Online Student Database</h3>
           <p class="muted">Set up Supabase and add your Project URL and anon/publishable key in
-            <b>supabase-config.js</b>. Sign in with the admin account you create in Supabase.</p>
+            <b>supabase-config.js</b>. Sign in with the admin account you create in Supabase.
+          </p>
           <div class="form-grid">
             <div><label>Admin email</label><input id="dbEmail" type="email" autocomplete="username"
                 placeholder="your admin email"></div>
@@ -2510,7 +2511,15 @@
         name: ['name', 'student name', 'student'],
         programCode: ['program code', 'programme code', 'programcode', 'programme code'],
         program: ['program', 'programme', 'program name', 'programme name'],
-        mentor: ['mentor', 'mentor name']
+        mentor: [
+          "mentor",
+          "mentor name",
+          "program mentor",
+          "programme mentor",
+          "assigned mentor",
+          "mentor for program",
+          "mentor for programme"
+        ]
       };
       const findIndex = keys => headers.findIndex(h => keys.includes(h));
       const indexes = {adNo: findIndex(aliases.adNo), name: findIndex(aliases.name), programCode: findIndex(aliases.programCode), program: findIndex(aliases.program), mentor: findIndex(aliases.mentor)};
@@ -2806,56 +2815,168 @@
     // A mentor belongs to a programme, not to an individual student. Build the
     // programme -> mentor map from all imported rows first, then apply it to every
     // student enrolled in that programme.
-    function buildProgramMentorMap() {
-      const map = new Map();
-      const conflicts = [];
-      const rows = [...(students || []).filter(s => s.source === 'csv'), ...(students || []).filter(s => s.source !== 'csv')];
-      rows.forEach(s => {
-        const code = String(s.programCode ?? s.program_code ?? '').trim();
-        const program = String(s.program || '').trim();
-        const mentor = String(s.mentor || '').trim();
-        if (!(code || program) || !mentor) return;
-        const key = programAssignmentKey(code, program);
-        const existing = map.get(key);
-        if (!existing) {map.set(key, {mentor, program, code}); return;}
-        if (existing.mentor.toLocaleLowerCase() !== mentor.toLocaleLowerCase()) {
-          conflicts.push({program: program || existing.program, code: code || existing.code, first: existing.mentor, other: mentor});
-        }
+    
+function normalizeAdmission(value) {
+  return String(value ?? "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleUpperCase();
+}
+
+function normalizeProgramValue(value) {
+  return String(value ?? "")
+    .trim()
+    .toLocaleLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+function buildProgramMentorMap() {
+  const byProgram = new Map();
+  const byCode = new Map();
+  const conflicts = [];
+
+  const csvRows = students.filter(s => s.source === "csv");
+  const rows = csvRows.length ? csvRows : students;
+
+  rows.forEach(student => {
+    const program = String(student.program || "").trim();
+    const code = String(
+      student.programCode ?? student.program_code ?? ""
+    ).trim();
+    const mentor = String(student.mentor || "").trim();
+
+    if (!mentor || (!program && !code)) return;
+
+    const programKey = normalizeProgramValue(program);
+    const codeKey = normalizeProgramValue(code);
+
+    let assignment = programKey
+      ? byProgram.get(programKey)
+      : byCode.get(codeKey);
+
+    if (!assignment) {
+      assignment = { program, code, mentor };
+
+      if (programKey) {
+        byProgram.set(programKey, assignment);
+      }
+
+      if (codeKey && !byCode.has(codeKey)) {
+        byCode.set(codeKey, assignment);
+      }
+    } else if (
+      normalizeProgramValue(assignment.mentor) !==
+      normalizeProgramValue(mentor)
+    ) {
+      const conflictKey = programKey || codeKey;
+
+      if (!conflicts.some(c => c.key === conflictKey)) {
+        conflicts.push({
+          key: conflictKey,
+          program: program || assignment.program,
+          code: code || assignment.code,
+          first: assignment.mentor,
+          other: mentor
+        });
+      }
+    }
+  });
+
+  const map = new Map();
+
+  byProgram.forEach((assignment, key) => {
+    map.set("program:" + key, assignment);
+  });
+
+  byCode.forEach((assignment, key) => {
+    map.set("code:" + key, assignment);
+  });
+
+  return { map, conflicts };
+}
+
+function uniqueStudentRoster() {
+  const studentMap = new Map();
+  const assignments = buildProgramMentorMap().map;
+
+  const csvRows = students.filter(s => s.source === "csv");
+  const rows = csvRows.length ? csvRows : students;
+
+  rows.forEach(student => {
+    const admissionNo = String(
+      student.adNo ??
+      student.admissionNo ??
+      student.admission_no ??
+      ""
+    ).trim();
+
+    if (!admissionNo) return;
+
+    const studentKey = normalizeAdmission(admissionNo);
+
+    if (!studentMap.has(studentKey)) {
+      studentMap.set(studentKey, {
+        admission_no: admissionNo,
+        name: String(student.name || "").trim(),
+        mentor: "",
+        programs: [],
+        program_codes: [],
+        program_mentors: [],
+        _pairs: new Map()
       });
-      return {map, conflicts};
     }
 
-    function uniqueStudentRoster() {
-      const studentMap = new Map();
-      const programAssignments = buildProgramMentorMap().map;
-      (students || []).forEach(s => {
-        const admissionNo = String(s.adNo ?? s.admissionNo ?? s.admission_no ?? '').trim();
-        const key = normalizeAdmission(admissionNo);
-        if (!key) return;
-        if (!studentMap.has(key)) studentMap.set(key, {admission_no: admissionNo, name: String(s.name || '').trim(), mentor: '', programs: [], program_codes: [], program_mentors: [], _programPairs: []});
-        const p = studentMap.get(key);
-        if (String(s.name || '').trim()) p.name = String(s.name).trim();
-        const program = String(s.program || '').trim();
-        const code = String(s.programCode ?? s.program_code ?? '').trim();
-        const keyForProgram = programAssignmentKey(code, program);
-        const mentor = programAssignments.get(keyForProgram)?.mentor || String(s.mentor || '').trim();
-        if (program || code) {
-          const pairKey = (code.toLocaleLowerCase()) + '|' + (program.toLocaleLowerCase());
-          const existing = p._programPairs.find(item => item.key === pairKey);
-          if (!existing) p._programPairs.push({key: pairKey, program, code, mentor});
-          else if (mentor) existing.mentor = mentor;
-        }
-      });
-      return [...studentMap.values()].map(p => {
-        p._programPairs.sort((a, b) => (a.code || a.program).localeCompare(b.code || b.program));
-        p.programs = p._programPairs.map(x => x.program);
-        p.program_codes = p._programPairs.map(x => x.code);
-        p.program_mentors = p._programPairs.map(x => x.mentor || '');
-        p.mentor = p.program_mentors.find(Boolean) || '';
-        delete p._programPairs;
-        return p;
-      });
+    const profile = studentMap.get(studentKey);
+
+    if (student.name) {
+      profile.name = String(student.name).trim();
     }
+
+    const program = String(student.program || "").trim();
+    const code = String(
+      student.programCode ?? student.program_code ?? ""
+    ).trim();
+
+    if (!program && !code) return;
+
+    const programKey = normalizeProgramValue(program);
+    const codeKey = normalizeProgramValue(code);
+
+    // Programme name takes priority; code is the fallback.
+    const assignment =
+      (programKey && assignments.get("program:" + programKey)) ||
+      (codeKey && assignments.get("code:" + codeKey));
+
+    const pairKey = (codeKey || "") + "|" + (programKey || "");
+
+    if (!profile._pairs.has(pairKey)) {
+      profile._pairs.set(pairKey, {
+        program,
+        code,
+        mentor: assignment ? assignment.mentor : ""
+      });
+    } else if (assignment) {
+      profile._pairs.get(pairKey).mentor = assignment.mentor;
+    }
+  });
+
+  return [...studentMap.values()].map(profile => {
+    const pairs = [...profile._pairs.values()].sort((a, b) =>
+      (a.code || a.program).localeCompare(b.code || b.program)
+    );
+
+    profile.programs = pairs.map(p => p.program);
+    profile.program_codes = pairs.map(p => p.code);
+    profile.program_mentors = pairs.map(p => p.mentor);
+
+    // Compatibility field for older parts of the website.
+    profile.mentor = profile.program_mentors.find(Boolean) || "";
+
+    delete profile._pairs;
+    return profile;
+  });
+}
+
     async function signInDatabaseAdmin() {
       const db = getDbClient(); if (!db) {setDbStatus('Supabase is not configured. Edit supabase-config.js with your Project URL and anon/publishable key, then redeploy.'); return;}
       const email = document.getElementById('dbEmail').value.trim(), password = document.getElementById('dbPassword').value;
