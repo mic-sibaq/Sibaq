@@ -5017,28 +5017,27 @@ function renderIndividualStudentGraph(profile, activeProgramCode = "all") {
           avatarInitialsEl.hidden = false;
           return;
         }
-        if (!window.heic2any) {
+        if (!window.HeicTo) {
           await new Promise((resolve, reject) => {
             const script = document.createElement("script");
-            script.src = "https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js";
+            script.src = "https://cdn.jsdelivr.net/npm/heic-to@1.6.5/dist/iife/heic-to.js";
             script.onload = resolve;
             script.onerror = () => reject(new Error("Could not load the HEIC image converter."));
             document.head.appendChild(script);
           });
         }
-        if (typeof window.heic2any !== "function") {
+        if (typeof window.HeicTo !== "function") {
           throw new Error("The HEIC image converter did not initialize.");
         }
-        const converted = await window.heic2any({
+        const jpegBlob = await window.HeicTo({
           blob: await response.blob(),
-          toType: "image/jpeg",
+          type: "image/jpeg",
           quality: 0.85
         });
         if (
           avatarEl.dataset.admissionNo !== admissionNo ||
           avatarPhotoEl.dataset.requestId !== photoRequestId
         ) return;
-        const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
         photoObjectUrl = URL.createObjectURL(jpegBlob);
         avatarPhotoEl.dataset.objectUrl = photoObjectUrl;
         avatarPhotoEl.src = photoObjectUrl;
