@@ -3,7 +3,7 @@ SIBAQ PERMANENT STUDENT QR SYSTEM — SETUP GUIDE
 WHAT THIS PACKAGE DOES
 - Groups rows by Admission Number (case-insensitive) so the same student in multiple programs gets ONE QR.
 - The student profile shows Admission Number, Name, Mentor, Programs, Program Codes and last-updated time.
-- Student profile and admin assessment dossier photos load from the public Supabase Storage bucket `Images`; name each PNG `<Admission Number>.png` (for example, `940.png`).
+- Student profile and admin assessment dossier photos load from the public Supabase Storage bucket `Images`; name each image `<Admission Number>` with a `.png`, `.jpg`, `.jpeg`, or `.webp` extension (for example, `940.png` or `940.jpg`).
 - QR URLs contain only the admission number, e.g. https://mic-sibaq.vercel.app/student.html?id=123. They do not contain the profile details.
 - After the profile is updated online, the same printed QR shows the latest details.
 - Existing Control Room and Live Wall functionality is retained in admin.html and live-wall.html.

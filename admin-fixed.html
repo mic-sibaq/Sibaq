@@ -4960,23 +4960,30 @@ function renderIndividualStudentGraph(profile, activeProgramCode = "all") {
     avatarInitialsEl.textContent = initials || "SA";
     avatarInitialsEl.hidden = false;
     avatarPhotoEl.hidden = true;
+    const photoExtensions = ["png", "jpg", "jpeg", "webp"];
+    let photoExtensionIndex = 0;
     avatarPhotoEl.onload = () => {
       if (avatarEl.dataset.admissionNo !== admissionNo) return;
       avatarPhotoEl.hidden = false;
       avatarInitialsEl.hidden = true;
     };
     avatarPhotoEl.onerror = () => {
-      if (avatarEl.dataset.admissionNo === admissionNo) {
-        avatarPhotoEl.hidden = true;
-        avatarInitialsEl.hidden = false;
+      if (avatarEl.dataset.admissionNo !== admissionNo) return;
+      photoExtensionIndex++;
+      if (photoExtensionIndex < photoExtensions.length) {
+        avatarPhotoEl.src = db?.storage.from("Images")
+          .getPublicUrl(admissionNo + "." + photoExtensions[photoExtensionIndex]).data.publicUrl || "";
+        return;
       }
+      avatarPhotoEl.hidden = true;
+      avatarInitialsEl.hidden = false;
     };
 
     const db = getDbClient();
     avatarPhotoEl.removeAttribute("src");
     if (db && admissionNo) {
       avatarPhotoEl.src = db.storage.from("Images")
-        .getPublicUrl(admissionNo + ".png").data.publicUrl;
+        .getPublicUrl(admissionNo + "." + photoExtensions[photoExtensionIndex]).data.publicUrl;
     }
   }
 

@@ -663,9 +663,23 @@
                 if (error) throw error; if (!data) {fail('No profile was found for admission number ' + admissionNo + '. Please ask the Control Room to upload the student list.'); return;}
                 profile = data; text('admissionValue', data.admission_no); text('nameValue', data.name);
                 const photo = $('studentPhoto');
+                const photoAdmissionNo = String(data.admission_no).trim();
+                const photoExtensions = ['png', 'jpg', 'jpeg', 'webp'];
+                let photoExtensionIndex = 0;
                 photo.alt = 'Photo of ' + (data.name || 'student');
-                photo.onerror = () => {photo.hidden = true;};
-                photo.src = db.storage.from('Images').getPublicUrl(String(data.admission_no).trim() + '.png').data.publicUrl;
+                photo.onerror = () => {
+                    photoExtensionIndex++;
+                    if (photoExtensionIndex < photoExtensions.length) {
+                        photo.src = db.storage.from('Images').getPublicUrl(
+                            photoAdmissionNo + '.' + photoExtensions[photoExtensionIndex]
+                        ).data.publicUrl;
+                    } else {
+                        photo.hidden = true;
+                    }
+                };
+                photo.src = db.storage.from('Images').getPublicUrl(
+                    photoAdmissionNo + '.' + photoExtensions[photoExtensionIndex]
+                ).data.publicUrl;
                 photo.hidden = false;
                 const programs = getPrograms(); const picker = $('programSelect'); picker.innerHTML = '';
                 if (programs.length) {programs.forEach((program, index) => {const option = document.createElement('option'); option.value = program.code; option.textContent = program.name + (program.code ? ' (' + program.code + ')' : ''); picker.appendChild(option);}); selectedProgramCode = programs[0].code; picker.value = selectedProgramCode; $('codesValue').textContent = selectedProgramCode; text('mentorValue', getMentorForProgram(programs[0])); $('programPickerHelp').textContent = programs.length > 1 ? 'Select a program to see only its daily progression and performance. Your mentor can update the selected program.' : 'Your daily progression and performance for this program are shown below.';} else {$('codesValue').textContent = 'Not provided'; $('programPickerHelp').textContent = 'No programs are listed in this student profile.';}
