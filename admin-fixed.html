@@ -1094,6 +1094,15 @@
             <button class="btn" onclick="loadOnlineProfiles()">↻ Load Online Profiles</button>
           </div>
           <p class="muted" id="dbStatus" role="status">Database is not connected yet. Follow README.txt setup steps.</p>
+          <div style="margin-top:12px">
+            <label for="programmeMentorCsvInput">Separate programme mentor CSV</label>
+            <div class="btn-row">
+              <button class="btn secondary" type="button" onclick="document.getElementById('programmeMentorCsvInput').click()">📄 Upload Program Code + Mentor CSV</button>
+              <input id="programmeMentorCsvInput" type="file" accept=".csv,text/csv" style="display:none"
+                onchange="importProgrammeMentorCSV(this)">
+            </div>
+            <p class="muted">Use one row per programme with <b>Program Code</b> and <b>Mentor</b> columns. This updates matching online profiles and is retained for future student uploads.</p>
+          </div>
         </div>
         <div class="btn-row">
           <button class="btn green" onclick="generateStudentQRCodes()">🔳 Generate One QR per Student</button>
@@ -2806,12 +2815,126 @@
     ========================================================= */
     let generatedQrItems = [];
     let onlineProfileCache = [];
+    let savedProgrammeMentors = new Map();
     function getDbClient() {
       if (!window.supabase || !window.SIBAQ_SUPABASE_CONFIG || !window.SIBAQ_SUPABASE_CONFIG.url || !window.SIBAQ_SUPABASE_CONFIG.anonKey || window.SIBAQ_SUPABASE_CONFIG.url.includes('YOUR_')) return null;
       if (!window.__sibaQDb) window.__sibaQDb = window.supabase.createClient(window.SIBAQ_SUPABASE_CONFIG.url, window.SIBAQ_SUPABASE_CONFIG.anonKey);
       return window.__sibaQDb;
     }
     function setDbStatus(text) {const el = document.getElementById('dbStatus'); if (el) el.textContent = text;}
+
+    function parseProgrammeMentorCSV(text) {
+      const rows = parseCSVRows(text);
+      if (!rows.length) throw new Error('The programme mentor CSV is empty.');
+      const headers = rows[0].map(normalizeCSVHeader);
+      const codeIndex = headers.findIndex(header => ['program code', 'programme code', 'programcode', 'programmecode', 'code'].includes(header));
+      const mentorIndex = headers.findIndex(header => ['mentor', 'mentor name', 'program mentor', 'programme mentor', 'assigned mentor'].includes(header));
+      if (codeIndex < 0 || mentorIndex < 0) {
+        throw new Error('The separate CSV must contain Program Code and Mentor columns.');
+      }
+
+      const assignments = new Map();
+      rows.slice(1).forEach((row, index) => {
+        const programCode = String(row[codeIndex] || '').trim().replace(/\s+/g, ' ').toLocaleUpperCase();
+        const mentor = String(row[mentorIndex] || '').trim();
+        if (!programCode && !mentor) return;
+        if (!programCode || !mentor) {
+          throw new Error('CSV row ' + (index + 2) + ' must include both a Program Code and a Mentor.');
+        }
+        const existing = assignments.get(programCode);
+        if (existing && existing.toLocaleLowerCase() !== mentor.toLocaleLowerCase()) {
+          throw new Error('Program code ' + programCode + ' has conflicting mentor names in the CSV.');
+        }
+        assignments.set(programCode, mentor);
+      });
+
+      if (!assignments.size) throw new Error('No complete Program Code and Mentor rows were found.');
+      return [...assignments].map(([program_code, mentor]) => ({program_code, mentor}));
+    }
+
+    function importProgrammeMentorCSV(input) {
+      const file = input.files && input.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async event => {
+        try {
+          const assignments = parseProgrammeMentorCSV(event.target.result);
+          await uploadProgrammeMentorAssignments(assignments);
+        } catch (error) {
+          setDbStatus(error.message || 'Could not import the programme mentor CSV.');
+        } finally {
+          input.value = '';
+        }
+      };
+      reader.onerror = () => {setDbStatus('Could not read the selected programme mentor CSV.'); input.value = '';};
+      reader.readAsText(file);
+    }
+
+    async function loadSavedProgrammeMentors(db) {
+      const {data, error} = await db.from('program_mentor_assignments').select('program_code,mentor');
+      if (error) throw new Error('Could not load saved programme mentors: ' + error.message + '. Run the updated supabase-setup.sql script.');
+      savedProgrammeMentors = new Map((data || []).map(row => [
+        String(row.program_code || '').trim().replace(/\s+/g, ' ').toLocaleUpperCase(),
+        String(row.mentor || '').trim()
+      ]));
+    }
+
+    async function uploadProgrammeMentorAssignments(assignments) {
+      const db = getDbClient();
+      if (!db) {setDbStatus('Supabase is not configured. Complete setup in README.txt first.'); return;}
+      const {data: {session}} = await db.auth.getSession();
+      if (!session) {setDbStatus('Sign in with the Supabase admin account before uploading programme mentors.'); return;}
+
+      setDbStatus('Saving ' + assignments.length + ' programme mentor assignments…');
+      const {error: assignmentError} = await db.from('program_mentor_assignments').upsert(assignments, {onConflict: 'program_code'});
+      if (assignmentError) {
+        setDbStatus('Could not save programme mentor assignments: ' + assignmentError.message + '. Run the updated supabase-setup.sql script.');
+        return;
+      }
+
+      try {
+        await loadSavedProgrammeMentors(db);
+      } catch (error) {
+        setDbStatus(error.message);
+        return;
+      }
+
+      const {data: profiles, error: profileError} = await db.from('student_profiles').select('*');
+      if (profileError) {
+        setDbStatus('Programme mentors were saved, but student profiles could not be loaded: ' + profileError.message + '. Upload this mentor CSV again to apply the saved assignments.');
+        return;
+      }
+
+      const updates = (profiles || []).flatMap(profile => {
+        const codes = Array.isArray(profile.program_codes) ? profile.program_codes : [];
+        const programs = Array.isArray(profile.programs) ? profile.programs : [];
+        const mentors = Array.isArray(profile.program_mentors) ? profile.program_mentors : [];
+        const count = Math.max(codes.length, programs.length, mentors.length);
+        const nextMentors = Array.from({length: count}, (_, index) => {
+          const code = String(codes[index] || '').trim().replace(/\s+/g, ' ').toLocaleUpperCase();
+          return savedProgrammeMentors.get(code) || String(mentors[index] || '').trim();
+        });
+        const changed = nextMentors.some((mentor, index) => mentor !== String(mentors[index] || '').trim());
+        if (!changed) return [];
+        return [{
+          ...profile,
+          mentor: nextMentors.find(Boolean) || '',
+          program_mentors: nextMentors,
+          updated_at: new Date().toISOString()
+        }];
+      });
+
+      for (let offset = 0; offset < updates.length; offset += 100) {
+        const {error} = await db.from('student_profiles').upsert(updates.slice(offset, offset + 100), {onConflict: 'admission_no'});
+        if (error) {
+          setDbStatus('Programme mentor assignments were saved, but profile updates stopped after ' + offset + ' profiles: ' + error.message + '. Upload this mentor CSV again to retry.');
+          return;
+        }
+      }
+
+      applyProgrammeMentorsToRows();
+      await loadOnlineProfiles();
+      setDbStatus('Saved ' + assignments.length + ' programme mentor assignments and updated ' + updates.length + ' online student profiles. Assignments will also be used on future student uploads.');
+    }
     
     function programAssignmentKey(code, program) {
       const normalizedCode = String(code || '').trim().toLocaleLowerCase();
@@ -2943,6 +3066,14 @@ function buildProgramMentorMap() {
     };
 
     map.set(key, assignment);
+  });
+
+  savedProgrammeMentors.forEach((mentor, code) => {
+    byCode.set(normalizeProgramValue(code), {
+      program: '',
+      code,
+      mentor
+    });
   });
 
   return {
@@ -3104,6 +3235,12 @@ function uniqueStudentRoster() {
     async function syncStudentsToDatabase() {
       const db = getDbClient(); if (!db) {setDbStatus('Supabase is not configured. Complete setup in README.txt first.'); return;}
       const {data: {session}} = await db.auth.getSession(); if (!session) {setDbStatus('Please sign in with the Supabase admin account first.'); return;}
+      try {
+        await loadSavedProgrammeMentors(db);
+      } catch (error) {
+        setDbStatus(error.message);
+        return;
+      }
       const roster = uniqueStudentRoster(); if (!roster.length) {setDbStatus('No students with admission numbers found. Import your CSV first.'); return;}
       setDbStatus(`Uploading ${roster.length} unique students…`);
       const payload = roster.map(p => ({...p, updated_at: new Date().toISOString()}));

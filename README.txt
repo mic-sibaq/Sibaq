@@ -24,7 +24,7 @@ STEP 2 — CREATE THE TABLE
 2. Choose New query.
 3. Open supabase-setup.sql from this package, copy all its contents, paste into the SQL Editor, and click Run.
 4. Confirm the query finishes successfully.
-   If the table already exists, run the updated script again; it adds the per-programme mentor column without replacing existing student profiles.
+   If the table already exists, run the updated script again; it adds the per-programme mentor column and persistent programme-code mapping table, and converts a legacy single-text `programs` column to a text array while preserving its existing values.
 
 STEP 3 — CREATE AN ADMIN LOGIN
 1. In Supabase open Authentication → Users.
@@ -48,9 +48,10 @@ STEP 6 — UPLOAD STUDENTS AND MAKE QR CODES
 1. Open https://mic-sibaq.vercel.app/admin.html.
 2. Import the CSV in the normal student section. Required columns: Admission No, Name, Program Code, Program. Mentor is optional; use a Mentor, Mentor Name, Program Mentor, or Programme Mentor column to assign mentors by Program Code. Rows with the same Program Code share that mentor assignment.
 3. Scroll to Student QR Code Generator. Enter the admin email/password and click Sign in.
-4. Click Upload / Update Unique Students. The system groups all program rows for each admission number and uploads one combined profile per student.
-5. Click Generate One QR per Student. Confirm the count equals the number of unique admission numbers (not the number of program rows).
-6. Download the ZIP or print the QR sheet. Test a QR with a phone before printing all cards.
+4. To assign mentors separately, upload a second CSV in the Online Student Database section with `Program Code` and `Mentor` columns. One row per program code is enough; matching online profiles are updated, and saved assignments are reused during future student uploads.
+5. Click Upload / Update Unique Students. The system groups all program rows for each admission number and uploads one combined profile per student.
+6. Click Generate One QR per Student. Confirm the count equals the number of unique admission numbers (not the number of program rows).
+7. Download the ZIP or print the QR sheet. Test a QR with a phone before printing all cards.
 
 STEP 7 — EDIT AFTER PRINTING
 1. Open the Control Room and sign in.
