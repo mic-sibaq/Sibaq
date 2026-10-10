@@ -2326,14 +2326,24 @@ function importCSVFile(input){
         return;
       }
 
-      const duplicateKeys = new Set(
-        students.map(s => `${String(s.adNo).trim().toLowerCase()}|${String(s.name).trim().toLowerCase()}`)
-      );
+      // A student may participate in several programmes. Deduplicate by the
+      // student + programme combination, not by student alone.
+      const makeProgramKey = student => [
+        String(student.adNo || "").trim().toLocaleLowerCase(),
+        String(student.programCode || student.program_code || "").trim().toLocaleLowerCase(),
+        String(student.program || "").trim().toLocaleLowerCase()
+      ].join("|");
 
+      const duplicateKeys = new Set(students.map(makeProgramKey));
       let added = 0;
+      let skippedDuplicates = 0;
+
       imported.forEach(student => {
-        const key = `${student.adNo.trim().toLowerCase()}|${student.name.trim().toLowerCase()}`;
-        if(duplicateKeys.has(key)) return;
+        const key = makeProgramKey(student);
+        if(duplicateKeys.has(key)){
+          skippedDuplicates++;
+          return;
+        }
 
         student.id = Date.now()+Math.random();
         student.source = "csv";
@@ -2347,7 +2357,7 @@ function importCSVFile(input){
       localStorage.setItem("artsFestUploadedCSVName",file.name);
       updateCSVStatus();
 
-      toast(`${added} student${added === 1 ? "":"s"} imported from ${file.name}.`);
+      toast(`${added} programme row${added === 1 ? "":"s"} imported from ${file.name}${skippedDuplicates ? `; ${skippedDuplicates} duplicate programme row${skippedDuplicates === 1 ? " was":"s were"} skipped` : ""}.`);
     }catch(error){
       toast(error.message || "Could not read the CSV file.");
     }finally{
