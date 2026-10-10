@@ -1043,8 +1043,10 @@ body.dark .stacked-bar-track {
 }
 
 .student-avatar {
+  position: relative;
   width: 68px;
   height: 68px;
+  overflow: hidden;
   border-radius: 50%;
   background: linear-gradient(135deg, #4f46e5, #06b6d4);
   color: #fff;
@@ -1056,6 +1058,14 @@ body.dark .stacked-bar-track {
   box-shadow: 0 4px 14px rgba(79, 70, 229, .3);
   flex-shrink: 0;
   border: 3px solid #fff;
+}
+
+.student-avatar-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 body.dark .student-avatar {
@@ -2095,7 +2105,10 @@ body.dark .matrix-summary-pill {
         </div>
 
         <div class="dossier-profile-row">
-          <div class="student-avatar" id="dossierAvatar">SA</div>
+          <div class="student-avatar" id="dossierAvatar">
+            <span id="dossierAvatarInitials">SA</span>
+            <img class="student-avatar-photo" id="dossierPhoto" alt="" hidden>
+          </div>
           <div class="student-meta">
             <div class="student-title-row">
               <h2 id="dossierStudentName" class="student-name">Student Name</h2>
@@ -4930,16 +4943,41 @@ function renderIndividualStudentGraph(profile, activeProgramCode = "all") {
   const progCountEl = document.getElementById("dossierProgramCount");
   if (progCountEl) progCountEl.textContent = `📚 ${allPrograms.length} Programme${allPrograms.length === 1 ? "" : "s"}`;
 
-  // Avatar initials
+  // Show the storage photo when available; keep initials visible as a fallback.
   const avatarEl = document.getElementById("dossierAvatar");
-  if (avatarEl) {
+  const avatarInitialsEl = document.getElementById("dossierAvatarInitials");
+  const avatarPhotoEl = document.getElementById("dossierPhoto");
+  if (avatarEl && avatarInitialsEl && avatarPhotoEl) {
     const initials = (profile.name || "S A")
       .split(" ")
       .filter(Boolean)
       .slice(0, 2)
       .map(w => w[0].toUpperCase())
       .join("");
-    avatarEl.textContent = initials || "SA";
+    const admissionNo = String(profile.admission_no || "").trim();
+    avatarEl.dataset.admissionNo = admissionNo;
+    avatarEl.setAttribute("aria-label", "Student photo or initials for " + (profile.name || "student"));
+    avatarInitialsEl.textContent = initials || "SA";
+    avatarInitialsEl.hidden = false;
+    avatarPhotoEl.hidden = true;
+    avatarPhotoEl.onload = () => {
+      if (avatarEl.dataset.admissionNo !== admissionNo) return;
+      avatarPhotoEl.hidden = false;
+      avatarInitialsEl.hidden = true;
+    };
+    avatarPhotoEl.onerror = () => {
+      if (avatarEl.dataset.admissionNo === admissionNo) {
+        avatarPhotoEl.hidden = true;
+        avatarInitialsEl.hidden = false;
+      }
+    };
+
+    const db = getDbClient();
+    avatarPhotoEl.removeAttribute("src");
+    if (db && admissionNo) {
+      avatarPhotoEl.src = db.storage.from("Images")
+        .getPublicUrl(admissionNo + ".png").data.publicUrl;
+    }
   }
 
   // Mentor summary
