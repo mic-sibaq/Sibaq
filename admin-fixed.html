@@ -9,7 +9,7 @@
   <style>
     :root {
       --bg: #f4f7fb;
-      --card: #000;
+      --card: #ffffff;
       --text: #172033;
       --muted: #667085;
       --border: #dce2ea;
@@ -686,7 +686,6 @@
 .graph-stat strong {
   font-size: clamp(20px, 3vw, 28px);
   overflow-wrap: anywhere;
-  color: #000;
 }
 
 .graph-bars {
@@ -2425,11 +2424,8 @@
     }
 
     function renderStudents() {
-      
-const table = document.getElementById("studentTable");
-if (!table) return;
-table.innerHTML = "";
-
+      const table = document.getElementById("studentTable");
+      table.innerHTML = "";
 
       students.forEach((s, index) => {
         const complete = isComplete(s);
@@ -2743,92 +2739,22 @@ table.innerHTML = "";
     }
 
     function importCSVFile(input) {
-function importCSVFile(input) {
-    const file = input.files && input.files[0];
-    if (!file) return;
-
-    if (!file.name.toLowerCase().endsWith(".csv")) {
-        toast("Please select a CSV file.");
-        input.value = "";
-        return;
-    }
-
-    const reader = new FileReader();
-
-    reader.onload = function (event) {
+      const file = input.files && input.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (event) {
         try {
-            const imported = parseCSVText(event.target.result);
+          const imported = parseCSVText(event.target.result);
+          if (!imported.length) {toast('No data rows were found in the CSV.'); return;}
+          // Re-uploading the same filename replaces its previous import, but every row
+          // in the selected file is imported, even repeated programme/student rows.
+          students = students.filter(s => !(s.source === 'csv' && s.csvFileName === file.name));
+          imported.forEach((student, index) => {
+            student.id = Date.now() + Math.random() + index;
+            student.source = 'csv'; student.csvFileName = file.name;
+            students.push(student);
+          });
 
-            if (!imported.length) {
-                toast("No student rows were found. Check your CSV file.");
-                return;
-            }
-
-            if (!Array.isArray(students)) {
-                students = [];
-            }
-
-            // Replace the previous import of this same filename.
-            students = students.filter(student =>
-                !(student.source === "csv" &&
-                  student.csvFileName === file.name)
-            );
-
-            imported.forEach((student, index) => {
-                student.id = Date.now() + Math.random() + index;
-                student.source = "csv";
-                student.csvFileName = file.name;
-                students.push(student);
-            });
-
-            saveStudents();
-
-            try {
-                localStorage.setItem(
-                    "artsFestUploadedCSVName",
-                    file.name
-                );
-            } catch (storageError) {
-                console.warn("Could not save CSV filename:", storageError);
-            }
-
-            if (typeof updateCSVStatus === "function") {
-                updateCSVStatus();
-            }
-
-            if (typeof renderStudents === "function") {
-                renderStudents();
-            }
-
-            const uniqueAdmissions = new Set(
-                imported
-                    .map(student =>
-                        String(student.adNo || "").trim().toLowerCase()
-                    )
-                    .filter(Boolean)
-            );
-
-            toast(
-                "Imported " + imported.length +
-                " CSV rows from " + file.name +
-                ". Unique students: " + uniqueAdmissions.size + "."
-            );
-        } catch (error) {
-            console.error("CSV import failed:", error);
-            toast("CSV import failed: " + (error.message || "Unknown error"));
-        } finally {
-            input.value = "";
-        }
-    };
-
-    reader.onerror = function () {
-        toast("Could not read the CSV file.");
-        input.value = "";
-    };
-
-    reader.readAsText(file);
-}
-         applyProgrammeMentorsToRows();
+          applyProgrammeMentorsToRows();
 
           saveStudents();
           localStorage.setItem('artsFestUploadedCSVName', file.name);
