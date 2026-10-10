@@ -1140,7 +1140,34 @@
         </p>
       </section>
 
-      
+      <!-- STUDENTS -->
+      <section class="card col-12">
+        <h2>📋 Daily Student Checklist</h2>
+
+        <div class="btn-row" style="margin:10px 0 14px">
+          <button class="btn green" onclick="tickAllStudents()">☑️ Tick All Students</button>
+          <button class="btn red" onclick="untickAllStudents()">☐ Remove Tick Mark of All Students</button>
+        </div>
+
+        <div style="overflow:auto">
+          <table class="student-table">
+            <thead>
+              <tr>
+                <th>Ad.No</th>
+                <th>Name</th>
+                <th>Program Code</th>
+                <th>Program</th>
+                <th>Mentor</th>
+                <th>Done ✓</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="studentTable"></tbody>
+          </table>
+        </div>
+      </section>
+
 <!-- STUDENT PROGRESS GRAPH BOARD -->
 <section class="card col-12" id="studentGraphBoard">
   <h2>📊 Student Progress Graph Board</h2>
