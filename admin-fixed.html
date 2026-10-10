@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>Arts Fest Control Room</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <style>
     :root {
@@ -660,7 +661,9 @@
     }
 
 
-/* Student progress graph board */
+/* =========================================================
+   STUDENT PROGRESS GRAPH BOARD & OFFICIAL PERFORMANCE DOSSIER
+   ========================================================= */
 .graph-summary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -672,13 +675,17 @@
   padding: 16px;
   border: 1px solid var(--border, #dfe5ef);
   border-radius: 14px;
-  background: var(--panel, #fff);
+  background: var(--card, #fff);
   min-width: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,.03);
 }
 
 .graph-stat span {
   display: block;
   font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
   color: var(--muted, #667085);
   margin-bottom: 8px;
 }
@@ -686,6 +693,7 @@
 .graph-stat strong {
   font-size: clamp(20px, 3vw, 28px);
   overflow-wrap: anywhere;
+  color: var(--text, #172033);
 }
 
 .graph-bars {
@@ -699,6 +707,7 @@
   border-radius: 12px;
   padding: 13px;
   min-width: 0;
+  background: var(--card, #fff);
 }
 
 .graph-bar-heading {
@@ -711,7 +720,7 @@
 }
 
 .graph-bar-title {
-  font-weight: 750;
+  font-weight: 700;
   overflow-wrap: anywhere;
 }
 
@@ -723,10 +732,14 @@
 
 .graph-track {
   width: 100%;
-  height: 15px;
+  height: 12px;
   background: #e9edf5;
   border-radius: 99px;
   overflow: hidden;
+}
+
+body.dark .graph-track {
+  background: #1e293b;
 }
 
 .graph-fill {
@@ -734,42 +747,729 @@
   width: 0;
   border-radius: 99px;
   background: linear-gradient(90deg, #4f46e5, #8b5cf6);
-  transition: width .35s ease;
+  transition: width .4s cubic-bezier(.4, 0, .2, 1);
 }
 
 .graph-fill.rating-excellent {
-  background: #16a34a;
+  background: linear-gradient(90deg, #10b981, #059669);
 }
 
 .graph-fill.rating-good {
-  background: #2563eb;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
 }
 
 .graph-fill.rating-average {
-  background: #d97706;
+  background: linear-gradient(90deg, #f59e0b, #d97706);
 }
 
 .graph-fill.rating-poor {
-  background: #dc2626;
+  background: linear-gradient(90deg, #ef4444, #dc2626);
 }
 
 .graph-empty {
-  padding: 18px;
+  padding: 24px;
   border: 1px dashed var(--border, #cbd5e1);
-  border-radius: 12px;
+  border-radius: 14px;
   color: var(--muted, #667085);
   text-align: center;
+  font-size: 14px;
 }
 
-@media (max-width: 700px) {
-  .graph-summary {
+/* Individual Search Toolbar */
+.individual-search-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 16px;
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #dfe5ef);
+  border-radius: 14px;
+  margin: 12px 0 16px;
+}
+
+@media (max-width: 860px) {
+  .individual-search-bar {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--muted, #667085);
+  margin-bottom: 6px;
+}
+
+.search-controls-row, .dropdown-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.input-styled {
+  flex: 1;
+  min-width: 180px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border, #dce2ea);
+  background: var(--bg, #f4f7fb);
+  color: var(--text, #172033);
+  font-size: 14px;
+  transition: all .2s ease;
+}
+
+.input-styled:focus {
+  outline: none;
+  border-color: var(--primary, #5b5ce2);
+  box-shadow: 0 0 0 3px rgba(91, 92, 226, .15);
+}
+
+.purple-btn {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
+  color: #fff !important;
+}
+
+.status-callout {
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(91, 92, 226, .06);
+  border-left: 4px solid var(--primary, #5b5ce2);
+  margin: 10px 0 18px;
+  font-size: 13.5px;
+}
+
+/* Official Student Dossier Card */
+.official-dossier {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: dossierFadeIn .3s ease-out;
+}
+
+@keyframes dossierFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dossier-header-card {
+  padding: 22px;
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #dfe5ef);
+  border-top: 4px solid var(--primary, #5b5ce2);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.04);
+}
+
+.dossier-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border, #edf2f7);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.official-insignia {
+  display: flex;
+  flex-direction: column;
+}
+
+.insignia-badge {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--primary, #5b5ce2);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.insignia-badge::before {
+  content: "✦";
+  color: #f59e0b;
+}
+
+.insignia-sub {
+  font-size: 11.5px;
+  color: var(--muted, #667085);
+}
+
+.dossier-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12.5px;
+}
+
+.dossier-profile-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.student-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5, #06b6d4);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, .3);
+  flex-shrink: 0;
+  border: 3px solid #fff;
+}
+
+body.dark .student-avatar {
+  border-color: #1e293b;
+}
+
+.student-meta {
+  flex: 1;
+  min-width: 220px;
+}
+
+.student-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.student-name {
+  margin: 0;
+  font-size: clamp(20px, 3.2vw, 26px);
+  font-weight: 800;
+  color: var(--text, #172033);
+  letter-spacing: -.4px;
+}
+
+.admission-badge {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: monospace;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: var(--bg, #f4f7fb);
+  border: 1px solid var(--border, #dce2ea);
+  color: var(--primary, #5b5ce2);
+}
+
+.student-submeta {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.meta-tag {
+  font-size: 12px;
+  color: var(--muted, #667085);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.standing-badge-box {
+  text-align: right;
+  min-width: 170px;
+}
+
+@media (max-width: 680px) {
+  .standing-badge-box {
+    text-align: left;
+    width: 100%;
+  }
+}
+
+.standing-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: var(--muted, #667085);
+  margin-bottom: 4px;
+}
+
+.standing-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: .3px;
+  background: #f1f5f9;
+  color: #334155;
+  box-shadow: 0 2px 6px rgba(0,0,0,.04);
+}
+
+.standing-badge.grade-aplus {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, .3);
+}
+
+.standing-badge.grade-a {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, .3);
+}
+
+.standing-badge.grade-b {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, .3);
+}
+
+.standing-badge.grade-c {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, .3);
+}
+
+/* Programme Filter Tabs */
+.programme-filter-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border, #edf2f7);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.prog-tab {
+  padding: 7px 14px;
+  border-radius: 99px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid var(--border, #dce2ea);
+  background: var(--bg, #f4f7fb);
+  color: var(--text, #172033);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .2s ease;
+}
+
+.prog-tab:hover {
+  border-color: var(--primary, #5b5ce2);
+  color: var(--primary, #5b5ce2);
+}
+
+.prog-tab.active {
+  background: var(--primary, #5b5ce2);
+  color: #fff;
+  border-color: var(--primary, #5b5ce2);
+  box-shadow: 0 2px 8px rgba(91, 92, 226, .25);
+}
+
+/* KPI Scorecard Grid */
+.kpi-scorecard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .kpi-scorecard-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 390px) {
-  .graph-summary {
+@media (max-width: 480px) {
+  .kpi-scorecard-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+.kpi-card {
+  padding: 16px;
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #dfe5ef);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.03);
+  position: relative;
+  overflow: hidden;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.06);
+}
+
+.kpi-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3.5px;
+  background: var(--card-accent, #5b5ce2);
+}
+
+.kpi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.kpi-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--muted, #667085);
+}
+
+.kpi-icon {
+  font-size: 18px;
+}
+
+.kpi-value {
+  font-size: clamp(22px, 3.2vw, 30px);
+  font-weight: 800;
+  color: var(--text, #172033);
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+.kpi-sub {
+  font-size: 12px;
+  color: var(--muted, #667085);
+}
+
+.kpi-bar {
+  margin-top: 10px;
+  height: 6px;
+  border-radius: 99px;
+  background: #edf2f7;
+  overflow: hidden;
+}
+
+body.dark .kpi-bar {
+  background: #1e293b;
+}
+
+.kpi-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--card-accent, #5b5ce2);
+  transition: width .5s ease;
+}
+
+/* Charts Split Row */
+.charts-row-split {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 950px) {
+  .charts-row-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-panel {
+  padding: 18px;
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #dfe5ef);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.03);
+}
+
+.chart-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chart-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 750;
+  color: var(--text, #172033);
+}
+
+.chart-subtitle {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--muted, #667085);
+}
+
+.chart-metric-badge {
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(91, 92, 226, .1);
+  color: var(--primary, #5b5ce2);
+}
+
+.chart-canvas-wrapper {
+  position: relative;
+  width: 100%;
+  height: 280px;
+}
+
+.donut-canvas-wrapper {
+  height: 260px;
+}
+
+.bar-canvas-wrapper {
+  height: 220px;
+}
+
+.chart-legend-custom {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--muted, #667085);
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.legend-dot.green { background: #10b981; }
+.legend-dot.blue { background: #2563eb; }
+.legend-dot.orange { background: #f59e0b; }
+.legend-dot.red { background: #ef4444; }
+.legend-dot.grey { background: #94a3b8; }
+
+.full-width-chart {
+  width: 100%;
+}
+
+/* 24-Day Calendar Matrix Grid */
+.matrix-summary-pill {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: #ecfdf5;
+  color: #059669;
+}
+
+body.dark .matrix-summary-pill {
+  background: rgba(16, 185, 129, .15);
+  color: #34d399;
+}
+
+.matrix-grid-container {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+  .matrix-grid-container {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .matrix-grid-container {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 380px) {
+  .matrix-grid-container {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.matrix-day-card {
+  padding: 10px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border, #dfe5ef);
+  background: var(--bg, #f8fafc);
+  text-align: center;
+  transition: all .2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.matrix-day-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,.06);
+  border-color: var(--primary, #5b5ce2);
+}
+
+.matrix-day-card.status-excellent {
+  border-color: rgba(16, 185, 129, .5);
+  background: rgba(16, 185, 129, .06);
+}
+
+.matrix-day-card.status-good {
+  border-color: rgba(37, 99, 235, .5);
+  background: rgba(37, 99, 235, .06);
+}
+
+.matrix-day-card.status-average {
+  border-color: rgba(245, 158, 11, .5);
+  background: rgba(245, 158, 11, .06);
+}
+
+.matrix-day-card.status-poor {
+  border-color: rgba(239, 68, 68, .5);
+  background: rgba(239, 68, 68, .06);
+}
+
+.matrix-day-card.status-missed {
+  opacity: .65;
+}
+
+.matrix-day-num {
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--muted, #667085);
+}
+
+.matrix-day-date {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text, #172033);
+  margin: 3px 0 5px;
+}
+
+.matrix-rating-pill {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 99px;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.matrix-rating-pill.pill-excellent {
+  background: #10b981; color: #fff;
+}
+.matrix-rating-pill.pill-good {
+  background: #2563eb; color: #fff;
+}
+.matrix-rating-pill.pill-average {
+  background: #f59e0b; color: #fff;
+}
+.matrix-rating-pill.pill-poor {
+  background: #ef4444; color: #fff;
+}
+.matrix-rating-pill.pill-missed {
+  background: #94a3b8; color: #fff;
+}
+
+/* Dossier Remarks & Official Signatures */
+.dossier-remarks-card {
+  padding: 18px 22px;
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #dfe5ef);
+  border-radius: 16px;
+}
+
+.remarks-header {
+  font-size: 14px;
+  color: var(--text, #172033);
+  margin-bottom: 8px;
+}
+
+.remarks-text {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--muted, #667085);
+  margin: 0 0 20px;
+}
+
+.official-signature-block {
+  display: flex;
+  justify-content: space-around;
+  padding-top: 24px;
+  border-top: 1px dashed var(--border, #cbd5e1);
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.signature-cell {
+  text-align: center;
+  min-width: 180px;
+}
+
+.sig-line {
+  width: 180px;
+  margin: 0 auto 6px;
+  border-bottom: 1px solid var(--border, #667085);
+}
+
+.sig-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--muted, #667085);
+  letter-spacing: .5px;
+}
+
+/* Print Mode for Official Dossier */
+@media print {
+  body.qr-print-mode * {
+    visibility: hidden;
+  }
+
+  body.dossier-print-mode * {
+    visibility: hidden;
+  }
+
+  body.dossier-print-mode #officialStudentDossier,
+  body.dossier-print-mode #officialStudentDossier * {
+    visibility: visible;
+  }
+
+  body.dossier-print-mode #officialStudentDossier {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .dossier-actions,
+  .programme-filter-tabs {
+    display: none !important;
+  }
+
+  .chart-canvas-wrapper {
+    height: 240px !important;
   }
 }
 
@@ -1213,9 +1913,15 @@
       Each bar represents the percentage of scheduled programme-days
       completed by all students enrolled in that programme.
     </p>
+    <div class="chart-canvas-wrapper" style="margin-bottom:14px">
+      <canvas id="allProgramCanvas"></canvas>
+    </div>
     <div id="allProgramGraph" class="graph-bars"></div>
 
     <h3>Performance Ratings</h3>
+    <div class="chart-canvas-wrapper donut-canvas-wrapper" style="max-width:440px;margin:0 auto 14px">
+      <canvas id="allRatingCanvas"></canvas>
+    </div>
     <div id="allRatingGraph" class="graph-bars"></div>
 
     <button class="btn" onclick="refreshStudentGraphs()">
@@ -1224,36 +1930,182 @@
   </div>
 
   <div id="individualGraphPanel" hidden>
-    <label for="graphAdmissionSearch">Search by Admission Number</label>
+    <!-- SEARCH & CONTROLS TOOLBAR -->
+    <div class="individual-search-bar">
+      <div class="search-input-group">
+        <label for="graphAdmissionSearch" class="field-label">Search Student by Admission No. or Name</label>
+        <div class="search-controls-row">
+          <input id="graphAdmissionSearch"
+            list="graphAdmissionDatalist"
+            placeholder="Type Admission No or Name…"
+            autocomplete="off"
+            class="input-styled"
+            onkeydown="if(event.key==='Enter')searchIndividualGraph()">
+          <datalist id="graphAdmissionDatalist"></datalist>
 
-    <div class="btn-row" style="margin:8px 0 14px">
-      <input id="graphAdmissionSearch"
-        placeholder="Enter admission number"
-        autocomplete="off"
-        style="flex:1;min-width:200px"
-        onkeydown="if(event.key==='Enter')searchIndividualGraph()">
+          <button class="btn green" onclick="searchIndividualGraph()" title="Search student record">
+            🔍 Search
+          </button>
+          <button class="btn secondary" onclick="navigateIndividualStudent(-1)" title="Previous student">
+            ⏮ Prev
+          </button>
+          <button class="btn secondary" onclick="navigateIndividualStudent(1)" title="Next student">
+            Next ⏭
+          </button>
+        </div>
+      </div>
 
-      <button class="btn green" onclick="searchIndividualGraph()">
-        🔍 Search Student
-      </button>
+      <div class="quick-picker-group">
+        <label for="individualStudentDropdown" class="field-label">Quick Picker (Loaded Students)</label>
+        <div class="dropdown-row">
+          <select id="individualStudentDropdown" class="input-styled" onchange="selectIndividualFromDropdown(this.value)">
+            <option value="">-- Select a student --</option>
+          </select>
+          <button class="btn purple-btn" onclick="loadSampleIndividualGraph()" title="Preview official graph with sample data">
+            ✨ Sample Preview
+          </button>
+        </div>
+      </div>
     </div>
 
-    <div id="individualGraphMessage" class="muted" aria-live="polite">
-      Enter an admission number to view the student's graph.
+    <div id="individualGraphMessage" class="status-callout muted" aria-live="polite">
+      Enter an admission number or pick a student from the dropdown to inspect their official performance graph.
     </div>
 
-    <div id="individualStudentSummary" class="graph-summary"></div>
+    <!-- OFFICIAL STUDENT PERFORMANCE DOSSIER CONTAINER -->
+    <div id="officialStudentDossier" class="official-dossier" style="display:none">
+      
+      <!-- DOSSIER OFFICIAL HEADER & BADGE -->
+      <div class="dossier-header-card">
+        <div class="dossier-header-top">
+          <div class="official-insignia">
+            <span class="insignia-badge">SIBAQ OFFICIAL ASSESSMENT</span>
+            <span class="insignia-sub">Arts Fest Performance Evaluation</span>
+          </div>
+          <div class="dossier-actions">
+            <button class="btn btn-sm secondary" onclick="printIndividualDossier()">
+              🖨️ Print Official Dossier
+            </button>
+            <button class="btn btn-sm secondary" onclick="copyIndividualSummary()">
+              📋 Copy Summary
+            </button>
+          </div>
+        </div>
 
-    <h3>All Programme Progress</h3>
-    <p class="muted">
-      Every programme assigned to this student appears separately.
-      A student enrolled in multiple programmes will have a graph for
-      each programme.
-    </p>
-    <div id="individualProgramGraph" class="graph-bars"></div>
+        <div class="dossier-profile-row">
+          <div class="student-avatar" id="dossierAvatar">SA</div>
+          <div class="student-meta">
+            <div class="student-title-row">
+              <h2 id="dossierStudentName" class="student-name">Student Name</h2>
+              <span id="dossierAdmissionBadge" class="admission-badge">ADM #104</span>
+            </div>
+            <div class="student-submeta">
+              <span id="dossierProgramCount" class="meta-tag">📚 2 Programmes</span>
+              <span id="dossierMentorInfo" class="meta-tag">👤 Mentor: Prof. Abdullah</span>
+              <span id="dossierLastUpdated" class="meta-tag">🕒 Session 2026</span>
+            </div>
+          </div>
+          <div class="standing-badge-box">
+            <div class="standing-label">OFFICIAL STANDING</div>
+            <div id="dossierStandingBadge" class="standing-badge grade-a">🏆 GRADE A+ • OUTSTANDING</div>
+          </div>
+        </div>
 
-    <h3>Performance Ratings by Programme</h3>
-    <div id="individualRatingGraph" class="graph-bars"></div>
+        <!-- PROGRAMME FILTER TABS -->
+        <div class="programme-filter-tabs" id="dossierProgrammeTabs">
+          <!-- Dynamic tabs injected by JS -->
+        </div>
+      </div>
+
+      <!-- EXECUTIVE KPI METRICS -->
+      <div id="individualStudentSummary" class="kpi-scorecard-grid"></div>
+
+      <!-- MAIN CHARTS ROW: PROGRESSION LINE CHART & RATING DOUGHNUT CHART -->
+      <div class="charts-row-split">
+        <!-- CHART 1: PROGRESSION TRAJECTORY -->
+        <div class="chart-panel">
+          <div class="chart-panel-head">
+            <div>
+              <h3 class="chart-title">📈 24-Day Progression Trajectory</h3>
+              <p class="chart-subtitle">Daily practice attendance & performance rating trend (Oct 11 – Nov 03)</p>
+            </div>
+            <div class="chart-metric-badge" id="dossierProgressionRate">100% Target</div>
+          </div>
+          <div class="chart-canvas-wrapper">
+            <canvas id="individualProgressionCanvas"></canvas>
+          </div>
+          <div class="chart-legend-custom" id="progressionLegend">
+            <span><span class="legend-dot green"></span> Excellent (5)</span>
+            <span><span class="legend-dot blue"></span> Good (4)</span>
+            <span><span class="legend-dot orange"></span> Average (3)</span>
+            <span><span class="legend-dot red"></span> Poor (2)</span>
+            <span><span class="legend-dot grey"></span> Pending / Missed</span>
+          </div>
+        </div>
+
+        <!-- CHART 2: PERFORMANCE QUALITY DISTRIBUTION -->
+        <div class="chart-panel">
+          <div class="chart-panel-head">
+            <div>
+              <h3 class="chart-title">🎯 Performance Quality Distribution</h3>
+              <p class="chart-subtitle">Proportion of Excellent, Good, Average, and Poor assessments</p>
+            </div>
+            <div class="chart-metric-badge" id="dossierQualityIndex">Score: 4.8 / 5.0</div>
+          </div>
+          <div class="chart-canvas-wrapper donut-canvas-wrapper">
+            <canvas id="individualRatingCanvas"></canvas>
+          </div>
+          <div class="chart-legend-custom" id="ratingLegendCustom"></div>
+        </div>
+      </div>
+
+      <!-- CHART 3: PROGRAMME-BY-PROGRAMME COMPARISON -->
+      <div class="chart-panel full-width-chart">
+        <div class="chart-panel-head">
+          <div>
+            <h3 class="chart-title">📊 Programme-Wise Completion & Quality Analysis</h3>
+            <p class="chart-subtitle">Completed practice sessions against 24-day scheduled requirements</p>
+          </div>
+        </div>
+        <div class="chart-canvas-wrapper bar-canvas-wrapper">
+          <canvas id="individualProgramsCanvas"></canvas>
+        </div>
+        <div id="individualProgramGraph" class="graph-bars" style="margin-top:14px"></div>
+      </div>
+
+      <!-- CHART 4: 24-DAY OFFICIAL ATTENDANCE & EVALUATION MATRIX -->
+      <div class="chart-panel">
+        <div class="chart-panel-head">
+          <div>
+            <h3 class="chart-title">🗓️ 24-Day Practice & Assessment Calendar Matrix</h3>
+            <p class="chart-subtitle">Day-by-day practice completion status and official mentor evaluations</p>
+          </div>
+          <div class="matrix-summary-pill" id="dossierDaysCompletedPill">22 / 24 Days Completed</div>
+        </div>
+        <div class="matrix-grid-container" id="individualCalendarMatrix"></div>
+      </div>
+
+      <!-- OFFICIAL NARRATIVE REMARKS & SIGNATURE BLOCK (For Official Printing) -->
+      <div class="dossier-remarks-card">
+        <div class="remarks-header">
+          <strong>📋 Official Evaluation Summary & Remarks</strong>
+        </div>
+        <p id="dossierRemarksText" class="remarks-text"></p>
+        <div class="official-signature-block">
+          <div class="signature-cell">
+            <div class="sig-line"></div>
+            <div class="sig-label">Programme Mentor Signature</div>
+          </div>
+          <div class="signature-cell">
+            <div class="sig-line"></div>
+            <div class="sig-label">Arts Fest Convener / Admin Seal</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="individualRatingGraph" hidden></div>
   </div>
 
   <p id="graphBoardStatus" class="muted" role="status">
@@ -1483,6 +2335,10 @@
         type: "theme",
         dark
       });
+
+      if (typeof handleThemeChangeForCharts === "function") {
+        handleThemeChangeForCharts();
+      }
     }
 
     loadTheme();
@@ -2486,6 +3342,7 @@
 
       updateReport();
       updateNextPendingPreview();
+      if (typeof updateGraphStudentPicker === "function") updateGraphStudentPicker();
     }
 
     function toggleComplete(index, checked) {
@@ -3519,7 +4376,7 @@ function uniqueStudentRoster() {
 
 
 /* =========================================================
-   STUDENT PROGRESS GRAPH BOARD
+   STUDENT PROGRESS GRAPH BOARD & OFFICIAL PERFORMANCE DOSSIER
    Uses student_profiles and student_get_program_status.
    ========================================================= */
 
@@ -3528,6 +4385,51 @@ const GRAPH_END_DATE = "2026-11-03";
 
 let graphProfilesCache = [];
 let individualGraphProfile = null;
+let selectedIndividualProgramCode = "all";
+
+// Chart.js instance references
+let chartIndividualProgression = null;
+let chartIndividualRating = null;
+let chartIndividualPrograms = null;
+let chartAllPrograms = null;
+let chartAllRatings = null;
+
+function safeDestroyChart(chart) {
+  if (chart && typeof chart.destroy === "function") {
+    try { chart.destroy(); } catch (e) { console.warn("Chart destroy warning:", e); }
+  }
+  return null;
+}
+
+function graphGetThemeColors() {
+  const isDark = document.body.classList.contains("dark");
+  return {
+    isDark,
+    textColor: isDark ? "#cbd5e1" : "#475569",
+    mutedColor: isDark ? "#94a3b8" : "#64748b",
+    gridColor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)",
+    cardBg: isDark ? "#121a2b" : "#ffffff",
+    tooltipBg: isDark ? "rgba(15, 23, 42, 0.95)" : "rgba(30, 41, 59, 0.95)",
+    tooltipText: "#ffffff"
+  };
+}
+
+function graphGetDateRange() {
+  const dates = [];
+  const start = new Date(Date.UTC(2026, 9, 11));
+  const end = new Date(Date.UTC(2026, 10, 3));
+  for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+    dates.push(d.toISOString().slice(0, 10));
+  }
+  return dates;
+}
+
+function graphFormatDateLabel(iso) {
+  if (!iso) return "";
+  const parts = iso.split("-").map(Number);
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return parts[2] + " " + months[parts[1] - 1];
+}
 
 function graphNormalizeAdmission(value) {
   return String(value ?? "")
@@ -3537,9 +4439,7 @@ function graphNormalizeAdmission(value) {
 }
 
 function graphPercent(completed, total) {
-  return total > 0
-    ? Math.round((completed / total) * 100)
-    : 0;
+  return total > 0 ? Math.round((completed / total) * 100) : 0;
 }
 
 function graphSetStatus(message) {
@@ -3556,11 +4456,14 @@ function graphSetPanel(individual) {
 
   document.getElementById("individualGraphBtn").className =
     "btn " + (individual ? "green" : "secondary");
+
+  if (individual) {
+    updateGraphStudentPicker();
+  }
 }
 
 function showAllStudentsGraph() {
   graphSetPanel(false);
-
   if (graphProfilesCache.length) {
     renderAllStudentsGraph();
   } else {
@@ -3570,20 +4473,22 @@ function showAllStudentsGraph() {
 
 function showIndividualGraph() {
   graphSetPanel(true);
-  document.getElementById("graphAdmissionSearch").focus();
+  updateGraphStudentPicker();
+  const searchInput = document.getElementById("graphAdmissionSearch");
+  if (searchInput) searchInput.focus();
 }
 
 function graphCreateEmpty(container, message) {
+  if (!container) return;
   container.replaceChildren();
-
   const empty = document.createElement("div");
   empty.className = "graph-empty";
   empty.textContent = message;
-
   container.appendChild(empty);
 }
 
 function graphAddBar(container, title, detail, percent, ratingClass = "") {
+  if (!container) return;
   const item = document.createElement("div");
   item.className = "graph-bar-item";
 
@@ -3591,7 +4496,6 @@ function graphAddBar(container, title, detail, percent, ratingClass = "") {
   heading.className = "graph-bar-heading";
 
   const left = document.createElement("div");
-
   const name = document.createElement("div");
   name.className = "graph-bar-title";
   name.textContent = title;
@@ -3599,7 +4503,6 @@ function graphAddBar(container, title, detail, percent, ratingClass = "") {
   const description = document.createElement("div");
   description.className = "graph-bar-detail";
   description.textContent = detail;
-
   left.append(name, description);
 
   const value = document.createElement("strong");
@@ -3625,12 +4528,10 @@ function graphAddBar(container, title, detail, percent, ratingClass = "") {
 }
 
 function graphGetPrograms(profile) {
+  if (!profile) return [];
   const names = Array.isArray(profile.programs) ? profile.programs : [];
-  const codes = Array.isArray(profile.program_codes)
-    ? profile.program_codes : [];
-
-  const mentors = Array.isArray(profile.program_mentors)
-    ? profile.program_mentors : [];
+  const codes = Array.isArray(profile.program_codes) ? profile.program_codes : [];
+  const mentors = Array.isArray(profile.program_mentors) ? profile.program_mentors : [];
 
   const count = Math.max(names.length, codes.length, mentors.length);
   const result = [];
@@ -3639,7 +4540,6 @@ function graphGetPrograms(profile) {
   for (let i = 0; i < count; i++) {
     const name = String(names[i] || "").trim();
     const code = String(codes[i] || "").trim();
-
     if (!name && !code) continue;
 
     const key = (code + "|" + name).toLowerCase();
@@ -3649,165 +4549,933 @@ function graphGetPrograms(profile) {
     result.push({
       name: name || code,
       code: code || name,
-      mentor: String(mentors[i] || "").trim()
+      mentor: String(mentors[i] || profile.mentor || "").trim()
     });
   }
 
   return result;
 }
 
-async function graphFetchStudentStatus(db, admissionNo) {
-  const { data, error } = await db.rpc("student_get_program_status", {
-    p_admission_no: admissionNo,
-    p_start_date: GRAPH_START_DATE,
-    p_end_date: GRAPH_END_DATE
-  });
-
-  if (error) {
-    throw new Error(
-      "Could not load progression for admission " +
-      admissionNo + ": " + error.message
-    );
-  }
-
-  return Array.isArray(data) ? data : [];
-}
-
-async function graphFetchInBatches(items, batchSize, callback) {
-  const results = [];
-
-  for (let i = 0; i < items.length; i += batchSize) {
-    const batch = items.slice(i, i + batchSize);
-
-    const batchResults = await Promise.all(
-      batch.map(item => callback(item))
-    );
-
-    results.push(...batchResults);
-  }
-
-  return results;
-}
-
-async function refreshStudentGraphs() {
-  const db = getDbClient();
-
-  if (!db) {
-    graphSetStatus(
-      "Supabase is not configured. Check supabase-config.js."
-    );
-    return;
-  }
-
-  const { data: { session }, error: sessionError } =
-    await db.auth.getSession();
-
-  if (sessionError || !session) {
-    graphSetStatus(
-      "Please sign in to the online database before loading graphs."
-    );
-    return;
-  }
-
-  graphSetStatus("Loading student profiles and progression data…");
-
-  try {
-    const { data, error } = await db
-      .from("student_profiles")
-      .select(
-        "admission_no,name,programs,program_codes,program_mentors"
-      )
-      .order("admission_no");
-
-    if (error) throw error;
-
-    graphProfilesCache = (data || []).filter(
-      profile => String(profile.admission_no || "").trim()
-    );
-
-    if (!graphProfilesCache.length) {
-      graphSetStatus(
-        "No online student profiles found. Upload the student CSV first."
-      );
-      return;
-    }
-
-    let failedProfiles = 0;
-
-    await graphFetchInBatches(
-      graphProfilesCache,
-      8,
-      async profile => {
-        try {
-          profile._graphStatuses = await graphFetchStudentStatus(
-            db,
-            profile.admission_no
-          );
-        } catch (error) {
-          profile._graphStatuses = [];
-          profile._graphError = error.message;
-          failedProfiles++;
-        }
-      }
-    );
-
-    renderAllStudentsGraph();
-
-    graphSetStatus(
-      "Loaded " + graphProfilesCache.length +
-      " students. " +
-      (failedProfiles
-        ? failedProfiles + " student progression request(s) failed. Check the database permissions and SQL functions."
-        : "All progression requests completed.")
-    );
-
-    // Refresh the individual graph if it is currently open.
-    if (individualGraphProfile) {
-      const currentAdmission = individualGraphProfile.admission_no;
-      const refreshed = graphProfilesCache.find(
-        p => graphNormalizeAdmission(p.admission_no) ===
-             graphNormalizeAdmission(currentAdmission)
-      );
-
-      if (refreshed) {
-        individualGraphProfile = refreshed;
-        renderIndividualStudentGraph(refreshed);
-      }
-    }
-  } catch (error) {
-    graphSetStatus(
-      "Could not load graphs: " + (error.message || "Unknown error")
-    );
-  }
-}
-
 function graphRatingCounts(statuses) {
-  const counts = {
-    Excellent: 0,
-    Good: 0,
-    Average: 0,
-    Poor: 0
-  };
-
-  statuses.forEach(status => {
+  const counts = { Excellent: 0, Good: 0, Average: 0, Poor: 0 };
+  (statuses || []).forEach(status => {
     const rating = String(status.rating || "").trim();
-
     if (Object.prototype.hasOwnProperty.call(counts, rating)) {
       counts[rating]++;
     }
   });
-
   return counts;
 }
+
+/* =========================================================
+   STUDENT PICKER & AUTOCOMPLETE
+   ========================================================= */
+
+function getAvailableStudentList() {
+  const list = [];
+  const seen = new Set();
+
+  // 1. From online cache
+  (graphProfilesCache || []).forEach(p => {
+    const adm = String(p.admission_no || "").trim();
+    if (!adm || seen.has(adm.toLowerCase())) return;
+    seen.add(adm.toLowerCase());
+    const progs = graphGetPrograms(p);
+    list.push({
+      admission_no: adm,
+      name: p.name || "Student " + adm,
+      programCount: progs.length,
+      profile: p
+    });
+  });
+
+  // 2. From local CSV students table
+  if (Array.isArray(window.students)) {
+    const byAdm = new Map();
+    window.students.forEach(s => {
+      const adm = String(s.adNo || s.admission_no || "").trim();
+      if (!adm) return;
+      if (!byAdm.has(adm.toLowerCase())) {
+        byAdm.set(adm.toLowerCase(), {
+          admission_no: adm,
+          name: s.name || "Student " + adm,
+          programs: new Set()
+        });
+      }
+      const entry = byAdm.get(adm.toLowerCase());
+      if (s.program) entry.programs.add(s.program);
+    });
+
+    byAdm.forEach((val, key) => {
+      if (!seen.has(key)) {
+        seen.add(key);
+        list.push({
+          admission_no: val.admission_no,
+          name: val.name,
+          programCount: val.programs.size,
+          profile: null
+        });
+      }
+    });
+  }
+
+  list.sort((a, b) => a.admission_no.localeCompare(b.admission_no, undefined, { numeric: true }));
+  return list;
+}
+
+function updateGraphStudentPicker() {
+  const datalist = document.getElementById("graphAdmissionDatalist");
+  const select = document.getElementById("individualStudentDropdown");
+  if (!datalist && !select) return;
+
+  const studentsList = getAvailableStudentList();
+
+  if (datalist) {
+    datalist.replaceChildren();
+    studentsList.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.admission_no;
+      opt.label = s.name + " (" + s.admission_no + ")";
+      datalist.appendChild(opt);
+    });
+  }
+
+  if (select) {
+    const currentVal = select.value;
+    select.replaceChildren();
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = studentsList.length
+      ? `-- Select student (${studentsList.length} loaded) --`
+      : "-- No students loaded yet --";
+    select.appendChild(placeholder);
+
+    studentsList.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.admission_no;
+      opt.textContent = `${s.admission_no} — ${s.name} (${s.programCount} prog)`;
+      select.appendChild(opt);
+    });
+
+    if (currentVal) {
+      select.value = currentVal;
+    } else if (individualGraphProfile) {
+      select.value = individualGraphProfile.admission_no;
+    }
+  }
+}
+
+function selectIndividualFromDropdown(val) {
+  if (!val) return;
+  const input = document.getElementById("graphAdmissionSearch");
+  if (input) input.value = val;
+  searchIndividualGraph();
+}
+
+function navigateIndividualStudent(dir) {
+  const list = getAvailableStudentList();
+  if (!list.length) {
+    toast("No students loaded to navigate.");
+    return;
+  }
+
+  let currentIndex = -1;
+  if (individualGraphProfile) {
+    const curAdm = graphNormalizeAdmission(individualGraphProfile.admission_no);
+    currentIndex = list.findIndex(s => graphNormalizeAdmission(s.admission_no) === curAdm);
+  }
+
+  let nextIndex = currentIndex + dir;
+  if (nextIndex < 0) nextIndex = list.length - 1;
+  if (nextIndex >= list.length) nextIndex = 0;
+
+  const target = list[nextIndex];
+  if (target) {
+    const input = document.getElementById("graphAdmissionSearch");
+    if (input) input.value = target.admission_no;
+    searchIndividualGraph();
+  }
+}
+
+/* =========================================================
+   DEMO / SAMPLE STUDENT DATASET
+   ========================================================= */
+
+function loadSampleIndividualGraph() {
+  const dates = graphGetDateRange();
+  const sampleStatuses = [];
+
+  const sampleProgCodes = ["ENG-01", "MAP-02", "ESS-05"];
+  const sampleProgNames = [
+    "Elocution (English)",
+    "Mappilappattu",
+    "Essay Writing (Malayalam)"
+  ];
+
+  const ratingPattern = [
+    "Excellent", "Good", "Excellent", "Excellent", "Good",
+    "Average", "Excellent", "Good", "Excellent", "Excellent",
+    "Good", "Excellent", "Excellent", "Good", "Excellent",
+    "Excellent", "Average", "Excellent", "Good", "Excellent",
+    "Good", "Excellent", "Excellent", "Excellent"
+  ];
+
+  dates.forEach((date, i) => {
+    sampleProgCodes.forEach((code, progIndex) => {
+      // 92% completion rate demonstration
+      const completed = (i + progIndex) % 11 !== 0;
+      let rating = "";
+      if (completed) {
+        const ratingIdx = (i + progIndex) % ratingPattern.length;
+        rating = ratingPattern[ratingIdx];
+      }
+
+      sampleStatuses.push({
+        progress_date: date,
+        program_code: code,
+        program_name: sampleProgNames[progIndex],
+        completed: completed,
+        rating: rating
+      });
+    });
+  });
+
+  const sampleProfile = {
+    admission_no: "2026-A104",
+    name: "Muhammed Ameen",
+    mentor: "Prof. K. Abdullah",
+    programs: sampleProgNames,
+    program_codes: sampleProgCodes,
+    program_mentors: [
+      "Prof. K. Abdullah",
+      "Usthad M. Rasheed",
+      "Dr. Salim Ali"
+    ],
+    _graphStatuses: sampleStatuses,
+    _isDemo: true
+  };
+
+  individualGraphProfile = sampleProfile;
+  selectedIndividualProgramCode = "all";
+
+  const input = document.getElementById("graphAdmissionSearch");
+  if (input) input.value = "2026-A104";
+
+  const msg = document.getElementById("individualGraphMessage");
+  if (msg) {
+    msg.textContent = "✨ Displaying demonstration performance record for Muhammed Ameen (ADM #2026-A104).";
+    msg.className = "status-callout";
+  }
+
+  renderIndividualStudentGraph(sampleProfile, "all");
+  toast("Loaded sample student official performance graph.");
+}
+
+/* =========================================================
+   SEARCH & RENDER INDIVIDUAL STUDENT GRAPH
+   ========================================================= */
+
+function searchIndividualGraph() {
+  const searchInput = document.getElementById("graphAdmissionSearch");
+  const search = (searchInput ? searchInput.value : "").trim();
+  const message = document.getElementById("individualGraphMessage");
+  const dossierContainer = document.getElementById("officialStudentDossier");
+
+  if (!search) {
+    if (message) message.textContent = "Please enter an admission number or select a student.";
+    return;
+  }
+
+  const norm = graphNormalizeAdmission(search);
+
+  // 1. Try finding in online cache
+  let profile = (graphProfilesCache || []).find(
+    p => graphNormalizeAdmission(p.admission_no) === norm ||
+         String(p.name || "").trim().toLowerCase() === search.toLowerCase()
+  );
+
+  // 2. If not found in cache, check local students array
+  if (!profile && Array.isArray(window.students)) {
+    const matchingRows = window.students.filter(
+      s => graphNormalizeAdmission(s.adNo || s.admission_no) === norm ||
+           String(s.name || "").trim().toLowerCase() === search.toLowerCase()
+    );
+
+    if (matchingRows.length) {
+      const first = matchingRows[0];
+      const progs = [];
+      const codes = [];
+      const mentors = [];
+
+      matchingRows.forEach(r => {
+        if (r.program) progs.push(r.program);
+        if (r.programCode) codes.push(r.programCode);
+        if (r.mentor) mentors.push(r.mentor);
+      });
+
+      profile = {
+        admission_no: first.adNo || first.admission_no,
+        name: first.name,
+        mentor: first.mentor || "",
+        programs: progs,
+        program_codes: codes,
+        program_mentors: mentors,
+        _graphStatuses: []
+      };
+    }
+  }
+
+  if (!profile) {
+    individualGraphProfile = null;
+    if (dossierContainer) dossierContainer.style.display = "none";
+    if (message) {
+      message.className = "status-callout muted";
+      message.textContent = `No student found matching "${search}". Upload student CSV or load online database.`;
+    }
+    return;
+  }
+
+  individualGraphProfile = profile;
+  selectedIndividualProgramCode = "all";
+
+  // Sync dropdown
+  const dropdown = document.getElementById("individualStudentDropdown");
+  if (dropdown) dropdown.value = profile.admission_no;
+
+  if (message) {
+    message.className = "status-callout";
+    message.textContent = `Official performance assessment loaded for ${profile.name || "Student"} (ADM #${profile.admission_no}).`;
+  }
+
+  renderIndividualStudentGraph(profile, "all");
+}
+
+function renderIndividualStudentGraph(profile, activeProgramCode = "all") {
+  if (!profile) return;
+  selectedIndividualProgramCode = activeProgramCode;
+
+  const dossierContainer = document.getElementById("officialStudentDossier");
+  if (dossierContainer) dossierContainer.style.display = "flex";
+
+  const allPrograms = graphGetPrograms(profile);
+  const allStatuses = Array.isArray(profile._graphStatuses) ? profile._graphStatuses : [];
+  const scheduledDates = graphGetDateRange();
+
+  // Active filter computation
+  const isFiltered = activeProgramCode && activeProgramCode !== "all";
+  const activePrograms = isFiltered
+    ? allPrograms.filter(p => p.code.toLowerCase() === activeProgramCode.toLowerCase())
+    : allPrograms;
+
+  const activeStatuses = isFiltered
+    ? allStatuses.filter(s => String(s.program_code || "").trim().toLowerCase() === activeProgramCode.toLowerCase())
+    : allStatuses;
+
+  // Header metadata
+  const nameEl = document.getElementById("dossierStudentName");
+  if (nameEl) nameEl.textContent = profile.name || "Unnamed Student";
+
+  const admEl = document.getElementById("dossierAdmissionBadge");
+  if (admEl) admEl.textContent = "ADM #" + profile.admission_no;
+
+  const progCountEl = document.getElementById("dossierProgramCount");
+  if (progCountEl) progCountEl.textContent = `📚 ${allPrograms.length} Programme${allPrograms.length === 1 ? "" : "s"}`;
+
+  // Avatar initials
+  const avatarEl = document.getElementById("dossierAvatar");
+  if (avatarEl) {
+    const initials = (profile.name || "S A")
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(w => w[0].toUpperCase())
+      .join("");
+    avatarEl.textContent = initials || "SA";
+  }
+
+  // Mentor summary
+  const mentorEl = document.getElementById("dossierMentorInfo");
+  if (mentorEl) {
+    const mentorsList = [...new Set(
+      allPrograms.map(p => p.mentor).filter(Boolean)
+    )];
+    mentorEl.textContent = mentorsList.length
+      ? `👤 Mentor: ${mentorsList.slice(0, 2).join(", ")}${mentorsList.length > 2 ? " +" + (mentorsList.length - 2) : ""}`
+      : "👤 Mentor: Not Assigned";
+  }
+
+  // Programme filter tabs
+  const tabsContainer = document.getElementById("dossierProgrammeTabs");
+  if (tabsContainer) {
+    tabsContainer.replaceChildren();
+
+    const allTab = document.createElement("button");
+    allTab.type = "button";
+    allTab.className = "prog-tab" + (selectedIndividualProgramCode === "all" ? " active" : "");
+    allTab.textContent = `🌟 All Programmes (${allPrograms.length})`;
+    allTab.onclick = () => renderIndividualStudentGraph(profile, "all");
+    tabsContainer.appendChild(allTab);
+
+    allPrograms.forEach(p => {
+      const tab = document.createElement("button");
+      tab.type = "button";
+      tab.className = "prog-tab" + (selectedIndividualProgramCode.toLowerCase() === p.code.toLowerCase() ? " active" : "");
+      tab.textContent = `${p.name} (${p.code})`;
+      tab.onclick = () => renderIndividualStudentGraph(profile, p.code);
+      tabsContainer.appendChild(tab);
+    });
+  }
+
+  // Stats calculation
+  const totalExpectedDays = activePrograms.length * 24;
+  const completedStatuses = activeStatuses.filter(s => s.completed === true);
+  const completedCount = completedStatuses.length;
+  const completionPercent = graphPercent(completedCount, totalExpectedDays);
+
+  const ratingCounts = graphRatingCounts(activeStatuses);
+  const totalRated = ratingCounts.Excellent + ratingCounts.Good + ratingCounts.Average + ratingCounts.Poor;
+
+  // Weighted Performance Index (OPI)
+  let weightedPoints = 0;
+  weightedPoints += ratingCounts.Excellent * 5.0;
+  weightedPoints += ratingCounts.Good * 4.0;
+  weightedPoints += ratingCounts.Average * 3.0;
+  weightedPoints += ratingCounts.Poor * 2.0;
+  const opiScore = totalRated > 0 ? (weightedPoints / totalRated).toFixed(2) : "—";
+
+  // Official Standing Grade
+  let gradeClass = "grade-b";
+  let gradeText = "⚡ GRADE B • CONSISTENT";
+  if (completionPercent >= 90 && (opiScore === "—" || parseFloat(opiScore) >= 4.4)) {
+    gradeClass = "grade-aplus";
+    gradeText = "🏆 GRADE A+ • OUTSTANDING";
+  } else if (completionPercent >= 75 && (opiScore === "—" || parseFloat(opiScore) >= 3.8)) {
+    gradeClass = "grade-a";
+    gradeText = "⭐ GRADE A • EXCELLENT";
+  } else if (completionPercent < 50) {
+    gradeClass = "grade-c";
+    gradeText = "🎯 GRADE C • NEEDS ATTENTION";
+  }
+
+  const standingBadge = document.getElementById("dossierStandingBadge");
+  if (standingBadge) {
+    standingBadge.className = "standing-badge " + gradeClass;
+    standingBadge.textContent = gradeText;
+  }
+
+  // Badge pills in headers
+  const progRateBadge = document.getElementById("dossierProgressionRate");
+  if (progRateBadge) progRateBadge.textContent = `${completionPercent}% Completed`;
+
+  const qualityBadge = document.getElementById("dossierQualityIndex");
+  if (qualityBadge) qualityBadge.textContent = opiScore !== "—" ? `Score: ${opiScore} / 5.0` : "Score: Pending";
+
+  const daysPill = document.getElementById("dossierDaysCompletedPill");
+  if (daysPill) daysPill.textContent = `${completedCount} / ${totalExpectedDays} Days Completed`;
+
+  // Render 4 KPI scorecards
+  const summaryGrid = document.getElementById("individualStudentSummary");
+  if (summaryGrid) {
+    summaryGrid.replaceChildren();
+
+    const kpiData = [
+      {
+        label: "Practice Completion",
+        icon: "🎯",
+        value: completionPercent + "%",
+        sub: `${completedCount} of ${totalExpectedDays} target days`,
+        accent: "#10b981",
+        percent: completionPercent
+      },
+      {
+        label: "Official Performance Index",
+        icon: "⭐",
+        value: opiScore !== "—" ? opiScore + " / 5.0" : "Unrated",
+        sub: totalRated ? `${totalRated} evaluations recorded` : "Awaiting evaluations",
+        accent: "#3b82f6",
+        percent: opiScore !== "—" ? Math.round((parseFloat(opiScore) / 5) * 100) : 0
+      },
+      {
+        label: "Quality Rating Breakdown",
+        icon: "🏆",
+        value: ratingCounts.Excellent + " Excellent",
+        sub: `${ratingCounts.Good} Good • ${ratingCounts.Average} Avg • ${ratingCounts.Poor} Poor`,
+        accent: "#7c3aed",
+        percent: totalRated ? Math.round((ratingCounts.Excellent / totalRated) * 100) : 0
+      },
+      {
+        label: "Programmes Evaluated",
+        icon: "📚",
+        value: activePrograms.length + " Prog",
+        sub: isFiltered ? `Focused: ${activePrograms[0]?.name}` : "Comprehensive view",
+        accent: "#f59e0b",
+        percent: 100
+      }
+    ];
+
+    kpiData.forEach(kpi => {
+      const card = document.createElement("div");
+      card.className = "kpi-card";
+      card.style.setProperty("--card-accent", kpi.accent);
+
+      card.innerHTML = `
+        <div class="kpi-header">
+          <span class="kpi-label">${kpi.label}</span>
+          <span class="kpi-icon">${kpi.icon}</span>
+        </div>
+        <div class="kpi-value">${kpi.value}</div>
+        <div class="kpi-sub">${kpi.sub}</div>
+        <div class="kpi-bar">
+          <div class="kpi-bar-fill" style="width:${kpi.percent}%"></div>
+        </div>
+      `;
+      summaryGrid.appendChild(card);
+    });
+  }
+
+  // =========================================================
+  // CHART 1: PROGRESSION TRAJECTORY LINE/AREA CHART
+  // =========================================================
+  renderIndividualProgressionChart(scheduledDates, activePrograms, activeStatuses);
+
+  // =========================================================
+  // CHART 2: PERFORMANCE QUALITY DONUT CHART
+  // =========================================================
+  renderIndividualRatingDonutChart(ratingCounts, totalExpectedDays, completedCount);
+
+  // =========================================================
+  // CHART 3: PROGRAMME-WISE HORIZONTAL BAR CHART
+  // =========================================================
+  renderIndividualProgramsBarChart(allPrograms, allStatuses);
+
+  // =========================================================
+  // CHART 4: 24-DAY CALENDAR MATRIX GRID
+  // =========================================================
+  renderIndividualCalendarMatrix(scheduledDates, activePrograms, activeStatuses);
+
+  // Remarks commentary
+  const remarksText = document.getElementById("dossierRemarksText");
+  if (remarksText) {
+    const studentName = profile.name || "Student";
+    const adm = profile.admission_no;
+    const progText = activePrograms.map(p => p.name).join(", ") || "Enrolled Programmes";
+    const mentorsList = [...new Set(activePrograms.map(p => p.mentor).filter(Boolean))].join(", ") || "Assigned Mentors";
+
+    remarksText.textContent =
+      `Student ${studentName} (Admission #${adm}) has completed ${completedCount} practice session(s) (${completionPercent}%) out of ${totalExpectedDays} scheduled days in ${progText}. ` +
+      (totalRated > 0
+        ? `Official evaluation yields a weighted Performance Index of ${opiScore} / 5.0 with ${ratingCounts.Excellent} Excellent, ${ratingCounts.Good} Good, ${ratingCounts.Average} Average, and ${ratingCounts.Poor} Poor assessment(s) under ${mentorsList}.`
+        : `Daily mentoring evaluations are ongoing. Mentor in charge: ${mentorsList}.`);
+  }
+}
+
+/* =========================================================
+   INDIVIDUAL CHARTS IMPLEMENTATIONS
+   ========================================================= */
+
+function renderIndividualProgressionChart(dates, programs, statuses) {
+  const canvas = document.getElementById("individualProgressionCanvas");
+  if (!canvas) return;
+
+  const theme = graphGetThemeColors();
+  const dateMap = new Map();
+
+  statuses.forEach(s => {
+    const d = s.progress_date;
+    if (!dateMap.has(d)) dateMap.set(d, []);
+    dateMap.get(d).push(s);
+  });
+
+  const ratingValues = { "Excellent": 5, "Good": 4, "Average": 3, "Poor": 2 };
+  const trajectoryData = [];
+  const statusDetails = [];
+
+  dates.forEach((date, index) => {
+    const matching = dateMap.get(date) || [];
+    const completedItems = matching.filter(s => s.completed === true);
+
+    if (!completedItems.length) {
+      trajectoryData.push(0);
+      statusDetails.push({ label: "Missed / Incomplete", rating: "None", count: 0 });
+    } else {
+      let sum = 0, count = 0;
+      completedItems.forEach(item => {
+        if (item.rating && ratingValues[item.rating]) {
+          sum += ratingValues[item.rating];
+          count++;
+        }
+      });
+      const avg = count > 0 ? (sum / count) : 3.5;
+      trajectoryData.push(parseFloat(avg.toFixed(2)));
+      statusDetails.push({
+        label: "Completed",
+        rating: completedItems.map(i => i.rating || "Rated").join(", "),
+        count: completedItems.length
+      });
+    }
+  });
+
+  const labels = dates.map((d, i) => `D${i + 1} (${graphFormatDateLabel(d)})`);
+
+  safeDestroyChart(chartIndividualProgression);
+
+  if (typeof Chart === "undefined") {
+    // Canvas SVG Fallback if Chart.js is not loaded
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = theme.textColor;
+      ctx.font = "14px Inter, sans-serif";
+      ctx.fillText("Progression Data Loaded (Chart.js CDN loading...)", 20, 40);
+    }
+    return;
+  }
+
+  const ctx = canvas.getContext("2d");
+  const gradient = ctx.createLinearGradient(0, 0, 0, 260);
+  gradient.addColorStop(0, "rgba(91, 92, 226, 0.45)");
+  gradient.addColorStop(0.7, "rgba(91, 92, 226, 0.12)");
+  gradient.addColorStop(1, "rgba(91, 92, 226, 0.0)");
+
+  chartIndividualProgression = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Performance Trajectory",
+          data: trajectoryData,
+          fill: true,
+          backgroundColor: gradient,
+          borderColor: "#5b5ce2",
+          borderWidth: 2.5,
+          tension: 0.35,
+          pointBackgroundColor: trajectoryData.map(v =>
+            v >= 4.5 ? "#10b981" : v >= 3.5 ? "#3b82f6" : v >= 2.5 ? "#f59e0b" : v > 0 ? "#ef4444" : "#94a3b8"
+          ),
+          pointBorderColor: "#ffffff",
+          pointBorderWidth: 1.5,
+          pointRadius: 4.5,
+          pointHoverRadius: 7
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: theme.tooltipBg,
+          titleColor: "#ffffff",
+          bodyColor: "#ffffff",
+          padding: 12,
+          cornerRadius: 10,
+          callbacks: {
+            label: function(context) {
+              const val = context.raw;
+              const detail = statusDetails[context.dataIndex];
+              const scoreName = val >= 4.5 ? "Excellent (5)" : val >= 3.5 ? "Good (4)" : val >= 2.5 ? "Average (3)" : val > 0 ? "Poor (2)" : "Missed (0)";
+              return [
+                `Status: ${detail.label}`,
+                `Level: ${scoreName}`,
+                detail.rating !== "None" ? `Evaluation: ${detail.rating}` : ""
+              ].filter(Boolean);
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: theme.gridColor },
+          ticks: {
+            color: theme.mutedColor,
+            font: { size: 10.5 },
+            maxRotation: 45,
+            autoSkip: true,
+            maxTicksLimit: 12
+          }
+        },
+        y: {
+          min: 0,
+          max: 5,
+          grid: { color: theme.gridColor },
+          ticks: {
+            color: theme.mutedColor,
+            stepSize: 1,
+            callback: function(v) {
+              return ({ 5: "⭐ Exc", 4: "👍 Good", 3: "👌 Avg", 2: "⚠️ Poor", 0: "✗ Absent" })[v] || "";
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderIndividualRatingDonutChart(ratingCounts, totalScheduled, completedCount) {
+  const canvas = document.getElementById("individualRatingCanvas");
+  if (!canvas) return;
+
+  const theme = graphGetThemeColors();
+  const missedCount = Math.max(0, totalScheduled - completedCount);
+
+  const labels = ["Excellent", "Good", "Average", "Poor", "Missed/Pending"];
+  const data = [
+    ratingCounts.Excellent,
+    ratingCounts.Good,
+    ratingCounts.Average,
+    ratingCounts.Poor,
+    missedCount
+  ];
+
+  const colors = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#94a3b8"];
+
+  // Custom legend stats
+  const legendBox = document.getElementById("ratingLegendCustom");
+  if (legendBox) {
+    legendBox.replaceChildren();
+    labels.forEach((l, i) => {
+      const item = document.createElement("span");
+      item.innerHTML = `<span class="legend-dot" style="background:${colors[i]}"></span> ${l}: <b>${data[i]}</b>`;
+      legendBox.appendChild(item);
+    });
+  }
+
+  safeDestroyChart(chartIndividualRating);
+
+  if (typeof Chart === "undefined") return;
+
+  const ctx = canvas.getContext("2d");
+  chartIndividualRating = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          data: data,
+          backgroundColor: colors,
+          borderWidth: 2,
+          borderColor: theme.cardBg,
+          hoverOffset: 6
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "68%",
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: theme.tooltipBg,
+          titleColor: "#ffffff",
+          bodyColor: "#ffffff",
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(ctx) {
+              const val = ctx.raw;
+              const total = data.reduce((a, b) => a + b, 0);
+              const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+              return `${ctx.label}: ${val} session(s) (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderIndividualProgramsBarChart(programs, statuses) {
+  const canvas = document.getElementById("individualProgramsCanvas");
+  const fallbackList = document.getElementById("individualProgramGraph");
+
+  if (fallbackList) fallbackList.replaceChildren();
+
+  const labels = [];
+  const completedData = [];
+  const expectedData = [];
+
+  programs.forEach(prog => {
+    const matching = statuses.filter(
+      s => String(s.program_code || "").trim().toLowerCase() === prog.code.toLowerCase()
+    );
+    const completed = matching.filter(s => s.completed === true).length;
+    const target = 24;
+
+    labels.push(prog.name);
+    completedData.push(completed);
+    expectedData.push(target);
+
+    if (fallbackList) {
+      graphAddBar(
+        fallbackList,
+        `${prog.name} (${prog.code})`,
+        `${completed} of ${target} scheduled practice sessions • Mentor: ${prog.mentor || "Assigned"}`,
+        graphPercent(completed, target)
+      );
+    }
+  });
+
+  if (!canvas) return;
+  const theme = graphGetThemeColors();
+
+  safeDestroyChart(chartIndividualPrograms);
+  if (typeof Chart === "undefined" || !programs.length) return;
+
+  const ctx = canvas.getContext("2d");
+  chartIndividualPrograms = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Completed Days",
+          data: completedData,
+          backgroundColor: "rgba(91, 92, 226, 0.85)",
+          borderRadius: 8,
+          barPercentage: 0.6
+        },
+        {
+          label: "Target Days (24)",
+          data: expectedData,
+          backgroundColor: theme.isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)",
+          borderRadius: 8,
+          barPercentage: 0.6
+        }
+      ]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: { color: theme.textColor, font: { size: 12 } }
+        },
+        tooltip: {
+          backgroundColor: theme.tooltipBg,
+          padding: 10,
+          cornerRadius: 8
+        }
+      },
+      scales: {
+        x: {
+          max: 24,
+          grid: { color: theme.gridColor },
+          ticks: { color: theme.mutedColor }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: theme.textColor, font: { weight: "600" } }
+        }
+      }
+    }
+  });
+}
+
+function renderIndividualCalendarMatrix(dates, programs, statuses) {
+  const container = document.getElementById("individualCalendarMatrix");
+  if (!container) return;
+  container.replaceChildren();
+
+  const statusByDate = new Map();
+  statuses.forEach(s => {
+    if (!statusByDate.has(s.progress_date)) statusByDate.set(s.progress_date, []);
+    statusByDate.get(s.progress_date).push(s);
+  });
+
+  dates.forEach((date, index) => {
+    const card = document.createElement("div");
+    const matching = statusByDate.get(date) || [];
+    const completedItems = matching.filter(s => s.completed === true);
+
+    let highestRating = "";
+    if (completedItems.some(i => i.rating === "Excellent")) highestRating = "Excellent";
+    else if (completedItems.some(i => i.rating === "Good")) highestRating = "Good";
+    else if (completedItems.some(i => i.rating === "Average")) highestRating = "Average";
+    else if (completedItems.some(i => i.rating === "Poor")) highestRating = "Poor";
+
+    let statusClass = "status-missed";
+    let pillClass = "pill-missed";
+    let pillText = "Missed";
+
+    if (completedItems.length > 0) {
+      if (highestRating) {
+        statusClass = "status-" + highestRating.toLowerCase();
+        pillClass = "pill-" + highestRating.toLowerCase();
+        pillText = highestRating;
+      } else {
+        statusClass = "status-good";
+        pillClass = "pill-good";
+        pillText = "Done";
+      }
+    }
+
+    card.className = "matrix-day-card " + statusClass;
+    card.title = `${graphFormatDateLabel(date)}: ${pillText} (${completedItems.length} completed)`;
+
+    card.innerHTML = `
+      <div class="matrix-day-num">DAY ${String(index + 1).padStart(2, "0")}</div>
+      <div class="matrix-day-date">${graphFormatDateLabel(date)}</div>
+      <div class="matrix-rating-pill ${pillClass}">${pillText}</div>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+/* =========================================================
+   ACTIONS: PRINT & COPY DOSSIER
+   ========================================================= */
+
+function printIndividualDossier() {
+  if (!individualGraphProfile) {
+    toast("Please select a student before printing.");
+    return;
+  }
+  document.body.classList.add("dossier-print-mode");
+  window.print();
+  setTimeout(() => document.body.classList.remove("dossier-print-mode"), 1000);
+}
+
+function copyIndividualSummary() {
+  if (!individualGraphProfile) {
+    toast("No student selected.");
+    return;
+  }
+  const name = individualGraphProfile.name || "Student";
+  const adm = individualGraphProfile.admission_no;
+  const remarks = document.getElementById("dossierRemarksText")?.textContent || "";
+  const standing = document.getElementById("dossierStandingBadge")?.textContent || "";
+
+  const text = `SIBAQ ARTS FESTIVAL - OFFICIAL PERFORMANCE REPORT\n` +
+               `Student: ${name} (Admission #${adm})\n` +
+               `Official Standing: ${standing}\n\n` +
+               `Summary:\n${remarks}\n\n` +
+               `Report Generated: ${new Date().toLocaleDateString()}`;
+
+  navigator.clipboard.writeText(text)
+    .then(() => toast("Copied student performance dossier to clipboard!"))
+    .catch(() => toast("Could not access clipboard."));
+}
+
+/* =========================================================
+   ALL STUDENTS GRAPH WITH CHART.JS
+   ========================================================= */
 
 function renderAllStudentsGraph() {
   const summary = document.getElementById("allGraphSummary");
   const programGraph = document.getElementById("allProgramGraph");
   const ratingGraph = document.getElementById("allRatingGraph");
+  const programCanvas = document.getElementById("allProgramCanvas");
+  const ratingCanvas = document.getElementById("allRatingCanvas");
 
   if (!graphProfilesCache.length) {
-    graphCreateEmpty(programGraph, "No student data is available.");
-    graphCreateEmpty(ratingGraph, "No performance data is available.");
+    graphCreateEmpty(programGraph, "No online student data is loaded yet. Upload student CSV or click Refresh.");
+    graphCreateEmpty(ratingGraph, "No performance data available.");
     return;
   }
 
@@ -3819,22 +5487,18 @@ function renderAllStudentsGraph() {
 
   graphProfilesCache.forEach(profile => {
     const programs = graphGetPrograms(profile);
-    const statuses = Array.isArray(profile._graphStatuses)
-      ? profile._graphStatuses : [];
-
+    const statuses = Array.isArray(profile._graphStatuses) ? profile._graphStatuses : [];
     const statusByCode = new Map();
 
     statuses.forEach(status => {
       const code = String(status.program_code || "").trim();
       if (!code) return;
-
       if (!statusByCode.has(code)) statusByCode.set(code, []);
       statusByCode.get(code).push(status);
     });
 
     programs.forEach(program => {
       assignmentCount++;
-
       const key = program.code.toLowerCase();
 
       if (!programStats.has(key)) {
@@ -3850,20 +5514,16 @@ function renderAllStudentsGraph() {
 
       const stat = programStats.get(key);
       stat.students++;
-
-      // Every programme is evaluated over the same scheduled date range.
       const expectedDays = 24;
       stat.expected += expectedDays;
       totalExpected += expectedDays;
 
       const matching = statusByCode.get(program.code) || [];
-
       matching.forEach(status => {
         if (status.completed === true) {
           stat.completed++;
           totalCompleted++;
         }
-
         if (status.rating) {
           stat.ratings.push(status);
           allRatings.push(status);
@@ -3872,249 +5532,244 @@ function renderAllStudentsGraph() {
     });
   });
 
-  summary.replaceChildren();
+  // Summary box
+  if (summary) {
+    summary.replaceChildren();
+    const summaryItems = [
+      ["Total Students", graphProfilesCache.length],
+      ["Programme Assignments", assignmentCount],
+      ["Completed Practice Days", totalCompleted],
+      ["Overall Completion", graphPercent(totalCompleted, totalExpected) + "%"]
+    ];
 
-  const summaryItems = [
-    ["Total Students", graphProfilesCache.length],
-    ["Programme Assignments", assignmentCount],
-    ["Completed Practice Days", totalCompleted],
-    ["Overall Completion", graphPercent(totalCompleted, totalExpected) + "%"]
-  ];
-
-  summaryItems.forEach(([label, value]) => {
-    const box = document.createElement("div");
-    box.className = "graph-stat";
-
-    const title = document.createElement("span");
-    title.textContent = label;
-
-    const number = document.createElement("strong");
-    number.textContent = String(value);
-
-    box.append(title, number);
-    summary.appendChild(box);
-  });
-
-  programGraph.replaceChildren();
-
-  const sortedPrograms = [...programStats.values()].sort(
-    (a, b) => a.name.localeCompare(b.name)
-  );
-
-  if (!sortedPrograms.length) {
-    graphCreateEmpty(
-      programGraph,
-      "No programme assignments found in the online profiles."
-    );
-  } else {
-    sortedPrograms.forEach(stat => {
-      graphAddBar(
-        programGraph,
-        stat.name + " (" + stat.code + ")",
-        stat.students + " students • " +
-          stat.completed + " completed programme-days out of " +
-          stat.expected,
-        graphPercent(stat.completed, stat.expected)
-      );
+    summaryItems.forEach(([label, value]) => {
+      const box = document.createElement("div");
+      box.className = "graph-stat";
+      const title = document.createElement("span");
+      title.textContent = label;
+      const number = document.createElement("strong");
+      number.textContent = String(value);
+      box.append(title, number);
+      summary.appendChild(box);
     });
   }
 
-  ratingGraph.replaceChildren();
+  const sortedPrograms = [...programStats.values()].sort((a, b) => a.name.localeCompare(b.name));
 
-  const allCounts = graphRatingCounts(allRatings);
-  const totalRatings = Object.values(allCounts).reduce(
-    (sum, value) => sum + value, 0
-  );
-
-  if (!totalRatings) {
-    graphCreateEmpty(
-      ratingGraph,
-      "No performance ratings have been recorded yet."
-    );
-  } else {
-    Object.entries(allCounts).forEach(([rating, count]) => {
-      const colorClass = "rating-" + rating.toLowerCase();
-
-      graphAddBar(
-        ratingGraph,
-        rating,
-        count + " recorded rating(s)",
-        graphPercent(count, totalRatings),
-        colorClass
-      );
-    });
-  }
-}
-
-function searchIndividualGraph() {
-  const search = document
-    .getElementById("graphAdmissionSearch")
-    .value.trim();
-
-  const message = document.getElementById("individualGraphMessage");
-  const programGraph = document.getElementById("individualProgramGraph");
-  const ratingGraph = document.getElementById("individualRatingGraph");
-
-  if (!search) {
-    message.textContent = "Enter an admission number first.";
-    return;
-  }
-
-  if (!graphProfilesCache.length) {
-    message.textContent =
-      "Load the graph data first by clicking All Students Graph or Refresh Graph Data.";
-    return;
-  }
-
-  const profile = graphProfilesCache.find(
-    p => graphNormalizeAdmission(p.admission_no) ===
-         graphNormalizeAdmission(search)
-  );
-
-  if (!profile) {
-    individualGraphProfile = null;
-    document.getElementById("individualStudentSummary").replaceChildren();
-    graphCreateEmpty(programGraph, "Student not found.");
-    graphCreateEmpty(ratingGraph, "No student selected.");
-    message.textContent =
-      "No online profile found for admission number " + search + ".";
-    return;
-  }
-
-  individualGraphProfile = profile;
-  renderIndividualStudentGraph(profile);
-}
-
-function renderIndividualStudentGraph(profile) {
-  const message = document.getElementById("individualGraphMessage");
-  const summary = document.getElementById("individualStudentSummary");
-  const programGraph = document.getElementById("individualProgramGraph");
-  const ratingGraph = document.getElementById("individualRatingGraph");
-
-  const programs = graphGetPrograms(profile);
-  const statuses = Array.isArray(profile._graphStatuses)
-    ? profile._graphStatuses : [];
-
-  message.textContent =
-    "Admission No.: " + profile.admission_no +
-    " • " + (profile.name || "Unnamed student");
-
-  summary.replaceChildren();
-
-  const completedCount = statuses.filter(
-    status => status.completed === true
-  ).length;
-
-  const expectedCount = programs.length * 24;
-
-  [
-    ["Student", profile.name || "Not provided"],
-    ["Admission Number", profile.admission_no],
-    ["Programmes", programs.length],
-    ["Completed Programme-Days", completedCount],
-    ["Overall Completion", graphPercent(completedCount, expectedCount) + "%"]
-  ].forEach(([label, value]) => {
-    const box = document.createElement("div");
-    box.className = "graph-stat";
-
-    const title = document.createElement("span");
-    title.textContent = label;
-
-    const number = document.createElement("strong");
-    number.textContent = String(value);
-
-    box.append(title, number);
-    summary.appendChild(box);
-  });
-
-  programGraph.replaceChildren();
-
-  if (!programs.length) {
-    graphCreateEmpty(
-      programGraph,
-      "No programmes are assigned to this student."
-    );
-  } else {
-    programs.forEach(program => {
-      const matching = statuses.filter(
-        status =>
-          String(status.program_code || "").trim().toLowerCase() ===
-          program.code.toLowerCase()
-      );
-
-      const completed = matching.filter(
-        status => status.completed === true
-      ).length;
-
-      const ratingCounts = graphRatingCounts(matching);
-      const ratingText = Object.entries(ratingCounts)
-        .filter(([, count]) => count > 0)
-        .map(([rating, count]) => rating + ": " + count)
-        .join(" • ");
-
-      graphAddBar(
-        programGraph,
-        program.name + " (" + program.code + ")",
-        completed + " completed day(s) out of 24 scheduled days" +
-          (program.mentor ? " • Mentor: " + program.mentor : ""),
-        graphPercent(completed, 24)
-      );
-
-      if (ratingText) {
-        const note = document.createElement("div");
-        note.className = "graph-bar-detail";
-        note.textContent = "Performance: " + ratingText;
-        programGraph.lastElementChild.appendChild(note);
+  // Render Chart.js All Programs horizontal bar chart
+  if (programCanvas && typeof Chart !== "undefined" && sortedPrograms.length) {
+    const theme = graphGetThemeColors();
+    safeDestroyChart(chartAllPrograms);
+    const ctx = programCanvas.getContext("2d");
+    chartAllPrograms = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: sortedPrograms.map(s => s.name),
+        datasets: [
+          {
+            label: "Completed Days",
+            data: sortedPrograms.map(s => s.completed),
+            backgroundColor: "rgba(91, 92, 226, 0.85)",
+            borderRadius: 6
+          },
+          {
+            label: "Target Days",
+            data: sortedPrograms.map(s => s.expected),
+            backgroundColor: theme.isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)",
+            borderRadius: 6
+          }
+        ]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: theme.textColor } }
+        },
+        scales: {
+          x: { grid: { color: theme.gridColor }, ticks: { color: theme.mutedColor } },
+          y: { grid: { display: false }, ticks: { color: theme.textColor } }
+        }
       }
     });
   }
 
-  ratingGraph.replaceChildren();
+  // Render fallback bars
+  if (programGraph) {
+    programGraph.replaceChildren();
+    if (!sortedPrograms.length) {
+      graphCreateEmpty(programGraph, "No programme assignments found.");
+    } else {
+      sortedPrograms.forEach(stat => {
+        graphAddBar(
+          programGraph,
+          stat.name + " (" + stat.code + ")",
+          `${stat.students} students • ${stat.completed} completed days out of ${stat.expected}`,
+          graphPercent(stat.completed, stat.expected)
+        );
+      });
+    }
+  }
 
-  if (!programs.length) {
-    graphCreateEmpty(ratingGraph, "No programmes to show.");
+  // Render Chart.js All Ratings doughnut chart
+  const allCounts = graphRatingCounts(allRatings);
+  const totalRatings = Object.values(allCounts).reduce((sum, v) => sum + v, 0);
+
+  if (ratingCanvas && typeof Chart !== "undefined" && totalRatings > 0) {
+    const theme = graphGetThemeColors();
+    safeDestroyChart(chartAllRatings);
+    const ctx = ratingCanvas.getContext("2d");
+    chartAllRatings = new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: ["Excellent", "Good", "Average", "Poor"],
+        datasets: [
+          {
+            data: [allCounts.Excellent, allCounts.Good, allCounts.Average, allCounts.Poor],
+            backgroundColor: ["#10b981", "#2563eb", "#f59e0b", "#ef4444"],
+            borderColor: theme.cardBg,
+            borderWidth: 2
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "60%",
+        plugins: {
+          legend: { position: "bottom", labels: { color: theme.textColor } }
+        }
+      }
+    });
+  }
+
+  // Fallback ratings bars
+  if (ratingGraph) {
+    ratingGraph.replaceChildren();
+    if (!totalRatings) {
+      graphCreateEmpty(ratingGraph, "No performance ratings recorded yet.");
+    } else {
+      Object.entries(allCounts).forEach(([rating, count]) => {
+        graphAddBar(
+          ratingGraph,
+          rating,
+          count + " recorded rating(s)",
+          graphPercent(count, totalRatings),
+          "rating-" + rating.toLowerCase()
+        );
+      });
+    }
+  }
+}
+
+/* =========================================================
+   ONLINE DATABASE DATA FETCHING
+   ========================================================= */
+
+async function graphFetchStudentStatus(db, admissionNo) {
+  const { data, error } = await db.rpc("student_get_program_status", {
+    p_admission_no: admissionNo,
+    p_start_date: GRAPH_START_DATE,
+    p_end_date: GRAPH_END_DATE
+  });
+  if (error) {
+    throw new Error("Could not load progression for admission " + admissionNo + ": " + error.message);
+  }
+  return Array.isArray(data) ? data : [];
+}
+
+async function graphFetchInBatches(items, batchSize, callback) {
+  const results = [];
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    const batchResults = await Promise.all(batch.map(item => callback(item)));
+    results.push(...batchResults);
+  }
+  return results;
+}
+
+async function refreshStudentGraphs() {
+  const db = getDbClient();
+  if (!db) {
+    graphSetStatus("Supabase is not configured. Check supabase-config.js.");
     return;
   }
 
-  programs.forEach(program => {
-    const matching = statuses.filter(
-      status =>
-        String(status.program_code || "").trim().toLowerCase() ===
-        program.code.toLowerCase() &&
-        String(status.rating || "").trim()
+  const { data: { session }, error: sessionError } = await db.auth.getSession();
+  if (sessionError || !session) {
+    graphSetStatus("Please sign in to the online database before loading graphs.");
+    return;
+  }
+
+  graphSetStatus("Loading student profiles and progression data…");
+
+  try {
+    const { data, error } = await db
+      .from("student_profiles")
+      .select("admission_no,name,programs,program_codes,program_mentors")
+      .order("admission_no");
+
+    if (error) throw error;
+
+    graphProfilesCache = (data || []).filter(
+      profile => String(profile.admission_no || "").trim()
     );
 
-    const counts = graphRatingCounts(matching);
-    const total = Object.values(counts).reduce(
-      (sum, value) => sum + value, 0
-    );
-
-    if (!total) {
-      graphAddBar(
-        ratingGraph,
-        program.name + " (" + program.code + ")",
-        "No ratings recorded yet",
-        0
-      );
+    if (!graphProfilesCache.length) {
+      graphSetStatus("No online student profiles found. Upload the student CSV first.");
       return;
     }
 
-    Object.entries(counts).forEach(([rating, count]) => {
-      if (!count) return;
+    let failedProfiles = 0;
+    await graphFetchInBatches(
+      graphProfilesCache,
+      8,
+      async profile => {
+        try {
+          profile._graphStatuses = await graphFetchStudentStatus(db, profile.admission_no);
+        } catch (error) {
+          profile._graphStatuses = [];
+          profile._graphError = error.message;
+          failedProfiles++;
+        }
+      }
+    );
 
-      graphAddBar(
-        ratingGraph,
-        program.name + " — " + rating,
-        count + " rating(s)",
-        graphPercent(count, total),
-        "rating-" + rating.toLowerCase()
-      );
-    });
-  });
+    updateGraphStudentPicker();
+    renderAllStudentsGraph();
+
+    graphSetStatus(
+      `Loaded ${graphProfilesCache.length} students. ` +
+      (failedProfiles ? `${failedProfiles} progression requests failed.` : "All progression requests completed.")
+    );
+
+    // Refresh active individual graph if open
+    if (individualGraphProfile) {
+      const curAdm = graphNormalizeAdmission(individualGraphProfile.admission_no);
+      const refreshed = graphProfilesCache.find(p => graphNormalizeAdmission(p.admission_no) === curAdm);
+      if (refreshed) {
+        individualGraphProfile = refreshed;
+        renderIndividualStudentGraph(refreshed, selectedIndividualProgramCode);
+      }
+    }
+  } catch (error) {
+    graphSetStatus("Could not load graphs: " + (error.message || "Unknown error"));
+  }
 }
 
-// Keep the board ready when the page loads.
+function handleThemeChangeForCharts() {
+  if (individualGraphProfile) {
+    renderIndividualStudentGraph(individualGraphProfile, selectedIndividualProgramCode);
+  }
+  if (!document.getElementById("allStudentsGraphPanel").hidden) {
+    renderAllStudentsGraph();
+  }
+}
+
+// Keep the board ready when page loads
 graphSetPanel(false);
+updateGraphStudentPicker();
 
     loadSettings();
     renderStudents();
