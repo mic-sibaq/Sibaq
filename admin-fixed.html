@@ -1958,37 +1958,6 @@ body.dark .matrix-summary-pill {
         <p class="muted" id="csvStatus">
           No CSV students uploaded. You can add students manually or upload a CSV file.
         </p>
-        <p class="muted">
-          Tick the single <b>Done ✓</b> box for each student when that student has completed the work.
-        </p>
-      </section>
-
-      <!-- STUDENTS -->
-      <section class="card col-12">
-        <h2>📋 Daily Student Checklist</h2>
-
-        <div class="btn-row" style="margin:10px 0 14px">
-          <button class="btn green" onclick="tickAllStudents()">☑️ Tick All Students</button>
-          <button class="btn red" onclick="untickAllStudents()">☐ Remove Tick Mark of All Students</button>
-        </div>
-
-        <div style="overflow:auto">
-          <table class="student-table">
-            <thead>
-              <tr>
-                <th>Ad.No</th>
-                <th>Name</th>
-                <th>Program Code</th>
-                <th>Program</th>
-                <th>Mentor</th>
-                <th>Done ✓</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="studentTable"></tbody>
-          </table>
-        </div>
       </section>
 
 <!-- STUDENT PROGRESS GRAPH BOARD -->
@@ -2097,9 +2066,6 @@ body.dark .matrix-summary-pill {
           <select id="individualStudentDropdown" class="input-styled" onchange="selectIndividualFromDropdown(this.value)">
             <option value="">-- Select a student --</option>
           </select>
-          <button class="btn purple-btn" onclick="loadSampleIndividualGraph()" title="Preview official graph with sample data">
-            ✨ Sample Preview
-          </button>
         </div>
       </div>
     </div>
@@ -3431,37 +3397,38 @@ body.dark .matrix-summary-pill {
 
     function renderStudents() {
       const table = document.getElementById("studentTable");
-      table.innerHTML = "";
+      if (table) {
+        table.innerHTML = "";
+        students.forEach((s, index) => {
+          const complete = isComplete(s);
+          const tr = document.createElement("tr");
 
-      students.forEach((s, index) => {
-        const complete = isComplete(s);
-        const tr = document.createElement("tr");
+          tr.innerHTML = `
+        <td><b>${escapeHtml(s.adNo)}</b></td>
+        <td>${escapeHtml(s.name)}</td>
+        <td>${escapeHtml(s.programCode)}</td>
+        <td>${escapeHtml(s.program)}</td>
+        <td>${escapeHtml(s.mentor)}</td>
+        <td>
+          <input class="check" type="checkbox"
+            aria-label="Mark ${escapeHtml(s.name)} as complete"
+            ${complete ? "checked" : ""}
+            onchange="toggleComplete(${index},this.checked)">
+        </td>
+        <td class="${complete ? "complete" : "pending"}">
+          ${complete ? "✓ Complete" : "Pending"}
+        </td>
+        <td>
+          <div class="student-actions">
+            <button class="small-btn" onclick="editStudent(${index})">✏️</button>
+            <button class="small-btn" onclick="removeStudent(${index})">🗑️</button>
+          </div>
+        </td>
+      `;
 
-        tr.innerHTML = `
-      <td><b>${escapeHtml(s.adNo)}</b></td>
-      <td>${escapeHtml(s.name)}</td>
-      <td>${escapeHtml(s.programCode)}</td>
-      <td>${escapeHtml(s.program)}</td>
-      <td>${escapeHtml(s.mentor)}</td>
-      <td>
-        <input class="check" type="checkbox"
-          aria-label="Mark ${escapeHtml(s.name)} as complete"
-          ${complete ? "checked" : ""}
-          onchange="toggleComplete(${index},this.checked)">
-      </td>
-      <td class="${complete ? "complete" : "pending"}">
-        ${complete ? "✓ Complete" : "Pending"}
-      </td>
-      <td>
-        <div class="student-actions">
-          <button class="small-btn" onclick="editStudent(${index})">✏️</button>
-          <button class="small-btn" onclick="removeStudent(${index})">🗑️</button>
-        </div>
-      </td>
-    `;
-
-        table.appendChild(tr);
-      });
+          table.appendChild(tr);
+        });
+      }
 
       updateReport();
       updateNextPendingPreview();
@@ -4822,77 +4789,34 @@ function navigateIndividualStudent(dir) {
 }
 
 /* =========================================================
-   DEMO / SAMPLE STUDENT DATASET
+   INDIVIDUAL STUDENT GRAPH CLEAR / RESET
    ========================================================= */
 
-function loadSampleIndividualGraph() {
-  const dates = graphGetDateRange();
-  const sampleStatuses = [];
-
-  const sampleProgCodes = ["ENG-01", "MAP-02", "ESS-05"];
-  const sampleProgNames = [
-    "Elocution (English)",
-    "Mappilappattu",
-    "Essay Writing (Malayalam)"
-  ];
-
-  const ratingPattern = [
-    "Excellent", "Good", "Excellent", "Excellent", "Good",
-    "Average", "Excellent", "Good", "Excellent", "Excellent",
-    "Good", "Excellent", "Excellent", "Good", "Excellent",
-    "Excellent", "Average", "Excellent", "Good", "Excellent",
-    "Good", "Excellent", "Excellent", "Excellent"
-  ];
-
-  dates.forEach((date, i) => {
-    sampleProgCodes.forEach((code, progIndex) => {
-      // 92% completion rate demonstration
-      const completed = (i + progIndex) % 11 !== 0;
-      let rating = "";
-      if (completed) {
-        const ratingIdx = (i + progIndex) % ratingPattern.length;
-        rating = ratingPattern[ratingIdx];
-      }
-
-      sampleStatuses.push({
-        progress_date: date,
-        program_code: code,
-        program_name: sampleProgNames[progIndex],
-        completed: completed,
-        rating: rating
-      });
-    });
-  });
-
-  const sampleProfile = {
-    admission_no: "2026-A104",
-    name: "Muhammed Ameen",
-    mentor: "Prof. K. Abdullah",
-    programs: sampleProgNames,
-    program_codes: sampleProgCodes,
-    program_mentors: [
-      "Prof. K. Abdullah",
-      "Usthad M. Rasheed",
-      "Dr. Salim Ali"
-    ],
-    _graphStatuses: sampleStatuses,
-    _isDemo: true
-  };
-
-  individualGraphProfile = sampleProfile;
+function clearIndividualGraph() {
+  individualGraphProfile = null;
   selectedIndividualProgramCode = "all";
 
-  const input = document.getElementById("graphAdmissionSearch");
-  if (input) input.value = "2026-A104";
+  const dossierContainer = document.getElementById("officialStudentDossier");
+  if (dossierContainer) dossierContainer.style.display = "none";
+
+  const searchInput = document.getElementById("graphAdmissionSearch");
+  if (searchInput) searchInput.value = "";
+
+  const dropdown = document.getElementById("individualStudentDropdown");
+  if (dropdown) dropdown.value = "";
 
   const msg = document.getElementById("individualGraphMessage");
   if (msg) {
-    msg.textContent = "✨ Displaying demonstration performance record for Muhammed Ameen (ADM #2026-A104).";
-    msg.className = "status-callout";
+    msg.textContent = "Enter an admission number or pick a student from the dropdown to inspect their official performance graph.";
+    msg.className = "status-callout muted";
   }
 
-  renderIndividualStudentGraph(sampleProfile, "all");
-  toast("Loaded sample student official performance graph.");
+  safeDestroyChart(chartIndividualTrajectory);
+  safeDestroyChart(chartIndividualQuality);
+}
+
+function loadSampleIndividualGraph() {
+  clearIndividualGraph();
 }
 
 /* =========================================================
@@ -5681,29 +5605,21 @@ function renderAllStudentsGraph() {
       });
     });
   } else {
-    // If Supabase is not synced yet, check if CSV students are loaded or show demo distribution
+    // If Supabase is not synced yet, check if local CSV students are loaded
     const csvStudents = Array.isArray(window.students) ? window.students : [];
-    const studentCount = csvStudents.length || 45;
-    assignmentCount = csvStudents.length || 75;
-    totalCompleted = Math.round(assignmentCount * 18.5);
+    assignmentCount = csvStudents.length;
     totalExpected = assignmentCount * 24;
-
-    // Realistic benchmark distribution for demonstration
-    const demoTotal = 420;
-    const demoCounts = { Excellent: 265, Good: 105, Average: 35, Poor: 15 };
-    Object.entries(demoCounts).forEach(([r, count]) => {
-      for (let i = 0; i < count; i++) allRatings.push({ rating: r });
-    });
+    totalCompleted = 0;
   }
 
   // Summary box
   if (summary) {
     summary.replaceChildren();
     const summaryItems = [
-      ["Total Students", hasProfiles ? profilesToUse.length : (window.students?.length || "—")],
-      ["Programme Assignments", assignmentCount || "—"],
-      ["Completed Practice Days", totalCompleted || "—"],
-      ["Overall Completion", totalExpected > 0 ? graphPercent(totalCompleted, totalExpected) + "%" : "—"]
+      ["Total Students", hasProfiles ? profilesToUse.length : (window.students?.length || 0)],
+      ["Programme Assignments", assignmentCount || 0],
+      ["Completed Practice Days", totalCompleted || 0],
+      ["Overall Completion", totalExpected > 0 ? graphPercent(totalCompleted, totalExpected) + "%" : "0%"]
     ];
 
     summaryItems.forEach(([label, value]) => {
@@ -5799,36 +5715,42 @@ function renderAllStudentsGraph() {
   if (qualityBadge) {
     qualityBadge.textContent = populationOPI !== "—"
       ? `Quality Index: ${populationOPI} / 5.0`
-      : (hasProfiles ? "Quality Index: Awaiting Ratings" : "Quality Index Benchmark: 4.45 / 5.0");
+      : "Quality Index: Awaiting Ratings";
   }
 
   if (totalCountEl) {
-    totalCountEl.textContent = `${totalEvaluations.toLocaleString()} Total Evaluated Practice Sessions` +
-      (!hasProfiles ? " (Benchmark Preview)" : "");
+    totalCountEl.textContent = `${totalEvaluations.toLocaleString()} Total Evaluated Practice Sessions`;
   }
 
   // 1. Render 100% Stacked Distribution Composite Bar
   if (stackedBar) {
     stackedBar.replaceChildren();
 
-    const segments = [
-      { name: "Excellent", pct: pctExcellent, cls: "seg-excellent", color: "#10b981", count: allCounts.Excellent },
-      { name: "Good", pct: pctGood, cls: "seg-good", color: "#3b82f6", count: allCounts.Good },
-      { name: "Average", pct: pctAverage, cls: "seg-average", color: "#f59e0b", count: allCounts.Average },
-      { name: "Poor", pct: pctPoor, cls: "seg-poor", color: "#ef4444", count: allCounts.Poor },
-      { name: "Others / Unrated", pct: pctOthers, cls: "seg-others", color: "#94a3b8", count: unratedOrOthers }
-    ];
+    if (totalEvaluations === 0) {
+      const emptyNote = document.createElement("div");
+      emptyNote.style.cssText = "width:100%;text-align:center;color:var(--text-muted,#667085);font-size:0.85rem;padding:6px 0;";
+      emptyNote.textContent = "No performance ratings recorded yet";
+      stackedBar.appendChild(emptyNote);
+    } else {
+      const segments = [
+        { name: "Excellent", pct: pctExcellent, cls: "seg-excellent", color: "#10b981", count: allCounts.Excellent },
+        { name: "Good", pct: pctGood, cls: "seg-good", color: "#3b82f6", count: allCounts.Good },
+        { name: "Average", pct: pctAverage, cls: "seg-average", color: "#f59e0b", count: allCounts.Average },
+        { name: "Poor", pct: pctPoor, cls: "seg-poor", color: "#ef4444", count: allCounts.Poor },
+        { name: "Others / Unrated", pct: pctOthers, cls: "seg-others", color: "#94a3b8", count: unratedOrOthers }
+      ];
 
-    segments.forEach(seg => {
-      const widthVal = parseFloat(seg.pct);
-      if (widthVal > 0) {
-        const segDiv = document.createElement("div");
-        segDiv.className = `stacked-bar-segment ${seg.cls}`;
-        segDiv.style.width = widthVal + "%";
-        segDiv.title = `${seg.name}: ${seg.pct}% (${seg.count.toLocaleString()} sessions)`;
-        stackedBar.appendChild(segDiv);
-      }
-    });
+      segments.forEach(seg => {
+        const widthVal = parseFloat(seg.pct);
+        if (widthVal > 0) {
+          const segDiv = document.createElement("div");
+          segDiv.className = `stacked-bar-segment ${seg.cls}`;
+          segDiv.style.width = widthVal + "%";
+          segDiv.title = `${seg.name}: ${seg.pct}% (${seg.count.toLocaleString()} sessions)`;
+          stackedBar.appendChild(segDiv);
+        }
+      });
+    }
   }
 
   // 2. Render 5-Card Performance Rating KPI Cards
@@ -6092,7 +6014,7 @@ if (availableStudents.length > 0) {
   if (input) input.value = firstStudent.admission_no;
   searchIndividualGraph();
 } else {
-  loadSampleIndividualGraph();
+  clearIndividualGraph();
 }
 
     loadSettings();
