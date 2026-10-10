@@ -666,15 +666,63 @@
                 const photoAdmissionNo = String(data.admission_no).trim();
                 const photoExtensions = ['png', 'jpg', 'jpeg', 'webp'];
                 let photoExtensionIndex = 0;
+                let photoObjectUrl = '';
+                let heicConversionAttempted = false;
                 photo.alt = 'Photo of ' + (data.name || 'student');
-                photo.onerror = () => {
+                photo.onload = () => {
+                    if (photoObjectUrl) {
+                        URL.revokeObjectURL(photoObjectUrl);
+                        photoObjectUrl = '';
+                    }
+                };
+                photo.onerror = async () => {
                     photoExtensionIndex++;
                     if (photoExtensionIndex < photoExtensions.length) {
                         photo.src = db.storage.from('Images').getPublicUrl(
                             photoAdmissionNo + '.' + photoExtensions[photoExtensionIndex]
                         ).data.publicUrl;
                     } else {
-                        photo.hidden = true;
+                        if (heicConversionAttempted) {
+                            photo.hidden = true;
+                            return;
+                        }
+                        heicConversionAttempted = true;
+                        const heicUrl = db.storage.from('Images')
+                            .getPublicUrl(photoAdmissionNo + '.heic').data.publicUrl;
+                        try {
+                            let response = await fetch(heicUrl);
+                            if (!response.ok) {
+                                response = await fetch(db.storage.from('Images')
+                                    .getPublicUrl(photoAdmissionNo + '.HEIC').data.publicUrl);
+                            }
+                            if (!response.ok) {
+                                photo.hidden = true;
+                                return;
+                            }
+                            if (!window.heic2any) {
+                                await new Promise((resolve, reject) => {
+                                    const script = document.createElement('script');
+                                    script.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+                                    script.onload = resolve;
+                                    script.onerror = () => reject(new Error('Could not load the HEIC image converter.'));
+                                    document.head.appendChild(script);
+                                });
+                            }
+                            if (typeof window.heic2any !== 'function') {
+                                throw new Error('The HEIC image converter did not initialize.');
+                            }
+                            const converted = await window.heic2any({
+                                blob: await response.blob(),
+                                toType: 'image/jpeg',
+                                quality: 0.85
+                            });
+                            const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
+                            photoObjectUrl = URL.createObjectURL(jpegBlob);
+                            photo.src = photoObjectUrl;
+                        } catch (error) {
+                            console.error('Could not display the HEIC student photo.', error);
+                            photo.hidden = true;
+                        }
                     }
                 };
                 photo.src = db.storage.from('Images').getPublicUrl(

@@ -4960,23 +4960,95 @@ function renderIndividualStudentGraph(profile, activeProgramCode = "all") {
     avatarInitialsEl.textContent = initials || "SA";
     avatarInitialsEl.hidden = false;
     avatarPhotoEl.hidden = true;
+    const previousPhotoObjectUrl = avatarPhotoEl.dataset.objectUrl;
+    if (previousPhotoObjectUrl) URL.revokeObjectURL(previousPhotoObjectUrl);
+    delete avatarPhotoEl.dataset.objectUrl;
+    let photoObjectUrl = "";
+    const photoRequestId = String(Number(avatarPhotoEl.dataset.requestId || 0) + 1);
+    avatarPhotoEl.dataset.requestId = photoRequestId;
     const photoExtensions = ["png", "jpg", "jpeg", "webp"];
     let photoExtensionIndex = 0;
+    let heicConversionAttempted = false;
     avatarPhotoEl.onload = () => {
-      if (avatarEl.dataset.admissionNo !== admissionNo) return;
+      if (
+        avatarEl.dataset.admissionNo !== admissionNo ||
+        avatarPhotoEl.dataset.requestId !== photoRequestId
+      ) return;
       avatarPhotoEl.hidden = false;
       avatarInitialsEl.hidden = true;
+      if (photoObjectUrl) {
+        URL.revokeObjectURL(photoObjectUrl);
+        delete avatarPhotoEl.dataset.objectUrl;
+        photoObjectUrl = "";
+      }
     };
-    avatarPhotoEl.onerror = () => {
-      if (avatarEl.dataset.admissionNo !== admissionNo) return;
+    avatarPhotoEl.onerror = async () => {
+      if (
+        avatarEl.dataset.admissionNo !== admissionNo ||
+        avatarPhotoEl.dataset.requestId !== photoRequestId
+      ) return;
       photoExtensionIndex++;
       if (photoExtensionIndex < photoExtensions.length) {
         avatarPhotoEl.src = db?.storage.from("Images")
           .getPublicUrl(admissionNo + "." + photoExtensions[photoExtensionIndex]).data.publicUrl || "";
         return;
       }
-      avatarPhotoEl.hidden = true;
-      avatarInitialsEl.hidden = false;
+      if (heicConversionAttempted) {
+        avatarPhotoEl.hidden = true;
+        avatarInitialsEl.hidden = false;
+        return;
+      }
+      heicConversionAttempted = true;
+      const heicUrl = db?.storage.from("Images")
+        .getPublicUrl(admissionNo + ".heic").data.publicUrl;
+      if (!heicUrl) {
+        avatarPhotoEl.hidden = true;
+        avatarInitialsEl.hidden = false;
+        return;
+      }
+      try {
+        let response = await fetch(heicUrl);
+        if (!response.ok) {
+          response = await fetch(db.storage.from("Images")
+            .getPublicUrl(admissionNo + ".HEIC").data.publicUrl);
+        }
+        if (!response.ok) {
+          avatarPhotoEl.hidden = true;
+          avatarInitialsEl.hidden = false;
+          return;
+        }
+        if (!window.heic2any) {
+          await new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = "https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js";
+            script.onload = resolve;
+            script.onerror = () => reject(new Error("Could not load the HEIC image converter."));
+            document.head.appendChild(script);
+          });
+        }
+        if (typeof window.heic2any !== "function") {
+          throw new Error("The HEIC image converter did not initialize.");
+        }
+        const converted = await window.heic2any({
+          blob: await response.blob(),
+          toType: "image/jpeg",
+          quality: 0.85
+        });
+        if (
+          avatarEl.dataset.admissionNo !== admissionNo ||
+          avatarPhotoEl.dataset.requestId !== photoRequestId
+        ) return;
+        const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
+        photoObjectUrl = URL.createObjectURL(jpegBlob);
+        avatarPhotoEl.dataset.objectUrl = photoObjectUrl;
+        avatarPhotoEl.src = photoObjectUrl;
+      } catch (error) {
+        console.error("Could not display the HEIC student photo.", error);
+        if (avatarEl.dataset.admissionNo === admissionNo) {
+          avatarPhotoEl.hidden = true;
+          avatarInitialsEl.hidden = false;
+        }
+      }
     };
 
     const db = getDbClient();
