@@ -2808,7 +2808,7 @@
       return window.__sibaQDb;
     }
     function setDbStatus(text) {const el = document.getElementById('dbStatus'); if (el) el.textContent = text;}
-    function normalizeAdmission(value) {return String(value ?? '').trim().replace(/\s+/g, ' ').toLocaleUpperCase();}
+    
     function programAssignmentKey(code, program) {
       const normalizedCode = String(code || '').trim().toLocaleLowerCase();
       const normalizedProgram = String(program || '').trim().toLocaleLowerCase();
