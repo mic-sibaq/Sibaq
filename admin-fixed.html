@@ -660,118 +660,118 @@
     }
 
 
-    /* Student progress graph board */
-    .graph-summary {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-      margin: 16px 0 22px;
-    }
+/* Student progress graph board */
+.graph-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0 22px;
+}
 
-    .graph-stat {
-      padding: 16px;
-      border: 1px solid var(--border, #dfe5ef);
-      border-radius: 14px;
-      background: var(--panel, #fff);
-      min-width: 0;
-    }
+.graph-stat {
+  padding: 16px;
+  border: 1px solid var(--border, #dfe5ef);
+  border-radius: 14px;
+  background: var(--panel, #fff);
+  min-width: 0;
+}
 
-    .graph-stat span {
-      display: block;
-      font-size: 12px;
-      color: var(--muted, #667085);
-      margin-bottom: 8px;
-    }
+.graph-stat span {
+  display: block;
+  font-size: 12px;
+  color: var(--muted, #667085);
+  margin-bottom: 8px;
+}
 
-    .graph-stat strong {
-      font-size: clamp(20px, 3vw, 28px);
-      overflow-wrap: anywhere;
-    }
+.graph-stat strong {
+  font-size: clamp(20px, 3vw, 28px);
+  overflow-wrap: anywhere;
+}
 
-    .graph-bars {
-      display: grid;
-      gap: 14px;
-      margin: 12px 0 24px;
-    }
+.graph-bars {
+  display: grid;
+  gap: 14px;
+  margin: 12px 0 24px;
+}
 
-    .graph-bar-item {
-      border: 1px solid var(--border, #dfe5ef);
-      border-radius: 12px;
-      padding: 13px;
-      min-width: 0;
-    }
+.graph-bar-item {
+  border: 1px solid var(--border, #dfe5ef);
+  border-radius: 12px;
+  padding: 13px;
+  min-width: 0;
+}
 
-    .graph-bar-heading {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: flex-start;
-      margin-bottom: 9px;
-      flex-wrap: wrap;
-    }
+.graph-bar-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 9px;
+  flex-wrap: wrap;
+}
 
-    .graph-bar-title {
-      font-weight: 750;
-      overflow-wrap: anywhere;
-    }
+.graph-bar-title {
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
 
-    .graph-bar-detail {
-      font-size: 12px;
-      color: var(--muted, #667085);
-      margin-top: 4px;
-    }
+.graph-bar-detail {
+  font-size: 12px;
+  color: var(--muted, #667085);
+  margin-top: 4px;
+}
 
-    .graph-track {
-      width: 100%;
-      height: 15px;
-      background: #e9edf5;
-      border-radius: 99px;
-      overflow: hidden;
-    }
+.graph-track {
+  width: 100%;
+  height: 15px;
+  background: #e9edf5;
+  border-radius: 99px;
+  overflow: hidden;
+}
 
-    .graph-fill {
-      height: 100%;
-      width: 0;
-      border-radius: 99px;
-      background: linear-gradient(90deg, #4f46e5, #8b5cf6);
-      transition: width .35s ease;
-    }
+.graph-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #4f46e5, #8b5cf6);
+  transition: width .35s ease;
+}
 
-    .graph-fill.rating-excellent {
-      background: #16a34a;
-    }
+.graph-fill.rating-excellent {
+  background: #16a34a;
+}
 
-    .graph-fill.rating-good {
-      background: #2563eb;
-    }
+.graph-fill.rating-good {
+  background: #2563eb;
+}
 
-    .graph-fill.rating-average {
-      background: #d97706;
-    }
+.graph-fill.rating-average {
+  background: #d97706;
+}
 
-    .graph-fill.rating-poor {
-      background: #dc2626;
-    }
+.graph-fill.rating-poor {
+  background: #dc2626;
+}
 
-    .graph-empty {
-      padding: 18px;
-      border: 1px dashed var(--border, #cbd5e1);
-      border-radius: 12px;
-      color: var(--muted, #667085);
-      text-align: center;
-    }
+.graph-empty {
+  padding: 18px;
+  border: 1px dashed var(--border, #cbd5e1);
+  border-radius: 12px;
+  color: var(--muted, #667085);
+  text-align: center;
+}
 
-    @media (max-width: 700px) {
-      .graph-summary {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
+@media (max-width: 700px) {
+  .graph-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 
-    @media (max-width: 390px) {
-      .graph-summary {
-        grid-template-columns: 1fr;
-      }
-    }
+@media (max-width: 390px) {
+  .graph-summary {
+    grid-template-columns: 1fr;
+  }
+}
 
     .qr-grid {
       display: grid;
@@ -1140,202 +1140,212 @@
         </p>
       </section>
 
+      
+<!-- STUDENT PROGRESS GRAPH BOARD -->
+<section class="card col-12" id="studentGraphBoard">
+  <h2>📊 Student Progress Graph Board</h2>
+  <p class="muted">
+    Track daily completion and performance for all students or view
+    every programme belonging to an individual student.
+  </p>
 
-      <!-- STUDENT PROGRESS GRAPH BOARD -->
-      <section class="card col-12" id="studentGraphBoard">
-        <h2>📊 Student Progress Graph Board</h2>
-        <p class="muted">
-          Track daily completion and performance for all students or view
-          every programme belonging to an individual student.
-        </p>
+  <div class="btn-row" style="margin:14px 0">
+    <button class="btn green" id="allStudentsGraphBtn"
+      onclick="showAllStudentsGraph()">
+      📈 All Students Graph
+    </button>
 
-        <div class="btn-row" style="margin:14px 0">
-          <button class="btn green" id="allStudentsGraphBtn" onclick="showAllStudentsGraph()">
-            📈 All Students Graph
-          </button>
+    <button class="btn secondary" id="individualGraphBtn"
+      onclick="showIndividualGraph()">
+      👤 Individual Student Graph
+    </button>
+  </div>
 
-          <button class="btn secondary" id="individualGraphBtn" onclick="showIndividualGraph()">
-            👤 Individual Student Graph
-          </button>
-        </div>
-
-        <div id="allStudentsGraphPanel">
-          <h3>Daily Progress — All Students</h3>
-          <p class="muted">
-            Compare each student's cumulative completed practice days over time.
-            Select a student in the legend to show or hide their line.
-          </p>
-          <div class="line-chart-wrap">
-            <canvas id="allStudentsLineChart" height="380"></canvas>
-          </div>
-          <div id="allStudentsLineChartMessage" class="muted"></div>
-        </div>
-
-        <h3>Programme-wise Completion</h3>
-        <p class="muted">
-          Each bar represents the percentage of scheduled programme-days
-          completed by all students enrolled in that programme.
-        </p>
-        <div id="allProgramGraph" class="graph-bars"></div>
-
-        <h3>Performance Ratings</h3>
-        <div id="allRatingGraph" class="graph-bars"></div>
-
-        <button class="btn" onclick="refreshStudentGraphs()">
-          ↻ Refresh Graph Data
-        </button>
+  <div id="allStudentsGraphPanel">
+    <div id="allGraphSummary" class="graph-summary">
+      <div class="graph-stat">
+        <span>Total Students</span>
+        <strong id="graphTotalStudents">—</strong>
+      </div>
+      <div class="graph-stat">
+        <span>Programme Assignments</span>
+        <strong id="graphTotalPrograms">—</strong>
+      </div>
+      <div class="graph-stat">
+        <span>Completed Practice Days</span>
+        <strong id="graphCompletedDays">—</strong>
+      </div>
+      <div class="graph-stat">
+        <span>Overall Completion</span>
+        <strong id="graphOverallPercent">—</strong>
+      </div>
     </div>
 
-    <div id="individualGraphPanel" hidden>
-      <label for="graphAdmissionSearch">Search by Admission Number</label>
-
-      <div class="btn-row" style="margin:8px 0 14px">
-        <input id="graphAdmissionSearch" placeholder="Enter admission number" autocomplete="off"
-          style="flex:1;min-width:200px" onkeydown="if(event.key==='Enter')searchIndividualGraph()">
-
-        <button class="btn green" onclick="searchIndividualGraph()">
-          🔍 Search Student
-        </button>
-      </div>
-
-      <div id="individualGraphMessage" class="muted" aria-live="polite">
-        Enter an admission number to view the student's graph.
-      </div>
-
-      <div id="individualStudentSummary" class="graph-summary"></div>
-
-      <h3>All Programme Progress</h3>
-      <p class="muted">
-        Every programme assigned to this student appears separately.
-        A student enrolled in multiple programmes will have a graph for
-        each programme.
-      </p>
-      <div id="individualProgramGraph" class="graph-bars"></div>
-
-      <h3>Performance Ratings by Programme</h3>
-      <div id="individualRatingGraph" class="graph-bars"></div>
-    </div>
-
-    <p id="graphBoardStatus" class="muted" role="status">
-      Sign in to the online database, then load graph data.
+    <h3>Programme-wise Completion</h3>
+    <p class="muted">
+      Each bar represents the percentage of scheduled programme-days
+      completed by all students enrolled in that programme.
     </p>
-    </section>
+    <div id="allProgramGraph" class="graph-bars"></div>
+
+    <h3>Performance Ratings</h3>
+    <div id="allRatingGraph" class="graph-bars"></div>
+
+    <button class="btn" onclick="refreshStudentGraphs()">
+      ↻ Refresh Graph Data
+    </button>
+  </div>
+
+  <div id="individualGraphPanel" hidden>
+    <label for="graphAdmissionSearch">Search by Admission Number</label>
+
+    <div class="btn-row" style="margin:8px 0 14px">
+      <input id="graphAdmissionSearch"
+        placeholder="Enter admission number"
+        autocomplete="off"
+        style="flex:1;min-width:200px"
+        onkeydown="if(event.key==='Enter')searchIndividualGraph()">
+
+      <button class="btn green" onclick="searchIndividualGraph()">
+        🔍 Search Student
+      </button>
+    </div>
+
+    <div id="individualGraphMessage" class="muted" aria-live="polite">
+      Enter an admission number to view the student's graph.
+    </div>
+
+    <div id="individualStudentSummary" class="graph-summary"></div>
+
+    <h3>All Programme Progress</h3>
+    <p class="muted">
+      Every programme assigned to this student appears separately.
+      A student enrolled in multiple programmes will have a graph for
+      each programme.
+    </p>
+    <div id="individualProgramGraph" class="graph-bars"></div>
+
+    <h3>Performance Ratings by Programme</h3>
+    <div id="individualRatingGraph" class="graph-bars"></div>
+  </div>
+
+  <p id="graphBoardStatus" class="muted" role="status">
+    Sign in to the online database, then load graph data.
+  </p>
+</section>
 
 
 
-    <!-- STUDENT QR CODE GENERATOR -->
-    <section class="card col-12" id="studentQrSection">
-      <h2>🔳 Student QR Code Generator</h2>
-      <p class="muted">Import your student CSV above. Students are grouped by admission number, so a student listed
-        for several programs receives only one permanent QR code. The QR opens a live profile that can be updated
-        later.</p>
-      <div class="form-grid">
-        <div>
-          <label>Public website URL</label>
-          <input id="qrBaseUrl" value="https://mic-sibaq.vercel.app" placeholder="https://your-site.vercel.app">
-        </div>
-        <div>
-          <label>Student profile page file</label>
-          <input value="student.html" readonly>
-        </div>
-      </div>
-      <p class="muted">CSV headers supported: Admission No / Ad.No / Admission Number, Name, Program Code, Program,
-        Mentor. QR links contain only the unique admission number; profile details are loaded from the online
-        database, so changes appear without reprinting QR codes.</p>
-      <div class="card" style="margin:12px 0;padding:16px;border:1px solid var(--border)">
-        <h3>☁️ Online Student Database</h3>
-        <p class="muted">Set up Supabase and add your Project URL and anon/publishable key in
-          <b>supabase-config.js</b>. Sign in with the admin account you create in Supabase.
-        </p>
+      <!-- STUDENT QR CODE GENERATOR -->
+      <section class="card col-12" id="studentQrSection">
+        <h2>🔳 Student QR Code Generator</h2>
+        <p class="muted">Import your student CSV above. Students are grouped by admission number, so a student listed
+          for several programs receives only one permanent QR code. The QR opens a live profile that can be updated
+          later.</p>
         <div class="form-grid">
-          <div><label>Admin email</label><input id="dbEmail" type="email" autocomplete="username"
-              placeholder="your admin email"></div>
-          <div><label>Admin password</label><input id="dbPassword" type="password" autocomplete="current-password"
-              placeholder="Supabase admin password"></div>
-        </div>
-        <div class="btn-row" style="margin-top:10px">
-          <button class="btn" onclick="signInDatabaseAdmin()">🔐 Sign in</button>
-          <button class="btn secondary" onclick="signOutDatabaseAdmin()">Sign out</button>
-          <button class="btn green" onclick="syncStudentsToDatabase()">☁️ Upload / Update Unique Students</button>
-          <button class="btn" onclick="loadOnlineProfiles()">↻ Load Online Profiles</button>
-        </div>
-        <p class="muted" id="dbStatus" role="status">Database is not connected yet. Follow README.txt setup steps.</p>
-        <div style="margin-top:12px">
-          <label for="programmeMentorCsvInput">Separate programme mentor CSV</label>
-          <div class="btn-row">
-            <button class="btn secondary" type="button"
-              onclick="document.getElementById('programmeMentorCsvInput').click()">📄 Upload Program Code + Mentor
-              CSV</button>
-            <input id="programmeMentorCsvInput" type="file" accept=".csv,text/csv" style="display:none"
-              onchange="importProgrammeMentorCSV(this)">
+          <div>
+            <label>Public website URL</label>
+            <input id="qrBaseUrl" value="https://mic-sibaq.vercel.app" placeholder="https://your-site.vercel.app">
           </div>
-          <p class="muted">Use one row per programme with <b>Program Code</b> and <b>Mentor</b> columns. This updates
-            matching online profiles and is retained for future student uploads.</p>
+          <div>
+            <label>Student profile page file</label>
+            <input value="student.html" readonly>
+          </div>
         </div>
-      </div>
-      <div class="btn-row">
-        <button class="btn green" onclick="generateStudentQRCodes()">🔳 Generate One QR per Student</button>
-        <button class="btn" onclick="downloadAllQRCodes()">📦 Download All QR PNGs (ZIP)</button>
-        <button class="btn" onclick="printQRCodes()">🖨️ Print QR Sheet</button>
-        <button class="btn secondary" onclick="clearQRCodes()">Clear Preview</button>
-      </div>
-      <p class="muted" id="qrStatus" role="status">QR codes have not been generated yet.</p>
-      <div id="qrPreview" class="qr-grid"></div>
-      <h3>✏️ Edit Online Profiles</h3>
-      <p class="muted">After sign-in, load profiles. Edit name, mentor, programs, or program codes and save. Use one
-        item per line for programs and codes.</p>
-      <div id="onlineProfiles" class="online-profile-list"></div>
-    </section>
+        <p class="muted">CSV headers supported: Admission No / Ad.No / Admission Number, Name, Program Code, Program,
+          Mentor. QR links contain only the unique admission number; profile details are loaded from the online
+          database, so changes appear without reprinting QR codes.</p>
+        <div class="card" style="margin:12px 0;padding:16px;border:1px solid var(--border)">
+          <h3>☁️ Online Student Database</h3>
+          <p class="muted">Set up Supabase and add your Project URL and anon/publishable key in
+            <b>supabase-config.js</b>. Sign in with the admin account you create in Supabase.
+          </p>
+          <div class="form-grid">
+            <div><label>Admin email</label><input id="dbEmail" type="email" autocomplete="username"
+                placeholder="your admin email"></div>
+            <div><label>Admin password</label><input id="dbPassword" type="password" autocomplete="current-password"
+                placeholder="Supabase admin password"></div>
+          </div>
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn" onclick="signInDatabaseAdmin()">🔐 Sign in</button>
+            <button class="btn secondary" onclick="signOutDatabaseAdmin()">Sign out</button>
+            <button class="btn green" onclick="syncStudentsToDatabase()">☁️ Upload / Update Unique Students</button>
+            <button class="btn" onclick="loadOnlineProfiles()">↻ Load Online Profiles</button>
+          </div>
+          <p class="muted" id="dbStatus" role="status">Database is not connected yet. Follow README.txt setup steps.</p>
+          <div style="margin-top:12px">
+            <label for="programmeMentorCsvInput">Separate programme mentor CSV</label>
+            <div class="btn-row">
+              <button class="btn secondary" type="button" onclick="document.getElementById('programmeMentorCsvInput').click()">📄 Upload Program Code + Mentor CSV</button>
+              <input id="programmeMentorCsvInput" type="file" accept=".csv,text/csv" style="display:none"
+                onchange="importProgrammeMentorCSV(this)">
+            </div>
+            <p class="muted">Use one row per programme with <b>Program Code</b> and <b>Mentor</b> columns. This updates matching online profiles and is retained for future student uploads.</p>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn green" onclick="generateStudentQRCodes()">🔳 Generate One QR per Student</button>
+          <button class="btn" onclick="downloadAllQRCodes()">📦 Download All QR PNGs (ZIP)</button>
+          <button class="btn" onclick="printQRCodes()">🖨️ Print QR Sheet</button>
+          <button class="btn secondary" onclick="clearQRCodes()">Clear Preview</button>
+        </div>
+        <p class="muted" id="qrStatus" role="status">QR codes have not been generated yet.</p>
+        <div id="qrPreview" class="qr-grid"></div>
+        <h3>✏️ Edit Online Profiles</h3>
+        <p class="muted">After sign-in, load profiles. Edit name, mentor, programs, or program codes and save. Use one
+          item per line for programs and codes.</p>
+        <div id="onlineProfiles" class="online-profile-list"></div>
+      </section>
 
-    <!-- PENDING -->
-    <section class="card col-6">
-      <h2>🚨 Pending Students</h2>
-      <div id="pendingList" class="muted">No pending students.</div>
+      <!-- PENDING -->
+      <section class="card col-6">
+        <h2>🚨 Pending Students</h2>
+        <div id="pendingList" class="muted">No pending students.</div>
 
-      <div class="call-next-card">
-        <div class="muted">Next pending student</div>
-        <div class="call-next-name" id="nextPendingName">No pending student</div>
-        <div class="call-next-meta" id="nextPendingMeta"></div>
-      </div>
+        <div class="call-next-card">
+          <div class="muted">Next pending student</div>
+          <div class="call-next-name" id="nextPendingName">No pending student</div>
+          <div class="call-next-meta" id="nextPendingMeta"></div>
+        </div>
 
-      <br>
+        <br>
 
-      <div class="btn-row">
-        <button class="btn red" onclick="announceAllPendingStudents()">🔔 Announce All Pending Students</button>
-        <button class="btn secondary" onclick="resetPendingCaller()">↺ Start From First</button>
-      </div>
-      <p class="muted" style="margin-bottom:0">
-        One click calls every pending student in order. Each student appears as a separate animated popup on the Live
-        Wall.
-      </p>
-    </section>
+        <div class="btn-row">
+          <button class="btn red" onclick="announceAllPendingStudents()">🔔 Announce All Pending Students</button>
+          <button class="btn secondary" onclick="resetPendingCaller()">↺ Start From First</button>
+        </div>
+        <p class="muted" style="margin-bottom:0">
+          One click calls every pending student in order. Each student appears as a separate animated popup on the Live
+          Wall.
+        </p>
+      </section>
 
-    <!-- MOTIVATION -->
-    <section class="card col-6">
-      <h2>🔥 Motivation Control</h2>
+      <!-- MOTIVATION -->
+      <section class="card col-6">
+        <h2>🔥 Motivation Control</h2>
 
-      <textarea id="motivationText"
-        placeholder="Enter motivation or leave blank to generate automatically..."></textarea>
+        <textarea id="motivationText"
+          placeholder="Enter motivation or leave blank to generate automatically..."></textarea>
 
-      <br>
+        <br>
 
-      <div class="btn-row">
-        <button class="btn green" onclick="generateMotivation()">✨ Generate</button>
-        <button class="btn" onclick="playMotivation()">🔊 Play Motivation</button>
-      </div>
-    </section>
+        <div class="btn-row">
+          <button class="btn green" onclick="generateMotivation()">✨ Generate</button>
+          <button class="btn" onclick="playMotivation()">🔊 Play Motivation</button>
+        </div>
+      </section>
 
-    <!-- SYSTEM -->
-    <section class="card col-12">
-      <h2>🛠️ System Controls</h2>
+      <!-- SYSTEM -->
+      <section class="card col-12">
+        <h2>🛠️ System Controls</h2>
 
-      <div class="btn-row">
-        <button class="btn" onclick="openLiveWall()">📺 Open Live Wall</button>
-        <button class="btn secondary" onclick="broadcastRefresh()">🔄 Refresh Live Wall</button>
-        <button class="btn yellow" onclick="testPopup()">🖥 Test Popup</button>
-        <button class="btn red" onclick="clearAllData()">⚠️ Clear All Data</button>
-      </div>
-    </section>
+        <div class="btn-row">
+          <button class="btn" onclick="openLiveWall()">📺 Open Live Wall</button>
+          <button class="btn secondary" onclick="broadcastRefresh()">🔄 Refresh Live Wall</button>
+          <button class="btn yellow" onclick="testPopup()">🖥 Test Popup</button>
+          <button class="btn red" onclick="clearAllData()">⚠️ Clear All Data</button>
+        </div>
+      </section>
 
     </div>
   </main>
@@ -3104,7 +3114,7 @@
       await loadOnlineProfiles();
       setDbStatus('Saved ' + assignments.length + ' programme mentor assignments and updated ' + updates.length + ' online student profiles. Assignments will also be used on future student uploads.');
     }
-
+    
     function programAssignmentKey(code, program) {
       const normalizedCode = String(code || '').trim().toLocaleLowerCase();
       const normalizedProgram = String(program || '').trim().toLocaleLowerCase();
@@ -3114,282 +3124,282 @@
     // A mentor belongs to a programme, not to an individual student. Build the
     // programme -> mentor map from all imported rows first, then apply it to every
     // student enrolled in that programme.
-
-    /* =========================================================
-       STUDENT + PROGRAMME + MENTOR MANAGEMENT
-       ========================================================= */
-
-    function normalizeAdmission(value) {
-      return String(value ?? "")
-        .trim()
-        .replace(/\s+/g, " ")
-        .toLocaleUpperCase();
-    }
-
-    function normalizeProgramValue(value) {
-      return String(value ?? "")
-        .trim()
-        .replace(/\s+/g, " ")
-        .toLocaleLowerCase();
-    }
-
-    function getStudentAdmission(student) {
-      return String(
-        student?.adNo ??
-        student?.admissionNo ??
-        student?.admission_no ??
-        ""
-      ).trim();
-    }
-
-    function getStudentProgramCode(student) {
-      return String(
-        student?.programCode ??
-        student?.program_code ??
-        ""
-      ).trim();
-    }
-
-    function getStudentProgram(student) {
-      return String(
-        student?.program ??
-        student?.programme ??
-        ""
-      ).trim();
-    }
-
-    function getStudentMentor(student) {
-      return String(
-        student?.mentor ??
-        student?.programMentor ??
-        student?.program_mentor ??
-        ""
-      ).trim();
-    }
-
-    /*
-      Build a programme-to-mentor map.
     
-      A mentor belongs to a programme, not to an individual student.
-      Programme codes are authoritative; names are only used for legacy
-      rows that do not have a code.
-    */
-    function buildProgramMentorMap() {
-      const byProgram = new Map();
-      const byCode = new Map();
-      const conflicts = [];
+/* =========================================================
+   STUDENT + PROGRAMME + MENTOR MANAGEMENT
+   ========================================================= */
 
-      const rows = Array.isArray(students) ? students : [];
+function normalizeAdmission(value) {
+  return String(value ?? "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleUpperCase();
+}
 
-      // CSV rows are processed first so imported assignments take priority.
-      const orderedRows = [
-        ...rows.filter(student => student?.source === "csv"),
-        ...rows.filter(student => student?.source !== "csv")
-      ];
+function normalizeProgramValue(value) {
+  return String(value ?? "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleLowerCase();
+}
 
-      function recordConflict(existing, mentor, program, code) {
-        if (
-          existing.mentor &&
-          mentor &&
-          existing.mentor.toLocaleLowerCase() !==
-          mentor.toLocaleLowerCase()
-        ) {
-          conflicts.push({
-            program: program || existing.program || "",
-            code: code || existing.code || "",
-            first: existing.mentor,
-            other: mentor
-          });
-        }
-      }
+function getStudentAdmission(student) {
+  return String(
+    student?.adNo ??
+    student?.admissionNo ??
+    student?.admission_no ??
+    ""
+  ).trim();
+}
 
-      orderedRows.forEach(student => {
-        const program = getStudentProgram(student);
-        const code = getStudentProgramCode(student);
-        const mentor = getStudentMentor(student);
+function getStudentProgramCode(student) {
+  return String(
+    student?.programCode ??
+    student?.program_code ??
+    ""
+  ).trim();
+}
 
-        if (!mentor || (!program && !code)) return;
+function getStudentProgram(student) {
+  return String(
+    student?.program ??
+    student?.programme ??
+    ""
+  ).trim();
+}
 
-        const programKey = normalizeProgramValue(program);
-        const codeKey = normalizeProgramValue(code);
+function getStudentMentor(student) {
+  return String(
+    student?.mentor ??
+    student?.programMentor ??
+    student?.program_mentor ??
+    ""
+  ).trim();
+}
 
-        const map = codeKey ? byCode : byProgram;
-        const key = codeKey || programKey;
-        const existing = map.get(key);
+/*
+  Build a programme-to-mentor map.
 
-        if (existing) {
-          recordConflict(existing, mentor, program, code);
+  A mentor belongs to a programme, not to an individual student.
+  Programme codes are authoritative; names are only used for legacy
+  rows that do not have a code.
+*/
+function buildProgramMentorMap() {
+  const byProgram = new Map();
+  const byCode = new Map();
+  const conflicts = [];
 
-          // Keep the first non-empty mentor assignment.
-          if (!existing.mentor && mentor) {
-            existing.mentor = mentor;
-          }
+  const rows = Array.isArray(students) ? students : [];
 
-          return;
-        }
+  // CSV rows are processed first so imported assignments take priority.
+  const orderedRows = [
+    ...rows.filter(student => student?.source === "csv"),
+    ...rows.filter(student => student?.source !== "csv")
+  ];
 
-        const assignment = {
-          program,
-          code,
-          mentor
-        };
-
-        map.set(key, assignment);
-      });
-
-      savedProgrammeMentors.forEach((mentor, code) => {
-        byCode.set(normalizeProgramValue(code), {
-          program: '',
-          code,
-          mentor
-        });
-      });
-
-      return {
-        byProgram,
-        byCode,
-        conflicts
-      };
-    }
-
-    /*
-      Find the mentor for a specific programme.
-    */
-    function findProgrammeMentor(program, code, mentorMap) {
-      const programKey = normalizeProgramValue(program);
-      const codeKey = normalizeProgramValue(code);
-
-      if (codeKey && mentorMap.byCode.has(codeKey)) {
-        return mentorMap.byCode.get(codeKey).mentor || "";
-      }
-
-      if (!codeKey && programKey && mentorMap.byProgram.has(programKey)) {
-        return mentorMap.byProgram.get(programKey).mentor || "";
-      }
-
-      return "";
-    }
-
-    /*
-      Apply the programme mentor to every matching student row.
-      This updates local data before the database sync.
-    */
-    function applyProgrammeMentorsToRows() {
-      const mentorMap = buildProgramMentorMap();
-
-      students = (Array.isArray(students) ? students : []).map(student => {
-        const program = getStudentProgram(student);
-        const code = getStudentProgramCode(student);
-
-        const assignedMentor = findProgrammeMentor(
-          program,
-          code,
-          mentorMap
-        );
-
-        return {
-          ...student,
-          mentor: assignedMentor || getStudentMentor(student)
-        };
-      });
-
-      if (typeof saveStudents === "function") {
-        saveStudents();
-      }
-
-      return mentorMap.conflicts;
-    }
-
-    /*
-      Create exactly one database profile per admission number.
-    
-      Programme-related arrays use the same index:
-        programs[0]
-        program_codes[0]
-        program_mentors[0]
-    
-      These three values describe the same programme assignment.
-    */
-    function uniqueStudentRoster() {
-      const roster = new Map();
-      const mentorMap = buildProgramMentorMap();
-
-      (Array.isArray(students) ? students : []).forEach(student => {
-        const admissionNo = getStudentAdmission(student);
-        const admissionKey = normalizeAdmission(admissionNo);
-
-        if (!admissionKey) return;
-
-        if (!roster.has(admissionKey)) {
-          roster.set(admissionKey, {
-            admission_no: admissionNo,
-            name: String(student?.name ?? "").trim(),
-            mentor: "",
-            programs: [],
-            program_codes: [],
-            program_mentors: [],
-            _programKeys: new Set()
-          });
-        }
-
-        const profile = roster.get(admissionKey);
-        const studentName = String(student?.name ?? "").trim();
-
-        if (studentName && !profile.name) {
-          profile.name = studentName;
-        }
-
-        const program = getStudentProgram(student);
-        const code = getStudentProgramCode(student);
-
-        if (!program && !code) return;
-
-        // Avoid adding the same programme more than once.
-        const programKey =
-          normalizeProgramValue(code) +
-          "|" +
-          normalizeProgramValue(program);
-
-        if (profile._programKeys.has(programKey)) return;
-
-        profile._programKeys.add(programKey);
-
-        const programmeMentor =
-          findProgrammeMentor(program, code, mentorMap) ||
-          getStudentMentor(student);
-
-        profile.programs.push(program);
-        profile.program_codes.push(code);
-        profile.program_mentors.push(programmeMentor);
-      });
-
-      return Array.from(roster.values()).map(profile => {
-        // Keep programme ordering predictable while preserving alignment.
-        const assignments = profile.programs.map((program, index) => ({
-          program,
-          code: profile.program_codes[index],
-          mentor: profile.program_mentors[index]
-        }));
-
-        assignments.sort((a, b) => {
-          const aLabel = a.code || a.program;
-          const bLabel = b.code || b.program;
-          return aLabel.localeCompare(bLabel);
-        });
-
-        profile.programs = assignments.map(item => item.program);
-        profile.program_codes = assignments.map(item => item.code);
-        profile.program_mentors = assignments.map(item => item.mentor);
-
-        // Compatibility field for older parts of the admin panel.
-        profile.mentor =
-          profile.program_mentors.find(mentor => Boolean(mentor)) || "";
-
-        delete profile._programKeys;
-
-        return profile;
+  function recordConflict(existing, mentor, program, code) {
+    if (
+      existing.mentor &&
+      mentor &&
+      existing.mentor.toLocaleLowerCase() !==
+        mentor.toLocaleLowerCase()
+    ) {
+      conflicts.push({
+        program: program || existing.program || "",
+        code: code || existing.code || "",
+        first: existing.mentor,
+        other: mentor
       });
     }
+  }
+
+  orderedRows.forEach(student => {
+    const program = getStudentProgram(student);
+    const code = getStudentProgramCode(student);
+    const mentor = getStudentMentor(student);
+
+    if (!mentor || (!program && !code)) return;
+
+    const programKey = normalizeProgramValue(program);
+    const codeKey = normalizeProgramValue(code);
+
+    const map = codeKey ? byCode : byProgram;
+    const key = codeKey || programKey;
+    const existing = map.get(key);
+
+    if (existing) {
+      recordConflict(existing, mentor, program, code);
+
+      // Keep the first non-empty mentor assignment.
+      if (!existing.mentor && mentor) {
+        existing.mentor = mentor;
+      }
+
+      return;
+    }
+
+    const assignment = {
+      program,
+      code,
+      mentor
+    };
+
+    map.set(key, assignment);
+  });
+
+  savedProgrammeMentors.forEach((mentor, code) => {
+    byCode.set(normalizeProgramValue(code), {
+      program: '',
+      code,
+      mentor
+    });
+  });
+
+  return {
+    byProgram,
+    byCode,
+    conflicts
+  };
+}
+
+/*
+  Find the mentor for a specific programme.
+*/
+function findProgrammeMentor(program, code, mentorMap) {
+  const programKey = normalizeProgramValue(program);
+  const codeKey = normalizeProgramValue(code);
+
+  if (codeKey && mentorMap.byCode.has(codeKey)) {
+    return mentorMap.byCode.get(codeKey).mentor || "";
+  }
+
+  if (!codeKey && programKey && mentorMap.byProgram.has(programKey)) {
+    return mentorMap.byProgram.get(programKey).mentor || "";
+  }
+
+  return "";
+}
+
+/*
+  Apply the programme mentor to every matching student row.
+  This updates local data before the database sync.
+*/
+function applyProgrammeMentorsToRows() {
+  const mentorMap = buildProgramMentorMap();
+
+  students = (Array.isArray(students) ? students : []).map(student => {
+    const program = getStudentProgram(student);
+    const code = getStudentProgramCode(student);
+
+    const assignedMentor = findProgrammeMentor(
+      program,
+      code,
+      mentorMap
+    );
+
+    return {
+      ...student,
+      mentor: assignedMentor || getStudentMentor(student)
+    };
+  });
+
+  if (typeof saveStudents === "function") {
+    saveStudents();
+  }
+
+  return mentorMap.conflicts;
+}
+
+/*
+  Create exactly one database profile per admission number.
+
+  Programme-related arrays use the same index:
+    programs[0]
+    program_codes[0]
+    program_mentors[0]
+
+  These three values describe the same programme assignment.
+*/
+function uniqueStudentRoster() {
+  const roster = new Map();
+  const mentorMap = buildProgramMentorMap();
+
+  (Array.isArray(students) ? students : []).forEach(student => {
+    const admissionNo = getStudentAdmission(student);
+    const admissionKey = normalizeAdmission(admissionNo);
+
+    if (!admissionKey) return;
+
+    if (!roster.has(admissionKey)) {
+      roster.set(admissionKey, {
+        admission_no: admissionNo,
+        name: String(student?.name ?? "").trim(),
+        mentor: "",
+        programs: [],
+        program_codes: [],
+        program_mentors: [],
+        _programKeys: new Set()
+      });
+    }
+
+    const profile = roster.get(admissionKey);
+    const studentName = String(student?.name ?? "").trim();
+
+    if (studentName && !profile.name) {
+      profile.name = studentName;
+    }
+
+    const program = getStudentProgram(student);
+    const code = getStudentProgramCode(student);
+
+    if (!program && !code) return;
+
+    // Avoid adding the same programme more than once.
+    const programKey =
+      normalizeProgramValue(code) +
+      "|" +
+      normalizeProgramValue(program);
+
+    if (profile._programKeys.has(programKey)) return;
+
+    profile._programKeys.add(programKey);
+
+    const programmeMentor =
+      findProgrammeMentor(program, code, mentorMap) ||
+      getStudentMentor(student);
+
+    profile.programs.push(program);
+    profile.program_codes.push(code);
+    profile.program_mentors.push(programmeMentor);
+  });
+
+  return Array.from(roster.values()).map(profile => {
+    // Keep programme ordering predictable while preserving alignment.
+    const assignments = profile.programs.map((program, index) => ({
+      program,
+      code: profile.program_codes[index],
+      mentor: profile.program_mentors[index]
+    }));
+
+    assignments.sort((a, b) => {
+      const aLabel = a.code || a.program;
+      const bLabel = b.code || b.program;
+      return aLabel.localeCompare(bLabel);
+    });
+
+    profile.programs = assignments.map(item => item.program);
+    profile.program_codes = assignments.map(item => item.code);
+    profile.program_mentors = assignments.map(item => item.mentor);
+
+    // Compatibility field for older parts of the admin panel.
+    profile.mentor =
+      profile.program_mentors.find(mentor => Boolean(mentor)) || "";
+
+    delete profile._programKeys;
+
+    return profile;
+  });
+}
 
     async function signInDatabaseAdmin() {
       const db = getDbClient(); if (!db) {setDbStatus('Supabase is not configured. Edit supabase-config.js with your Project URL and anon/publishable key, then redeploy.'); return;}
@@ -3481,603 +3491,603 @@
     function clearQRCodes() {generatedQrItems = []; document.getElementById('qrPreview').innerHTML = ''; document.getElementById('qrStatus').textContent = 'QR code preview cleared.';}
 
 
-    /* =========================================================
-       STUDENT PROGRESS GRAPH BOARD
-       Uses student_profiles and student_get_program_status.
-       ========================================================= */
-
-    const GRAPH_START_DATE = "2026-10-11";
-    const GRAPH_END_DATE = "2026-11-03";
-
-    let graphProfilesCache = [];
-    let individualGraphProfile = null;
-
-    function graphNormalizeAdmission(value) {
-      return String(value ?? "")
-        .trim()
-        .replace(/\s+/g, "")
-        .toLowerCase();
-    }
-
-    function graphPercent(completed, total) {
-      return total > 0
-        ? Math.round((completed / total) * 100)
-        : 0;
-    }
-
-    function graphSetStatus(message) {
-      const el = document.getElementById("graphBoardStatus");
-      if (el) el.textContent = message;
-    }
+/* =========================================================
+   STUDENT PROGRESS GRAPH BOARD
+   Uses student_profiles and student_get_program_status.
+   ========================================================= */
+
+const GRAPH_START_DATE = "2026-10-11";
+const GRAPH_END_DATE = "2026-11-03";
+
+let graphProfilesCache = [];
+let individualGraphProfile = null;
+
+function graphNormalizeAdmission(value) {
+  return String(value ?? "")
+    .trim()
+    .replace(/\s+/g, "")
+    .toLowerCase();
+}
+
+function graphPercent(completed, total) {
+  return total > 0
+    ? Math.round((completed / total) * 100)
+    : 0;
+}
+
+function graphSetStatus(message) {
+  const el = document.getElementById("graphBoardStatus");
+  if (el) el.textContent = message;
+}
 
-    function graphSetPanel(individual) {
-      document.getElementById("allStudentsGraphPanel").hidden = individual;
-      document.getElementById("individualGraphPanel").hidden = !individual;
-
-      document.getElementById("allStudentsGraphBtn").className =
-        "btn " + (individual ? "secondary" : "green");
-
-      document.getElementById("individualGraphBtn").className =
-        "btn " + (individual ? "green" : "secondary");
-    }
-
-    function showAllStudentsGraph() {
-      graphSetPanel(false);
-
-      if (graphProfilesCache.length) {
-        renderAllStudentsGraph();
-      } else {
-        refreshStudentGraphs();
-      }
-    }
-
-    function showIndividualGraph() {
-      graphSetPanel(true);
-      document.getElementById("graphAdmissionSearch").focus();
-    }
-
-    function graphCreateEmpty(container, message) {
-      container.replaceChildren();
-
-      const empty = document.createElement("div");
-      empty.className = "graph-empty";
-      empty.textContent = message;
-
-      container.appendChild(empty);
-    }
-
-    function graphAddBar(container, title, detail, percent, ratingClass = "") {
-      const item = document.createElement("div");
-      item.className = "graph-bar-item";
-
-      const heading = document.createElement("div");
-      heading.className = "graph-bar-heading";
-
-      const left = document.createElement("div");
-
-      const name = document.createElement("div");
-      name.className = "graph-bar-title";
-      name.textContent = title;
-
-      const description = document.createElement("div");
-      description.className = "graph-bar-detail";
-      description.textContent = detail;
-
-      left.append(name, description);
-
-      const value = document.createElement("strong");
-      value.textContent = Math.round(percent) + "%";
-
-      heading.append(left, value);
-
-      const track = document.createElement("div");
-      track.className = "graph-track";
-      track.setAttribute("role", "progressbar");
-      track.setAttribute("aria-valuemin", "0");
-      track.setAttribute("aria-valuemax", "100");
-      track.setAttribute("aria-valuenow", String(Math.round(percent)));
-      track.setAttribute("aria-label", title);
-
-      const fill = document.createElement("div");
-      fill.className = "graph-fill " + ratingClass;
-      fill.style.width = Math.max(0, Math.min(100, percent)) + "%";
-
-      track.appendChild(fill);
-      item.append(heading, track);
-      container.appendChild(item);
-    }
-
-    function graphGetPrograms(profile) {
-      const names = Array.isArray(profile.programs) ? profile.programs : [];
-      const codes = Array.isArray(profile.program_codes)
-        ? profile.program_codes : [];
-
-      const mentors = Array.isArray(profile.program_mentors)
-        ? profile.program_mentors : [];
-
-      const count = Math.max(names.length, codes.length, mentors.length);
-      const result = [];
-      const seen = new Set();
-
-      for (let i = 0; i < count; i++) {
-        const name = String(names[i] || "").trim();
-        const code = String(codes[i] || "").trim();
-
-        if (!name && !code) continue;
-
-        const key = (code + "|" + name).toLowerCase();
-        if (seen.has(key)) continue;
-        seen.add(key);
-
-        result.push({
-          name: name || code,
-          code: code || name,
-          mentor: String(mentors[i] || "").trim()
-        });
-      }
-
-      return result;
-    }
-
-    async function graphFetchStudentStatus(db, admissionNo) {
-      const {data, error} = await db.rpc("student_get_program_status", {
-        p_admission_no: admissionNo,
-        p_start_date: GRAPH_START_DATE,
-        p_end_date: GRAPH_END_DATE
-      });
-
-      if (error) {
-        throw new Error(
-          "Could not load progression for admission " +
-          admissionNo + ": " + error.message
-        );
-      }
-
-      return Array.isArray(data) ? data : [];
-    }
-
-    async function graphFetchInBatches(items, batchSize, callback) {
-      const results = [];
-
-      for (let i = 0; i < items.length; i += batchSize) {
-        const batch = items.slice(i, i + batchSize);
-
-        const batchResults = await Promise.all(
-          batch.map(item => callback(item))
-        );
-
-        results.push(...batchResults);
-      }
-
-      return results;
-    }
-
-    async function refreshStudentGraphs() {
-      const db = getDbClient();
-
-      if (!db) {
-        graphSetStatus(
-          "Supabase is not configured. Check supabase-config.js."
-        );
-        return;
-      }
-
-      const {data: {session}, error: sessionError} =
-        await db.auth.getSession();
-
-      if (sessionError || !session) {
-        graphSetStatus(
-          "Please sign in to the online database before loading graphs."
-        );
-        return;
-      }
-
-      graphSetStatus("Loading student profiles and progression data…");
-
-      try {
-        const {data, error} = await db
-          .from("student_profiles")
-          .select(
-            "admission_no,name,programs,program_codes,program_mentors"
-          )
-          .order("admission_no");
-
-        if (error) throw error;
-
-        graphProfilesCache = (data || []).filter(
-          profile => String(profile.admission_no || "").trim()
-        );
-
-        if (!graphProfilesCache.length) {
-          graphSetStatus(
-            "No online student profiles found. Upload the student CSV first."
-          );
-          return;
-        }
-
-        let failedProfiles = 0;
-
-        await graphFetchInBatches(
-          graphProfilesCache,
-          8,
-          async profile => {
-            try {
-              profile._graphStatuses = await graphFetchStudentStatus(
-                db,
-                profile.admission_no
-              );
-            } catch (error) {
-              profile._graphStatuses = [];
-              profile._graphError = error.message;
-              failedProfiles++;
-            }
-          }
-        );
-
-        renderAllStudentsGraph();
-
-        graphSetStatus(
-          "Loaded " + graphProfilesCache.length +
-          " students. " +
-          (failedProfiles
-            ? failedProfiles + " student progression request(s) failed. Check the database permissions and SQL functions."
-            : "All progression requests completed.")
-        );
-
-        // Refresh the individual graph if it is currently open.
-        if (individualGraphProfile) {
-          const currentAdmission = individualGraphProfile.admission_no;
-          const refreshed = graphProfilesCache.find(
-            p => graphNormalizeAdmission(p.admission_no) ===
-              graphNormalizeAdmission(currentAdmission)
-          );
-
-          if (refreshed) {
-            individualGraphProfile = refreshed;
-            renderIndividualStudentGraph(refreshed);
-          }
-        }
-      } catch (error) {
-        graphSetStatus(
-          "Could not load graphs: " + (error.message || "Unknown error")
-        );
-      }
-    }
-
-    function graphRatingCounts(statuses) {
-      const counts = {
-        Excellent: 0,
-        Good: 0,
-        Average: 0,
-        Poor: 0
-      };
-
-      statuses.forEach(status => {
-        const rating = String(status.rating || "").trim();
-
-        if (Object.prototype.hasOwnProperty.call(counts, rating)) {
-          counts[rating]++;
-        }
-      });
-
-      return counts;
-    }
-
-    function renderAllStudentsGraph() {
-      const summary = document.getElementById("allGraphSummary");
-      const programGraph = document.getElementById("allProgramGraph");
-      const ratingGraph = document.getElementById("allRatingGraph");
-
-      if (!graphProfilesCache.length) {
-        graphCreateEmpty(programGraph, "No student data is available.");
-        graphCreateEmpty(ratingGraph, "No performance data is available.");
-        return;
-      }
-
-      const programStats = new Map();
-      const allRatings = [];
-      let assignmentCount = 0;
-      let totalCompleted = 0;
-      let totalExpected = 0;
-
-      graphProfilesCache.forEach(profile => {
-        const programs = graphGetPrograms(profile);
-        const statuses = Array.isArray(profile._graphStatuses)
-          ? profile._graphStatuses : [];
-
-        const statusByCode = new Map();
-
-        statuses.forEach(status => {
-          const code = String(status.program_code || "").trim();
-          if (!code) return;
-
-          if (!statusByCode.has(code)) statusByCode.set(code, []);
-          statusByCode.get(code).push(status);
-        });
-
-        programs.forEach(program => {
-          assignmentCount++;
-
-          const key = program.code.toLowerCase();
-
-          if (!programStats.has(key)) {
-            programStats.set(key, {
-              name: program.name,
-              code: program.code,
-              students: 0,
-              completed: 0,
-              expected: 0,
-              ratings: []
-            });
-          }
-
-          const stat = programStats.get(key);
-          stat.students++;
-
-          // Every programme is evaluated over the same scheduled date range.
-          const expectedDays = 24;
-          stat.expected += expectedDays;
-          totalExpected += expectedDays;
-
-          const matching = statusByCode.get(program.code) || [];
-
-          matching.forEach(status => {
-            if (status.completed === true) {
-              stat.completed++;
-              totalCompleted++;
-            }
-
-            if (status.rating) {
-              stat.ratings.push(status);
-              allRatings.push(status);
-            }
-          });
-        });
-      });
-
-      summary.replaceChildren();
-
-      const summaryItems = [
-        ["Total Students", graphProfilesCache.length],
-        ["Programme Assignments", assignmentCount],
-        ["Completed Practice Days", totalCompleted],
-        ["Overall Completion", graphPercent(totalCompleted, totalExpected) + "%"]
-      ];
-
-      summaryItems.forEach(([label, value]) => {
-        const box = document.createElement("div");
-        box.className = "graph-stat";
-
-        const title = document.createElement("span");
-        title.textContent = label;
-
-        const number = document.createElement("strong");
-        number.textContent = String(value);
-
-        box.append(title, number);
-        summary.appendChild(box);
-      });
-
-      programGraph.replaceChildren();
-
-      const sortedPrograms = [...programStats.values()].sort(
-        (a, b) => a.name.localeCompare(b.name)
+function graphSetPanel(individual) {
+  document.getElementById("allStudentsGraphPanel").hidden = individual;
+  document.getElementById("individualGraphPanel").hidden = !individual;
+
+  document.getElementById("allStudentsGraphBtn").className =
+    "btn " + (individual ? "secondary" : "green");
+
+  document.getElementById("individualGraphBtn").className =
+    "btn " + (individual ? "green" : "secondary");
+}
+
+function showAllStudentsGraph() {
+  graphSetPanel(false);
+
+  if (graphProfilesCache.length) {
+    renderAllStudentsGraph();
+  } else {
+    refreshStudentGraphs();
+  }
+}
+
+function showIndividualGraph() {
+  graphSetPanel(true);
+  document.getElementById("graphAdmissionSearch").focus();
+}
+
+function graphCreateEmpty(container, message) {
+  container.replaceChildren();
+
+  const empty = document.createElement("div");
+  empty.className = "graph-empty";
+  empty.textContent = message;
+
+  container.appendChild(empty);
+}
+
+function graphAddBar(container, title, detail, percent, ratingClass = "") {
+  const item = document.createElement("div");
+  item.className = "graph-bar-item";
+
+  const heading = document.createElement("div");
+  heading.className = "graph-bar-heading";
+
+  const left = document.createElement("div");
+
+  const name = document.createElement("div");
+  name.className = "graph-bar-title";
+  name.textContent = title;
+
+  const description = document.createElement("div");
+  description.className = "graph-bar-detail";
+  description.textContent = detail;
+
+  left.append(name, description);
+
+  const value = document.createElement("strong");
+  value.textContent = Math.round(percent) + "%";
+
+  heading.append(left, value);
+
+  const track = document.createElement("div");
+  track.className = "graph-track";
+  track.setAttribute("role", "progressbar");
+  track.setAttribute("aria-valuemin", "0");
+  track.setAttribute("aria-valuemax", "100");
+  track.setAttribute("aria-valuenow", String(Math.round(percent)));
+  track.setAttribute("aria-label", title);
+
+  const fill = document.createElement("div");
+  fill.className = "graph-fill " + ratingClass;
+  fill.style.width = Math.max(0, Math.min(100, percent)) + "%";
+
+  track.appendChild(fill);
+  item.append(heading, track);
+  container.appendChild(item);
+}
+
+function graphGetPrograms(profile) {
+  const names = Array.isArray(profile.programs) ? profile.programs : [];
+  const codes = Array.isArray(profile.program_codes)
+    ? profile.program_codes : [];
+
+  const mentors = Array.isArray(profile.program_mentors)
+    ? profile.program_mentors : [];
+
+  const count = Math.max(names.length, codes.length, mentors.length);
+  const result = [];
+  const seen = new Set();
+
+  for (let i = 0; i < count; i++) {
+    const name = String(names[i] || "").trim();
+    const code = String(codes[i] || "").trim();
+
+    if (!name && !code) continue;
+
+    const key = (code + "|" + name).toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    result.push({
+      name: name || code,
+      code: code || name,
+      mentor: String(mentors[i] || "").trim()
+    });
+  }
+
+  return result;
+}
+
+async function graphFetchStudentStatus(db, admissionNo) {
+  const { data, error } = await db.rpc("student_get_program_status", {
+    p_admission_no: admissionNo,
+    p_start_date: GRAPH_START_DATE,
+    p_end_date: GRAPH_END_DATE
+  });
+
+  if (error) {
+    throw new Error(
+      "Could not load progression for admission " +
+      admissionNo + ": " + error.message
+    );
+  }
+
+  return Array.isArray(data) ? data : [];
+}
+
+async function graphFetchInBatches(items, batchSize, callback) {
+  const results = [];
+
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+
+    const batchResults = await Promise.all(
+      batch.map(item => callback(item))
+    );
+
+    results.push(...batchResults);
+  }
+
+  return results;
+}
+
+async function refreshStudentGraphs() {
+  const db = getDbClient();
+
+  if (!db) {
+    graphSetStatus(
+      "Supabase is not configured. Check supabase-config.js."
+    );
+    return;
+  }
+
+  const { data: { session }, error: sessionError } =
+    await db.auth.getSession();
+
+  if (sessionError || !session) {
+    graphSetStatus(
+      "Please sign in to the online database before loading graphs."
+    );
+    return;
+  }
+
+  graphSetStatus("Loading student profiles and progression data…");
+
+  try {
+    const { data, error } = await db
+      .from("student_profiles")
+      .select(
+        "admission_no,name,programs,program_codes,program_mentors"
+      )
+      .order("admission_no");
+
+    if (error) throw error;
+
+    graphProfilesCache = (data || []).filter(
+      profile => String(profile.admission_no || "").trim()
+    );
+
+    if (!graphProfilesCache.length) {
+      graphSetStatus(
+        "No online student profiles found. Upload the student CSV first."
       );
-
-      if (!sortedPrograms.length) {
-        graphCreateEmpty(
-          programGraph,
-          "No programme assignments found in the online profiles."
-        );
-      } else {
-        sortedPrograms.forEach(stat => {
-          graphAddBar(
-            programGraph,
-            stat.name + " (" + stat.code + ")",
-            stat.students + " students • " +
-            stat.completed + " completed programme-days out of " +
-            stat.expected,
-            graphPercent(stat.completed, stat.expected)
-          );
-        });
-      }
-
-      ratingGraph.replaceChildren();
-
-      const allCounts = graphRatingCounts(allRatings);
-      const totalRatings = Object.values(allCounts).reduce(
-        (sum, value) => sum + value, 0
-      );
-
-      if (!totalRatings) {
-        graphCreateEmpty(
-          ratingGraph,
-          "No performance ratings have been recorded yet."
-        );
-      } else {
-        Object.entries(allCounts).forEach(([rating, count]) => {
-          const colorClass = "rating-" + rating.toLowerCase();
-
-          graphAddBar(
-            ratingGraph,
-            rating,
-            count + " recorded rating(s)",
-            graphPercent(count, totalRatings),
-            colorClass
-          );
-        });
-      }
+      return;
     }
 
-    function searchIndividualGraph() {
-      const search = document
-        .getElementById("graphAdmissionSearch")
-        .value.trim();
+    let failedProfiles = 0;
 
-      const message = document.getElementById("individualGraphMessage");
-      const programGraph = document.getElementById("individualProgramGraph");
-      const ratingGraph = document.getElementById("individualRatingGraph");
-
-      if (!search) {
-        message.textContent = "Enter an admission number first.";
-        return;
+    await graphFetchInBatches(
+      graphProfilesCache,
+      8,
+      async profile => {
+        try {
+          profile._graphStatuses = await graphFetchStudentStatus(
+            db,
+            profile.admission_no
+          );
+        } catch (error) {
+          profile._graphStatuses = [];
+          profile._graphError = error.message;
+          failedProfiles++;
+        }
       }
+    );
 
-      if (!graphProfilesCache.length) {
-        message.textContent =
-          "Load the graph data first by clicking All Students Graph or Refresh Graph Data.";
-        return;
-      }
+    renderAllStudentsGraph();
 
-      const profile = graphProfilesCache.find(
+    graphSetStatus(
+      "Loaded " + graphProfilesCache.length +
+      " students. " +
+      (failedProfiles
+        ? failedProfiles + " student progression request(s) failed. Check the database permissions and SQL functions."
+        : "All progression requests completed.")
+    );
+
+    // Refresh the individual graph if it is currently open.
+    if (individualGraphProfile) {
+      const currentAdmission = individualGraphProfile.admission_no;
+      const refreshed = graphProfilesCache.find(
         p => graphNormalizeAdmission(p.admission_no) ===
-          graphNormalizeAdmission(search)
+             graphNormalizeAdmission(currentAdmission)
       );
 
-      if (!profile) {
-        individualGraphProfile = null;
-        document.getElementById("individualStudentSummary").replaceChildren();
-        graphCreateEmpty(programGraph, "Student not found.");
-        graphCreateEmpty(ratingGraph, "No student selected.");
-        message.textContent =
-          "No online profile found for admission number " + search + ".";
-        return;
+      if (refreshed) {
+        individualGraphProfile = refreshed;
+        renderIndividualStudentGraph(refreshed);
+      }
+    }
+  } catch (error) {
+    graphSetStatus(
+      "Could not load graphs: " + (error.message || "Unknown error")
+    );
+  }
+}
+
+function graphRatingCounts(statuses) {
+  const counts = {
+    Excellent: 0,
+    Good: 0,
+    Average: 0,
+    Poor: 0
+  };
+
+  statuses.forEach(status => {
+    const rating = String(status.rating || "").trim();
+
+    if (Object.prototype.hasOwnProperty.call(counts, rating)) {
+      counts[rating]++;
+    }
+  });
+
+  return counts;
+}
+
+function renderAllStudentsGraph() {
+  const summary = document.getElementById("allGraphSummary");
+  const programGraph = document.getElementById("allProgramGraph");
+  const ratingGraph = document.getElementById("allRatingGraph");
+
+  if (!graphProfilesCache.length) {
+    graphCreateEmpty(programGraph, "No student data is available.");
+    graphCreateEmpty(ratingGraph, "No performance data is available.");
+    return;
+  }
+
+  const programStats = new Map();
+  const allRatings = [];
+  let assignmentCount = 0;
+  let totalCompleted = 0;
+  let totalExpected = 0;
+
+  graphProfilesCache.forEach(profile => {
+    const programs = graphGetPrograms(profile);
+    const statuses = Array.isArray(profile._graphStatuses)
+      ? profile._graphStatuses : [];
+
+    const statusByCode = new Map();
+
+    statuses.forEach(status => {
+      const code = String(status.program_code || "").trim();
+      if (!code) return;
+
+      if (!statusByCode.has(code)) statusByCode.set(code, []);
+      statusByCode.get(code).push(status);
+    });
+
+    programs.forEach(program => {
+      assignmentCount++;
+
+      const key = program.code.toLowerCase();
+
+      if (!programStats.has(key)) {
+        programStats.set(key, {
+          name: program.name,
+          code: program.code,
+          students: 0,
+          completed: 0,
+          expected: 0,
+          ratings: []
+        });
       }
 
-      individualGraphProfile = profile;
-      renderIndividualStudentGraph(profile);
-    }
+      const stat = programStats.get(key);
+      stat.students++;
 
-    function renderIndividualStudentGraph(profile) {
-      const message = document.getElementById("individualGraphMessage");
-      const summary = document.getElementById("individualStudentSummary");
-      const programGraph = document.getElementById("individualProgramGraph");
-      const ratingGraph = document.getElementById("individualRatingGraph");
+      // Every programme is evaluated over the same scheduled date range.
+      const expectedDays = 24;
+      stat.expected += expectedDays;
+      totalExpected += expectedDays;
 
-      const programs = graphGetPrograms(profile);
-      const statuses = Array.isArray(profile._graphStatuses)
-        ? profile._graphStatuses : [];
+      const matching = statusByCode.get(program.code) || [];
 
-      message.textContent =
-        "Admission No.: " + profile.admission_no +
-        " • " + (profile.name || "Unnamed student");
+      matching.forEach(status => {
+        if (status.completed === true) {
+          stat.completed++;
+          totalCompleted++;
+        }
 
-      summary.replaceChildren();
+        if (status.rating) {
+          stat.ratings.push(status);
+          allRatings.push(status);
+        }
+      });
+    });
+  });
 
-      const completedCount = statuses.filter(
+  summary.replaceChildren();
+
+  const summaryItems = [
+    ["Total Students", graphProfilesCache.length],
+    ["Programme Assignments", assignmentCount],
+    ["Completed Practice Days", totalCompleted],
+    ["Overall Completion", graphPercent(totalCompleted, totalExpected) + "%"]
+  ];
+
+  summaryItems.forEach(([label, value]) => {
+    const box = document.createElement("div");
+    box.className = "graph-stat";
+
+    const title = document.createElement("span");
+    title.textContent = label;
+
+    const number = document.createElement("strong");
+    number.textContent = String(value);
+
+    box.append(title, number);
+    summary.appendChild(box);
+  });
+
+  programGraph.replaceChildren();
+
+  const sortedPrograms = [...programStats.values()].sort(
+    (a, b) => a.name.localeCompare(b.name)
+  );
+
+  if (!sortedPrograms.length) {
+    graphCreateEmpty(
+      programGraph,
+      "No programme assignments found in the online profiles."
+    );
+  } else {
+    sortedPrograms.forEach(stat => {
+      graphAddBar(
+        programGraph,
+        stat.name + " (" + stat.code + ")",
+        stat.students + " students • " +
+          stat.completed + " completed programme-days out of " +
+          stat.expected,
+        graphPercent(stat.completed, stat.expected)
+      );
+    });
+  }
+
+  ratingGraph.replaceChildren();
+
+  const allCounts = graphRatingCounts(allRatings);
+  const totalRatings = Object.values(allCounts).reduce(
+    (sum, value) => sum + value, 0
+  );
+
+  if (!totalRatings) {
+    graphCreateEmpty(
+      ratingGraph,
+      "No performance ratings have been recorded yet."
+    );
+  } else {
+    Object.entries(allCounts).forEach(([rating, count]) => {
+      const colorClass = "rating-" + rating.toLowerCase();
+
+      graphAddBar(
+        ratingGraph,
+        rating,
+        count + " recorded rating(s)",
+        graphPercent(count, totalRatings),
+        colorClass
+      );
+    });
+  }
+}
+
+function searchIndividualGraph() {
+  const search = document
+    .getElementById("graphAdmissionSearch")
+    .value.trim();
+
+  const message = document.getElementById("individualGraphMessage");
+  const programGraph = document.getElementById("individualProgramGraph");
+  const ratingGraph = document.getElementById("individualRatingGraph");
+
+  if (!search) {
+    message.textContent = "Enter an admission number first.";
+    return;
+  }
+
+  if (!graphProfilesCache.length) {
+    message.textContent =
+      "Load the graph data first by clicking All Students Graph or Refresh Graph Data.";
+    return;
+  }
+
+  const profile = graphProfilesCache.find(
+    p => graphNormalizeAdmission(p.admission_no) ===
+         graphNormalizeAdmission(search)
+  );
+
+  if (!profile) {
+    individualGraphProfile = null;
+    document.getElementById("individualStudentSummary").replaceChildren();
+    graphCreateEmpty(programGraph, "Student not found.");
+    graphCreateEmpty(ratingGraph, "No student selected.");
+    message.textContent =
+      "No online profile found for admission number " + search + ".";
+    return;
+  }
+
+  individualGraphProfile = profile;
+  renderIndividualStudentGraph(profile);
+}
+
+function renderIndividualStudentGraph(profile) {
+  const message = document.getElementById("individualGraphMessage");
+  const summary = document.getElementById("individualStudentSummary");
+  const programGraph = document.getElementById("individualProgramGraph");
+  const ratingGraph = document.getElementById("individualRatingGraph");
+
+  const programs = graphGetPrograms(profile);
+  const statuses = Array.isArray(profile._graphStatuses)
+    ? profile._graphStatuses : [];
+
+  message.textContent =
+    "Admission No.: " + profile.admission_no +
+    " • " + (profile.name || "Unnamed student");
+
+  summary.replaceChildren();
+
+  const completedCount = statuses.filter(
+    status => status.completed === true
+  ).length;
+
+  const expectedCount = programs.length * 24;
+
+  [
+    ["Student", profile.name || "Not provided"],
+    ["Admission Number", profile.admission_no],
+    ["Programmes", programs.length],
+    ["Completed Programme-Days", completedCount],
+    ["Overall Completion", graphPercent(completedCount, expectedCount) + "%"]
+  ].forEach(([label, value]) => {
+    const box = document.createElement("div");
+    box.className = "graph-stat";
+
+    const title = document.createElement("span");
+    title.textContent = label;
+
+    const number = document.createElement("strong");
+    number.textContent = String(value);
+
+    box.append(title, number);
+    summary.appendChild(box);
+  });
+
+  programGraph.replaceChildren();
+
+  if (!programs.length) {
+    graphCreateEmpty(
+      programGraph,
+      "No programmes are assigned to this student."
+    );
+  } else {
+    programs.forEach(program => {
+      const matching = statuses.filter(
+        status =>
+          String(status.program_code || "").trim().toLowerCase() ===
+          program.code.toLowerCase()
+      );
+
+      const completed = matching.filter(
         status => status.completed === true
       ).length;
 
-      const expectedCount = programs.length * 24;
+      const ratingCounts = graphRatingCounts(matching);
+      const ratingText = Object.entries(ratingCounts)
+        .filter(([, count]) => count > 0)
+        .map(([rating, count]) => rating + ": " + count)
+        .join(" • ");
 
-      [
-        ["Student", profile.name || "Not provided"],
-        ["Admission Number", profile.admission_no],
-        ["Programmes", programs.length],
-        ["Completed Programme-Days", completedCount],
-        ["Overall Completion", graphPercent(completedCount, expectedCount) + "%"]
-      ].forEach(([label, value]) => {
-        const box = document.createElement("div");
-        box.className = "graph-stat";
+      graphAddBar(
+        programGraph,
+        program.name + " (" + program.code + ")",
+        completed + " completed day(s) out of 24 scheduled days" +
+          (program.mentor ? " • Mentor: " + program.mentor : ""),
+        graphPercent(completed, 24)
+      );
 
-        const title = document.createElement("span");
-        title.textContent = label;
-
-        const number = document.createElement("strong");
-        number.textContent = String(value);
-
-        box.append(title, number);
-        summary.appendChild(box);
-      });
-
-      programGraph.replaceChildren();
-
-      if (!programs.length) {
-        graphCreateEmpty(
-          programGraph,
-          "No programmes are assigned to this student."
-        );
-      } else {
-        programs.forEach(program => {
-          const matching = statuses.filter(
-            status =>
-              String(status.program_code || "").trim().toLowerCase() ===
-              program.code.toLowerCase()
-          );
-
-          const completed = matching.filter(
-            status => status.completed === true
-          ).length;
-
-          const ratingCounts = graphRatingCounts(matching);
-          const ratingText = Object.entries(ratingCounts)
-            .filter(([, count]) => count > 0)
-            .map(([rating, count]) => rating + ": " + count)
-            .join(" • ");
-
-          graphAddBar(
-            programGraph,
-            program.name + " (" + program.code + ")",
-            completed + " completed day(s) out of 24 scheduled days" +
-            (program.mentor ? " • Mentor: " + program.mentor : ""),
-            graphPercent(completed, 24)
-          );
-
-          if (ratingText) {
-            const note = document.createElement("div");
-            note.className = "graph-bar-detail";
-            note.textContent = "Performance: " + ratingText;
-            programGraph.lastElementChild.appendChild(note);
-          }
-        });
+      if (ratingText) {
+        const note = document.createElement("div");
+        note.className = "graph-bar-detail";
+        note.textContent = "Performance: " + ratingText;
+        programGraph.lastElementChild.appendChild(note);
       }
+    });
+  }
 
-      ratingGraph.replaceChildren();
+  ratingGraph.replaceChildren();
 
-      if (!programs.length) {
-        graphCreateEmpty(ratingGraph, "No programmes to show.");
-        return;
-      }
+  if (!programs.length) {
+    graphCreateEmpty(ratingGraph, "No programmes to show.");
+    return;
+  }
 
-      programs.forEach(program => {
-        const matching = statuses.filter(
-          status =>
-            String(status.program_code || "").trim().toLowerCase() ===
-            program.code.toLowerCase() &&
-            String(status.rating || "").trim()
-        );
+  programs.forEach(program => {
+    const matching = statuses.filter(
+      status =>
+        String(status.program_code || "").trim().toLowerCase() ===
+        program.code.toLowerCase() &&
+        String(status.rating || "").trim()
+    );
 
-        const counts = graphRatingCounts(matching);
-        const total = Object.values(counts).reduce(
-          (sum, value) => sum + value, 0
-        );
+    const counts = graphRatingCounts(matching);
+    const total = Object.values(counts).reduce(
+      (sum, value) => sum + value, 0
+    );
 
-        if (!total) {
-          graphAddBar(
-            ratingGraph,
-            program.name + " (" + program.code + ")",
-            "No ratings recorded yet",
-            0
-          );
-          return;
-        }
-
-        Object.entries(counts).forEach(([rating, count]) => {
-          if (!count) return;
-
-          graphAddBar(
-            ratingGraph,
-            program.name + " — " + rating,
-            count + " rating(s)",
-            graphPercent(count, total),
-            "rating-" + rating.toLowerCase()
-          );
-        });
-      });
+    if (!total) {
+      graphAddBar(
+        ratingGraph,
+        program.name + " (" + program.code + ")",
+        "No ratings recorded yet",
+        0
+      );
+      return;
     }
 
-    // Keep the board ready when the page loads.
-    graphSetPanel(false);
+    Object.entries(counts).forEach(([rating, count]) => {
+      if (!count) return;
+
+      graphAddBar(
+        ratingGraph,
+        program.name + " — " + rating,
+        count + " rating(s)",
+        graphPercent(count, total),
+        "rating-" + rating.toLowerCase()
+      );
+    });
+  });
+}
+
+// Keep the board ready when the page loads.
+graphSetPanel(false);
 
     loadSettings();
     renderStudents();
