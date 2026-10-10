@@ -254,6 +254,14 @@
             overflow-wrap: anywhere
         }
 
+        .student-status {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            align-items: center;
+            grid-column: span 3
+        }
+
         .program-code {
             display: block;
             color: #667085;
@@ -409,6 +417,10 @@
                 grid-column: 1/-1
             }
 
+            .program-row .student-status {
+                grid-column: 1/-1
+            }
+
             .program-row .save-btn {
                 width: 100%
             }
@@ -432,6 +444,10 @@
             }
 
             .program-row .program-meta {
+                grid-column: auto
+            }
+
+            .program-row .student-status {
                 grid-column: auto
             }
 
@@ -482,7 +498,6 @@
                 <div class="sub" id="updatedValue" style="margin-top:14px;font-size:12px"></div>
                 <div class="actions" id="loginActions">
                     <button class="btn" id="openMentorLogin" type="button">Mentor Login</button>
-                    <button class="btn secondary" id="openAdminLogin" type="button">Admin Login</button>
                 </div>
                 <div id="sessionState" class="signed-state hidden">
                     <p id="sessionText">Progression access enabled.</p><button class="btn ghost" id="signOutButton"
@@ -499,8 +514,8 @@
                 <div class="topline">
                     <div>
                         <h2 class="section-title">Daily Student Progression</h2>
-                        <p class="muted">Tick completion and choose a performance rating for each program, every day.
-                            This section is available only after mentor or admin login.</p>
+                        <p class="muted">View daily completion and performance for every program. Students can view this
+                            card anytime; the assigned mentor can sign in to update it.</p>
                     </div><span class="pill" id="progressCount">0 completed</span>
                 </div>
                 <div class="status-summary"><span class="pill">✓ Completed: tick the box</span><span
@@ -531,28 +546,6 @@
             </div>
         </section>
     </div>
-    <div class="modal-backdrop" id="adminModal" hidden>
-        <section class="modal" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
-            <div class="modal-head">
-                <h2 id="adminModalTitle">Admin Login</h2><button class="close-btn" type="button" data-close="adminModal"
-                    aria-label="Close">×</button>
-            </div>
-            <div class="modal-body">
-                <p class="muted">Sign in with the administrator email and password created in Supabase Authentication.
-                    The progression checklist will appear after successful login.</p>
-                <form id="adminForm">
-                    <div class="field"><label for="adminEmail">Admin email</label><input id="adminEmail" type="email"
-                            autocomplete="username" required placeholder="admin@example.com"></div>
-                    <div class="field"><label for="adminPassword">Password</label><input id="adminPassword"
-                            type="password" autocomplete="current-password" required placeholder="Enter password"></div>
-                    <div class="modal-actions"><button class="btn" id="adminLoginButton" type="submit">Sign
-                            in</button><button class="btn ghost" type="button" data-close="adminModal">Cancel</button>
-                    </div>
-                    <div id="adminLoginMessage" class="notice" aria-live="polite"></div>
-                </form>
-            </div>
-        </section>
-    </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script>
@@ -570,9 +563,8 @@
             const text = (id, value) => $(id).textContent = value || 'Not provided';
             const closeModal = id => $(id).hidden = true;
             document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => closeModal(btn.dataset.close)));
-            ['mentorModal', 'adminModal'].forEach(id => $(id).addEventListener('click', e => { if (e.target === $(id)) closeModal(id); }));
+            $('mentorModal').addEventListener('click', e => { if (e.target === $('mentorModal')) closeModal('mentorModal'); });
             $('openMentorLogin').addEventListener('click', () => { $('mentorLoginMessage').textContent = ''; $('mentorModal').hidden = false; $('mentorPasskey').focus(); });
-            $('openAdminLogin').addEventListener('click', () => { $('adminLoginMessage').textContent = ''; $('adminModal').hidden = false; $('adminEmail').focus(); });
             try {
                 const { data, error } = await db.from('student_profiles').select('admission_no,name,mentor,programs,program_codes,updated_at').eq('admission_no', admissionNo).maybeSingle();
                 if (error) throw error; if (!data) { fail('No profile was found for admission number ' + admissionNo + '. Please ask the Control Room to upload the student list.'); return; }
@@ -582,13 +574,14 @@
                 $('codesValue').textContent = codes.length ? codes.join('\n') : 'Not provided'; $('studentName').textContent = data.name || 'Student Profile';
                 $('updatedValue').textContent = data.updated_at ? 'Profile last updated: ' + new Date(data.updated_at).toLocaleString() : 'Profile information'; $('profile').hidden = false;
                 document.title = (data.name || 'Student Profile') + ' | SIBAQ National Arts Fest';
-                // Restore an existing Supabase admin session if present.
-                const { data: { session } } = await db.auth.getSession(); if (session) { sessionRole = 'admin'; showProgression('Admin signed in. You can view and update progression.'); }
+                $('progressCard').hidden = false; renderStatuses();
             } catch (error) { fail('Could not load this profile. Check the internet connection or contact the Control Room. Details: ' + (error.message || 'database error')); return; }
 
             function showProgression(label) { $('progressCard').hidden = false; $('sessionState').classList.remove('hidden'); $('sessionText').textContent = label; $('loginActions').classList.add('hidden'); renderStatuses(); }
-            function hideProgression() { sessionRole = ''; signedInMentor = ''; signedInPasskey = ''; $('progressCard').hidden = true; $('sessionState').classList.add('hidden'); $('loginActions').classList.remove('hidden'); $('statusList').innerHTML = ''; $('mentorPasskey').value = ''; }
-            $('signOutButton').addEventListener('click', async () => { if (sessionRole === 'admin') { const { error } = await db.auth.signOut(); if (error) { $('statusMessage').textContent = 'Could not sign out: ' + error.message; return; } } hideProgression(); });
+            function hideProgression() { sessionRole = ''; signedInMentor = ''; signedInPasskey = ''; $('sessionState').classList.add('hidden'); $('loginActions').classList.remove('hidden'); $('mentorPasskey').value = ''; renderStatuses(); }
+            $('signOutButton').addEventListener('click', () => hideProgression());
+            // Student-facing progression is always visible; mentor login only enables editing.
+            $('progressCard').hidden = false;
 
             $('mentorForm').addEventListener('submit', async event => {
                 event.preventDefault(); const passkey = $('mentorPasskey').value; const mentorName = String(profile.mentor || '').trim(); const button = $('mentorLoginButton'); button.disabled = true; $('mentorLoginMessage').textContent = 'Verifying passkey…';
@@ -598,16 +591,9 @@
                     sessionRole = 'mentor'; signedInMentor = mentorName; signedInPasskey = passkey; closeModal('mentorModal'); showProgression('Mentor access: ' + mentorName + '. You can update the daily checklist.');
                 } catch (error) { $('mentorLoginMessage').textContent = error.message || 'Mentor login failed. Check database setup.'; } finally { button.disabled = false; }
             });
-            $('adminForm').addEventListener('submit', async event => {
-                event.preventDefault(); const button = $('adminLoginButton'); button.disabled = true; $('adminLoginMessage').textContent = 'Signing in…';
-                try {
-                    const { data, error } = await db.auth.signInWithPassword({ email: $('adminEmail').value.trim(), password: $('adminPassword').value }); if (error) throw error; if (!data.session) throw new Error('No administrator session was created.');
-                    sessionRole = 'admin'; closeModal('adminModal'); showProgression('Admin signed in. You can view and update progression.');
-                } catch (error) { $('adminLoginMessage').textContent = error.message || 'Admin login failed. Check the Supabase account.'; } finally { button.disabled = false; }
-            });
 
             function getPrograms() { const names = Array.isArray(profile.programs) ? profile.programs : []; const codes = Array.isArray(profile.program_codes) ? profile.program_codes : []; const n = Math.max(names.length, codes.length); const out = []; for (let i = 0; i < n; i++) { const name = String(names[i] || '').trim(); const code = String(codes[i] || '').trim(); if (name || code) out.push({ name: name || 'Program ' + (i + 1), code: code || 'PROGRAM-' + (i + 1) }); } return out; }
-            async function fetchStatuses() { let data, error; if (sessionRole === 'admin') { ({ data, error } = await db.from('student_daily_progress').select('progress_date,program_code,program_name,completed,rating,updated_at,updated_by').eq('admission_no', admissionNo).gte('progress_date', dates[0]).lte('progress_date', dates[dates.length - 1])); } else { ({ data, error } = await db.rpc('mentor_get_program_status', { p_admission_no: admissionNo, p_mentor_name: signedInMentor, p_passkey: signedInPasskey, p_start_date: dates[0], p_end_date: dates[dates.length - 1] })); } if (error) throw error; return new Map((data || []).map(item => [item.progress_date + '|' + item.program_code, item])); }
+            async function fetchStatuses() { const rpcName = sessionRole === 'mentor' ? 'mentor_get_program_status' : 'student_get_program_status'; const args = sessionRole === 'mentor' ? { p_admission_no: admissionNo, p_mentor_name: signedInMentor, p_passkey: signedInPasskey, p_start_date: dates[0], p_end_date: dates[dates.length - 1] } : { p_admission_no: admissionNo, p_start_date: dates[0], p_end_date: dates[dates.length - 1] }; const { data, error } = await db.rpc(rpcName, args); if (error) throw error; return new Map((data || []).map(item => [item.progress_date + '|' + item.program_code, item])); }
             async function renderStatuses() {
                 const list = $('statusList'); list.innerHTML = ''; $('statusMessage').textContent = 'Loading daily progression…'; let statuses; try { statuses = await fetchStatuses(); } catch (error) { $('statusMessage').textContent = 'Could not load progression. Apply the supplied progression SQL migration and verify Supabase configuration. ' + (error.message || ''); return; }
                 const programs = getPrograms(); if (!programs.length) { list.innerHTML = '<div class="empty">No programs are listed in this student profile.</div>'; return; }
@@ -620,18 +606,21 @@
                         const label = document.createElement('label'); label.className = 'check-label'; const check = document.createElement('input'); check.type = 'checkbox'; check.checked = !!status.completed; check.disabled = !sessionRole; label.append(check, document.createTextNode('Completed'));
                         const select = document.createElement('select'); select.className = 'rating-select'; select.setAttribute('aria-label', 'Performance for ' + program.name + ' on ' + dateLabel(date)); select.disabled = !sessionRole;[['', 'Choose performance'], ['Excellent', 'Excellent'], ['Good', 'Good'], ['Average', 'Average'], ['Poor', 'Poor']].forEach(([value, labelText]) => { const option = document.createElement('option'); option.value = value; option.textContent = labelText; select.appendChild(option); }); select.value = status.rating || '';
                         const save = document.createElement('button'); save.type = 'button'; save.className = 'btn save-btn'; save.textContent = 'Save'; save.disabled = !sessionRole;
+                        if (!sessionRole) {
+                            const visibleStatus = document.createElement('div'); visibleStatus.className = 'student-status';
+                            const completion = document.createElement('span'); completion.className = 'pill' + (status.completed ? ' done' : ''); completion.textContent = status.completed ? '✓ Completed' : '○ Not completed';
+                            const performance = document.createElement('span'); performance.className = 'pill'; performance.textContent = status.rating ? 'Performance: ' + status.rating : 'Performance: Not rated';
+                            visibleStatus.append(completion, performance); row.append(meta, visibleStatus); body.appendChild(row); rows.push({ check }); return;
+                        }
                         save.addEventListener('click', async () => {
                             save.disabled = true; save.textContent = 'Saving…'; $('statusMessage').textContent = ''; try {
-                                if (sessionRole === 'admin') {
-                                    const { error } = await db.from('student_daily_progress').upsert({ admission_no: admissionNo, progress_date: date, program_code: program.code, program_name: program.name, completed: check.checked, rating: select.value || null, updated_at: new Date().toISOString(), updated_by: 'admin' }, { onConflict: 'admission_no,progress_date,program_code' }); if (error) throw error;
-                                } else { const { data, error } = await db.rpc('mentor_save_program_status', { p_admission_no: admissionNo, p_mentor_name: signedInMentor, p_passkey: signedInPasskey, p_progress_date: date, p_program_code: program.code, p_program_name: program.name, p_completed: check.checked, p_rating: select.value || null }); if (error) throw error; if (data !== true) throw new Error('The passkey or mentor assignment was not accepted.'); }
+                                const { data, error } = await db.rpc('mentor_save_program_status', { p_admission_no: admissionNo, p_mentor_name: signedInMentor, p_passkey: signedInPasskey, p_progress_date: date, p_program_code: program.code, p_program_name: program.name, p_completed: check.checked, p_rating: select.value || null }); if (error) throw error; if (data !== true) throw new Error('The passkey or mentor assignment was not accepted.');
                                 $('statusMessage').textContent = 'Saved ' + program.name + ' for ' + dateLabel(date) + '.'; await renderStatuses();
                             } catch (error) { $('statusMessage').textContent = 'Could not save progression. ' + (error.message || 'Check the SQL migration and access permissions.'); save.disabled = !sessionRole; save.textContent = 'Save'; }
                         });
-                        if (!sessionRole) { check.disabled = true; select.disabled = true; save.disabled = true; }
                         row.append(meta, label, select, save); body.appendChild(row); rows.push({ check, pill: null });
                     }); const completedCount = rows.filter(r => r.check.checked).length; dailyPill.textContent = completedCount + ' / ' + programs.length + ' programs done'; if (completedCount === programs.length) dailyPill.classList.add('done'); dateHead.append(title, dailyPill); dateCard.append(dateHead, body); fragment.appendChild(dateCard);
-                }); list.appendChild(fragment); $('progressCount').textContent = done + ' / ' + total + ' program-days completed'; $('statusMessage').textContent = sessionRole === 'admin' ? 'Admin mode: progression is editable.' : sessionRole === 'mentor' ? 'Mentor mode: progression is editable.' : '';
+                }); list.appendChild(fragment); $('progressCount').textContent = done + ' / ' + total + ' program-days completed'; $('statusMessage').textContent = sessionRole === 'mentor' ? 'Mentor mode: progression is editable.' : '';
             }
         })();
     </script>
