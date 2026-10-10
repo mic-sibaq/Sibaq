@@ -6,98 +6,194 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#4f46e5">
     <title>Student Profile | SIBAQ National Arts Fest</title>
-
     <style>
         :root {
             font-family: Inter, "Segoe UI", Arial, sans-serif;
             color: #172033;
             background: #f3f6fb;
+            font-synthesis: none
         }
 
         * {
-            box-sizing: border-box;
+            box-sizing: border-box
         }
 
         body {
             margin: 0;
             min-height: 100vh;
-            padding: 20px;
-            background: linear-gradient(135deg, #eef2ff, #f8fafc);
+            padding: clamp(10px, 3vw, 28px);
+            background: linear-gradient(135deg, #eef2ff, #f8fafc)
         }
 
         .wrap {
-            width: min(100%, 820px);
-            margin: 0 auto;
+            width: min(100%, 900px);
+            margin: 0 auto
         }
 
         .card {
-            background: white;
+            background: #fff;
             border: 1px solid #dfe5ef;
-            border-radius: 22px;
-            box-shadow: 0 18px 55px #17203312;
+            border-radius: 20px;
+            box-shadow: 0 14px 42px #1720330d;
             overflow: hidden;
-            margin-bottom: 18px;
+            margin-bottom: 16px
         }
 
         .head {
-            padding: 26px;
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            color: white;
+            padding: clamp(20px, 4vw, 30px);
+            background: linear-gradient(135deg, #4338ca, #7c3aed);
+            color: white
         }
 
         .kicker {
-            font-size: 12px;
-            letter-spacing: 2px;
+            font-size: 11px;
+            letter-spacing: 1.8px;
             font-weight: 800;
-            opacity: .85;
-            text-transform: uppercase;
+            opacity: .88;
+            text-transform: uppercase
         }
 
         h1 {
-            margin: 10px 0 4px;
             font-size: clamp(25px, 6vw, 36px);
-            overflow-wrap: anywhere;
+            margin: 10px 0 4px;
+            overflow-wrap: anywhere
         }
 
         .sub {
             opacity: .9;
+            line-height: 1.5
         }
 
         .body {
-            padding: 22px;
+            padding: clamp(16px, 3vw, 24px)
+        }
+
+        .section-title {
+            font-size: clamp(20px, 4vw, 25px);
+            margin: 0 0 7px
+        }
+
+        .muted {
+            color: #667085;
+            font-size: 14px;
+            line-height: 1.55;
+            margin: 0 0 15px
         }
 
         .row {
-            padding: 14px 0;
-            border-bottom: 1px solid #e7ebf2;
+            padding: 13px 0;
+            border-bottom: 1px solid #e7ebf2
         }
 
         .row:last-child {
-            border: 0;
+            border-bottom: 0
         }
 
         .label {
-            font-size: 12px;
+            font-size: 11px;
             color: #667085;
             text-transform: uppercase;
             letter-spacing: 1px;
             font-weight: 800;
-            margin-bottom: 5px;
+            margin-bottom: 5px
         }
 
         .value {
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 700;
             overflow-wrap: anywhere;
             white-space: pre-wrap;
-            line-height: 1.5;
+            line-height: 1.55
         }
 
         .foot {
             text-align: center;
             color: #667085;
             font-size: 12px;
-            padding: 0 22px 22px;
+            padding: 0 20px 20px
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 11px;
+            background: #4f46e5;
+            color: #fff;
+            padding: 12px 16px;
+            font: inherit;
+            font-weight: 750;
+            cursor: pointer;
+            min-height: 44px
+        }
+
+        .btn:hover {
+            filter: brightness(.96)
+        }
+
+        .btn:disabled {
+            opacity: .6;
+            cursor: wait
+        }
+
+        .btn.secondary {
+            background: #eef2ff;
+            color: #3730a3
+        }
+
+        .btn.ghost {
+            background: #f2f4f7;
+            color: #344054
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 16px
+        }
+
+        .actions .btn {
+            flex: 1 1 180px
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 99px;
+            background: #f2f4f7;
+            color: #475467;
+            font-size: 12px;
+            font-weight: 750
+        }
+
+        .pill.done {
+            background: #dcfce7;
+            color: #166534
+        }
+
+        .topline {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap
+        }
+
+        .status-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0 16px
+        }
+
+        .notice {
+            font-size: 13px;
+            line-height: 1.5;
+            margin-top: 10px;
+            color: #475467;
+            min-height: 18px;
+            overflow-wrap: anywhere
         }
 
         .error {
@@ -107,196 +203,248 @@
             padding: 15px;
             border-radius: 12px;
             line-height: 1.5;
-            margin: 12px 0;
+            margin: 12px 0
         }
 
-        .updated {
-            font-size: 12px;
-            color: #667085;
-            margin-top: 16px;
+        .hidden,
+        [hidden] {
+            display: none !important
         }
 
-        .section-title {
-            margin: 0 0 7px;
-            font-size: 22px;
+        .program-list {
+            display: grid;
+            gap: 12px
         }
 
-        .muted {
-            color: #667085;
-            font-size: 14px;
-            line-height: 1.5;
-            margin: 0 0 16px;
+        .date-card {
+            border: 1px solid #e0e6f0;
+            border-radius: 16px;
+            overflow: hidden
         }
 
-        .btn {
-            border: 0;
-            border-radius: 10px;
-            background: #4f46e5;
-            color: white;
-            padding: 11px 15px;
+        .date-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 13px 15px;
+            background: #f8faff;
+            border-bottom: 1px solid #e7ebf2
+        }
+
+        .date-head strong {
+            font-size: 15px
+        }
+
+        .program-row {
+            padding: 14px 15px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.3fr) minmax(145px, .8fr) minmax(160px, 1fr) auto;
+            gap: 12px;
+            align-items: center;
+            border-bottom: 1px solid #eef1f6
+        }
+
+        .program-row:last-child {
+            border-bottom: 0
+        }
+
+        .program-name {
             font-weight: 750;
-            cursor: pointer;
+            overflow-wrap: anywhere
         }
 
-        .btn:disabled {
-            opacity: .6;
-            cursor: wait;
+        .program-code {
+            display: block;
+            color: #667085;
+            font-size: 12px;
+            margin-top: 4px
         }
 
-        .btn.secondary {
-            background: #eef2ff;
-            color: #3730a3;
+        .check-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 650
+        }
+
+        .check-label input {
+            width: 19px;
+            height: 19px;
+            accent-color: #4f46e5;
+            flex-shrink: 0
+        }
+
+        .rating-select,
+        .field input {
+            width: 100%;
+            min-width: 0;
+            padding: 11px;
+            border: 1px solid #cfd6e3;
+            border-radius: 10px;
+            background: white;
+            font: inherit
+        }
+
+        .save-btn {
+            padding: 10px 13px;
+            min-height: 40px
         }
 
         .field {
             display: grid;
             gap: 6px;
-            margin: 10px 0;
+            margin: 12px 0
         }
 
         .field label {
             font-size: 13px;
             font-weight: 750;
-            color: #344054;
+            color: #344054
         }
 
-        .field input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #cfd6e3;
-            border-radius: 10px;
-            font: inherit;
-        }
-
-        .login-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .status-list {
-            display: grid;
-            gap: 10px;
-        }
-
-        .day {
-            border: 1px solid #e0e6f0;
-            border-radius: 14px;
-            padding: 14px;
-            display: grid;
-            grid-template-columns: minmax(100px, 1fr) minmax(140px, 1fr) minmax(150px, 1fr) auto;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .day strong {
-            font-size: 15px;
-        }
-
-        .day small {
-            display: block;
-            color: #667085;
-            margin-top: 3px;
-        }
-
-        .day label {
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: #10182899;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            font-weight: 650;
+            justify-content: center;
+            padding: 16px;
+            z-index: 50
         }
 
-        .day input[type="checkbox"] {
-            width: 19px;
-            height: 19px;
-            accent-color: #4f46e5;
-        }
-
-        .day select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #cfd6e3;
-            border-radius: 9px;
+        .modal {
+            width: min(100%, 440px);
+            max-height: 90vh;
+            overflow: auto;
             background: white;
-            font: inherit;
+            border-radius: 20px;
+            box-shadow: 0 24px 80px #0003
         }
 
-        .day .save {
-            padding: 9px 11px;
-            white-space: nowrap;
-        }
-
-        .pill {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 99px;
-            background: #f2f4f7;
-            color: #475467;
-            font-size: 12px;
-            font-weight: 750;
-        }
-
-        .pill.done {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .notice {
-            font-size: 13px;
-            margin-top: 10px;
-            color: #475467;
-            min-height: 18px;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .status-summary {
+        .modal-head {
             display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 12px 0 16px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 20px 22px 0
         }
 
-        .topline {
+        .modal-head h2 {
+            font-size: 22px;
+            margin: 0
+        }
+
+        .close-btn {
+            border: 0;
+            border-radius: 9px;
+            background: #f2f4f7;
+            width: 38px;
+            height: 38px;
+            font-size: 23px;
+            cursor: pointer;
+            color: #344054
+        }
+
+        .modal-body {
+            padding: 12px 22px 22px
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px
+        }
+
+        .modal-actions .btn {
+            flex: 1
+        }
+
+        .signed-state {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
             flex-wrap: wrap;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 13px;
+            border-radius: 12px;
+            margin-top: 16px
         }
 
-        [hidden] {
-            display: none !important;
+        .signed-state p {
+            margin: 0;
+            color: #166534;
+            font-size: 13px;
+            line-height: 1.5
         }
 
-        @media (max-width: 640px) {
+        .empty {
+            padding: 20px;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            color: #667085;
+            text-align: center
+        }
+
+        @media(max-width:680px) {
             body {
-                padding: 10px;
+                padding: 9px
             }
 
-            .body {
-                padding: 16px;
+            .card {
+                border-radius: 16px
             }
 
-            .login-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .day {
+            .program-row {
                 grid-template-columns: 1fr 1fr;
                 gap: 10px;
+                padding: 13px
             }
 
-            .day .save {
-                grid-column: 1 / -1;
-                width: 100%;
+            .program-row .program-meta {
+                grid-column: 1/-1
             }
 
-            .day select {
-                min-width: 0;
+            .program-row .save-btn {
+                width: 100%
+            }
+
+            .date-head {
+                align-items: flex-start
+            }
+
+            .actions {
+                flex-direction: column
+            }
+
+            .actions .btn {
+                width: 100%
+            }
+        }
+
+        @media(max-width:390px) {
+            .program-row {
+                grid-template-columns: 1fr
+            }
+
+            .program-row .program-meta {
+                grid-column: auto
+            }
+
+            .modal-actions {
+                flex-direction: column
+            }
+
+            .modal-head {
+                padding: 17px 17px 0
+            }
+
+            .modal-body {
+                padding: 12px 17px 18px
             }
         }
     </style>
@@ -304,462 +452,187 @@
 
 <body>
     <div class="wrap">
-
-        <!-- STUDENT PROFILE -->
         <main class="card" id="profile" hidden>
             <header class="head">
                 <div class="kicker">SIBAQ • National Arts Fest</div>
                 <h1 id="studentName">Student Profile</h1>
-                <div class="sub">Student information and daily progress</div>
+                <div class="sub">Student information and program-wise daily progression</div>
             </header>
-
             <section class="body">
                 <div class="row">
                     <div class="label">Admission Number</div>
                     <div class="value" id="admissionValue"></div>
                 </div>
-
                 <div class="row">
                     <div class="label">Name</div>
                     <div class="value" id="nameValue"></div>
                 </div>
-
                 <div class="row">
-                    <div class="label">Mentor</div>
+                    <div class="label">Assigned Mentor</div>
                     <div class="value" id="mentorValue"></div>
                 </div>
-
                 <div class="row">
                     <div class="label">Programs</div>
                     <div class="value" id="programsValue"></div>
                 </div>
-
                 <div class="row">
                     <div class="label">Program Codes</div>
                     <div class="value" id="codesValue"></div>
                 </div>
-
-                <div class="updated" id="updatedValue"></div>
+                <div class="sub" id="updatedValue" style="margin-top:14px;font-size:12px"></div>
+                <div class="actions" id="loginActions">
+                    <button class="btn" id="openMentorLogin" type="button">Mentor Login</button>
+                    <button class="btn secondary" id="openAdminLogin" type="button">Admin Login</button>
+                </div>
+                <div id="sessionState" class="signed-state hidden">
+                    <p id="sessionText">Progression access enabled.</p><button class="btn ghost" id="signOutButton"
+                        type="button">Sign out</button>
+                </div>
             </section>
-
-            <footer class="foot">
-                SIBAQ National Arts Fest • Contact the Control Room if information is incorrect.
+            <footer class="foot">SIBAQ National Arts Fest • Contact the Control Room if information is incorrect.
             </footer>
         </main>
-
         <div id="message" class="error" hidden></div>
 
-        <!-- DAILY PROGRESS -->
         <section class="card" id="progressCard" hidden>
             <div class="body">
                 <div class="topline">
                     <div>
-                        <h2 class="section-title">Daily Student Progress</h2>
-                        <p class="muted">
-                            Progress from 11 October to 3 November 2026.
-                            Students can view this list; only the assigned mentor
-                            with a valid passkey can update it.
-                        </p>
-                    </div>
-                    <span class="pill" id="progressCount">0 / 24 completed</span>
+                        <h2 class="section-title">Daily Student Progression</h2>
+                        <p class="muted">Tick completion and choose a performance rating for each program, every day.
+                            This section is available only after mentor or admin login.</p>
+                    </div><span class="pill" id="progressCount">0 completed</span>
                 </div>
-
-                <div class="status-summary">
-                    <span class="pill">✓ Completed: tick the box</span>
-                    <span class="pill">Performance: Excellent / Good / Average / Poor</span>
-                </div>
-
-                <div id="statusList" class="status-list"></div>
+                <div class="status-summary"><span class="pill">✓ Completed: tick the box</span><span
+                        class="pill">Performance: Excellent / Good / Average / Poor</span></div>
+                <div id="statusList" class="program-list"></div>
                 <div id="statusMessage" class="notice" aria-live="polite"></div>
             </div>
         </section>
-
-        <!-- MENTOR LOGIN -->
-        <section class="card" id="mentorCard" hidden>
-            <div class="body">
-                <div class="topline">
-                    <div>
-                        <h2 class="section-title">Mentor Login</h2>
-                        <p class="muted">
-                            Enter your passkey to edit the daily checklist.
-                        </p>
-                    </div>
-                    <span class="pill" id="mentorState">Not signed in</span>
-                </div>
-
-                <div id="loginPanel">
-                    <form id="mentorForm">
-                        <div class="login-grid">
-
-
-                            <div class="field">
-                                <label for="mentorPasskey">Passkey</label>
-                                <input id="mentorPasskey" type="password" autocomplete="current-password" required
-                                    placeholder="Enter passkey">
-                            </div>
-                        </div>
-
-                        <button class="btn" id="loginButton" type="submit">
-                            Verify &amp; sign in
-                        </button>
-
-                        <div id="loginMessage" class="notice" aria-live="polite"></div>
-                    </form>
-                </div>
-
-                <div id="logoutPanel" class="hidden">
-                    <p class="muted" id="signedInText"></p>
-                    <button class="btn secondary" id="logoutButton" type="button">
-                        Sign out
-                    </button>
-                </div>
-            </div>
-        </section>
-
     </div>
 
+    <div class="modal-backdrop" id="mentorModal" hidden>
+        <section class="modal" role="dialog" aria-modal="true" aria-labelledby="mentorModalTitle">
+            <div class="modal-head">
+                <h2 id="mentorModalTitle">Mentor Login</h2><button class="close-btn" type="button"
+                    data-close="mentorModal" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="muted">Your assigned mentor name is taken from this student's profile. Enter the mentor
+                    passkey to unlock the daily progression checklist.</p>
+                <form id="mentorForm">
+                    <div class="field"><label for="mentorPasskey">Mentor passkey</label><input id="mentorPasskey"
+                            type="password" autocomplete="current-password" required placeholder="Enter passkey"></div>
+                    <div class="modal-actions"><button class="btn" id="mentorLoginButton" type="submit">Verify &amp;
+                            sign in</button><button class="btn ghost" type="button"
+                            data-close="mentorModal">Cancel</button></div>
+                    <div id="mentorLoginMessage" class="notice" aria-live="polite"></div>
+                </form>
+            </div>
+        </section>
+    </div>
+    <div class="modal-backdrop" id="adminModal" hidden>
+        <section class="modal" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+            <div class="modal-head">
+                <h2 id="adminModalTitle">Admin Login</h2><button class="close-btn" type="button" data-close="adminModal"
+                    aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="muted">Sign in with the administrator email and password created in Supabase Authentication.
+                    The progression checklist will appear after successful login.</p>
+                <form id="adminForm">
+                    <div class="field"><label for="adminEmail">Admin email</label><input id="adminEmail" type="email"
+                            autocomplete="username" required placeholder="admin@example.com"></div>
+                    <div class="field"><label for="adminPassword">Password</label><input id="adminPassword"
+                            type="password" autocomplete="current-password" required placeholder="Enter password"></div>
+                    <div class="modal-actions"><button class="btn" id="adminLoginButton" type="submit">Sign
+                            in</button><button class="btn ghost" type="button" data-close="adminModal">Cancel</button>
+                    </div>
+                    <div id="adminLoginMessage" class="notice" aria-live="polite"></div>
+                </form>
+            </div>
+        </section>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
-
     <script>
         (async function () {
-            const $ = id => document.getElementById(id);
-            const message = $("message");
-
-            function fail(text) {
-                message.hidden = false;
-                message.textContent = text;
-            }
-
+            const $ = id => document.getElementById(id); const message = $('message');
+            const fail = text => { message.hidden = false; message.textContent = text; };
             const cfg = window.SIBAQ_SUPABASE_CONFIG || {};
-
-            if (
-                !window.supabase ||
-                !cfg.url ||
-                !cfg.anonKey ||
-                cfg.url.includes("YOUR_")
-            ) {
-                fail(
-                    "The student database is not configured yet. Please contact the SIBAQ Control Room."
-                );
-                return;
-            }
-
-            // The QR URL should look like:
-            // https://your-site.vercel.app/student.html?id=STUDENT_ADMISSION_NUMBER
-            const admissionNo = new URLSearchParams(location.search).get("id");
-
-            if (!admissionNo) {
-                fail(
-                    "This QR link has no admission number. Please contact the Control Room."
-                );
-                return;
-            }
-
+            if (!window.supabase || !cfg.url || !cfg.anonKey || cfg.url.includes('YOUR_')) { fail('The student database is not configured yet. Please contact the SIBAQ Control Room.'); return; }
+            const admissionNo = new URLSearchParams(location.search).get('id');
+            if (!admissionNo) { fail('This QR link has no admission number. Please scan the student QR code or contact the Control Room.'); return; }
             const db = window.supabase.createClient(cfg.url, cfg.anonKey);
-
-            let profile = null;
-            let signedInMentor = "";
-            let signedInPasskey = "";
-
-            // Checklist dates: 11 October to 3 November 2026, inclusive.
-            const dates = [];
-
-            for (
-                let d = new Date(Date.UTC(2026, 9, 11));
-                d <= new Date(Date.UTC(2026, 10, 3));
-                d.setUTCDate(d.getUTCDate() + 1)
-            ) {
-                dates.push(d.toISOString().slice(0, 10));
-            }
-
-            const dateLabel = iso =>
-                new Date(iso + "T00:00:00Z").toLocaleDateString("en-IN", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                    timeZone: "UTC"
-                });
-
-            const norm = value =>
-                String(value || "").trim().toLocaleLowerCase();
-
-            // Load student details from the online database.
+            let profile = null, sessionRole = '', signedInMentor = '', signedInPasskey = '';
+            const dates = []; for (let d = new Date(Date.UTC(2026, 9, 11)); d <= new Date(Date.UTC(2026, 10, 3)); d.setUTCDate(d.getUTCDate() + 1))dates.push(d.toISOString().slice(0, 10));
+            const dateLabel = iso => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
+            const text = (id, value) => $(id).textContent = value || 'Not provided';
+            const closeModal = id => $(id).hidden = true;
+            document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => closeModal(btn.dataset.close)));
+            ['mentorModal', 'adminModal'].forEach(id => $(id).addEventListener('click', e => { if (e.target === $(id)) closeModal(id); }));
+            $('openMentorLogin').addEventListener('click', () => { $('mentorLoginMessage').textContent = ''; $('mentorModal').hidden = false; $('mentorPasskey').focus(); });
+            $('openAdminLogin').addEventListener('click', () => { $('adminLoginMessage').textContent = ''; $('adminModal').hidden = false; $('adminEmail').focus(); });
             try {
-                const { data, error } = await db
-                    .from("student_profiles")
-                    .select(
-                        "admission_no,name,mentor,programs,program_codes,updated_at"
-                    )
-                    .eq("admission_no", admissionNo)
-                    .maybeSingle();
+                const { data, error } = await db.from('student_profiles').select('admission_no,name,mentor,programs,program_codes,updated_at').eq('admission_no', admissionNo).maybeSingle();
+                if (error) throw error; if (!data) { fail('No profile was found for admission number ' + admissionNo + '. Please ask the Control Room to upload the student list.'); return; }
+                profile = data; text('admissionValue', data.admission_no); text('nameValue', data.name); text('mentorValue', data.mentor);
+                const programs = Array.isArray(data.programs) ? data.programs : []; const codes = Array.isArray(data.program_codes) ? data.program_codes : [];
+                $('programsValue').textContent = programs.length ? programs.map((p, i) => (codes[i] ? codes[i] + ' — ' : '') + p).join('\n') : 'Not provided';
+                $('codesValue').textContent = codes.length ? codes.join('\n') : 'Not provided'; $('studentName').textContent = data.name || 'Student Profile';
+                $('updatedValue').textContent = data.updated_at ? 'Profile last updated: ' + new Date(data.updated_at).toLocaleString() : 'Profile information'; $('profile').hidden = false;
+                document.title = (data.name || 'Student Profile') + ' | SIBAQ National Arts Fest';
+                // Restore an existing Supabase admin session if present.
+                const { data: { session } } = await db.auth.getSession(); if (session) { sessionRole = 'admin'; showProgression('Admin signed in. You can view and update progression.'); }
+            } catch (error) { fail('Could not load this profile. Check the internet connection or contact the Control Room. Details: ' + (error.message || 'database error')); return; }
 
-                if (error) throw error;
+            function showProgression(label) { $('progressCard').hidden = false; $('sessionState').classList.remove('hidden'); $('sessionText').textContent = label; $('loginActions').classList.add('hidden'); renderStatuses(); }
+            function hideProgression() { sessionRole = ''; signedInMentor = ''; signedInPasskey = ''; $('progressCard').hidden = true; $('sessionState').classList.add('hidden'); $('loginActions').classList.remove('hidden'); $('statusList').innerHTML = ''; $('mentorPasskey').value = ''; }
+            $('signOutButton').addEventListener('click', async () => { if (sessionRole === 'admin') { const { error } = await db.auth.signOut(); if (error) { $('statusMessage').textContent = 'Could not sign out: ' + error.message; return; } } hideProgression(); });
 
-                if (!data) {
-                    fail(
-                        "No profile was found for admission number " +
-                        admissionNo +
-                        ". Please ask the Control Room to upload the student list."
-                    );
-                    return;
-                }
+            $('mentorForm').addEventListener('submit', async event => {
+                event.preventDefault(); const passkey = $('mentorPasskey').value; const mentorName = String(profile.mentor || '').trim(); const button = $('mentorLoginButton'); button.disabled = true; $('mentorLoginMessage').textContent = 'Verifying passkey…';
+                try {
+                    if (!mentorName) throw new Error('No mentor is assigned to this student. Please contact the Control Room.');
+                    const { data, error } = await db.rpc('mentor_passkey_valid', { p_mentor_name: mentorName, p_passkey: passkey }); if (error) throw error; if (data !== true) throw new Error('Incorrect passkey or mentor assignment.');
+                    sessionRole = 'mentor'; signedInMentor = mentorName; signedInPasskey = passkey; closeModal('mentorModal'); showProgression('Mentor access: ' + mentorName + '. You can update the daily checklist.');
+                } catch (error) { $('mentorLoginMessage').textContent = error.message || 'Mentor login failed. Check database setup.'; } finally { button.disabled = false; }
+            });
+            $('adminForm').addEventListener('submit', async event => {
+                event.preventDefault(); const button = $('adminLoginButton'); button.disabled = true; $('adminLoginMessage').textContent = 'Signing in…';
+                try {
+                    const { data, error } = await db.auth.signInWithPassword({ email: $('adminEmail').value.trim(), password: $('adminPassword').value }); if (error) throw error; if (!data.session) throw new Error('No administrator session was created.');
+                    sessionRole = 'admin'; closeModal('adminModal'); showProgression('Admin signed in. You can view and update progression.');
+                } catch (error) { $('adminLoginMessage').textContent = error.message || 'Admin login failed. Check the Supabase account.'; } finally { button.disabled = false; }
+            });
 
-                profile = data;
-
-                const put = (id, value) => {
-                    $(id).textContent = value || "Not provided";
-                };
-
-                put("admissionValue", data.admission_no);
-                put("nameValue", data.name);
-                put("mentorValue", data.mentor);
-                put("programsValue", (data.programs || []).join("\n"));
-                put("codesValue", (data.program_codes || []).join("\n"));
-
-                $("studentName").textContent = data.name || "Student Profile";
-
-                $("updatedValue").textContent = data.updated_at
-                    ? "Profile last updated: " + new Date(data.updated_at).toLocaleString()
-                    : "Profile information";
-
-                $("profile").hidden = false;
-                $("progressCard").hidden = false;
-                $("mentorCard").hidden = false;
-
-                document.title =
-                    (data.name || "Student Profile") + " | SIBAQ National Arts Fest";
-
-                await renderStatuses();
-            } catch (error) {
-                fail(
-                    "Could not load this profile. Please check your internet connection " +
-                    "or contact the Control Room. Details: " +
-                    (error.message || "database error")
-                );
-                return;
-            }
-
-            async function fetchStatuses() {
-                const { data, error } = await db
-                    .from("student_daily_progress")
-                    .select("progress_date,completed,rating,updated_at,updated_by")
-                    .eq("admission_no", admissionNo)
-                    .gte("progress_date", dates[0])
-                    .lte("progress_date", dates[dates.length - 1]);
-
-                if (error) throw error;
-
-                return new Map(
-                    (data || []).map(item => [item.progress_date, item])
-                );
-            }
-
-            // Display all daily rows. Students are view-only unless their mentor signs in.
+            function getPrograms() { const names = Array.isArray(profile.programs) ? profile.programs : []; const codes = Array.isArray(profile.program_codes) ? profile.program_codes : []; const n = Math.max(names.length, codes.length); const out = []; for (let i = 0; i < n; i++) { const name = String(names[i] || '').trim(); const code = String(codes[i] || '').trim(); if (name || code) out.push({ name: name || 'Program ' + (i + 1), code: code || 'PROGRAM-' + (i + 1) }); } return out; }
+            async function fetchStatuses() { let data, error; if (sessionRole === 'admin') { ({ data, error } = await db.from('student_daily_progress').select('progress_date,program_code,program_name,completed,rating,updated_at,updated_by').eq('admission_no', admissionNo).gte('progress_date', dates[0]).lte('progress_date', dates[dates.length - 1])); } else { ({ data, error } = await db.rpc('mentor_get_program_status', { p_admission_no: admissionNo, p_mentor_name: signedInMentor, p_passkey: signedInPasskey, p_start_date: dates[0], p_end_date: dates[dates.length - 1] })); } if (error) throw error; return new Map((data || []).map(item => [item.progress_date + '|' + item.program_code, item])); }
             async function renderStatuses() {
-                const list = $("statusList");
-                list.innerHTML = "";
-
-                let statuses;
-
-                try {
-                    statuses = await fetchStatuses();
-                } catch (error) {
-                    $("statusMessage").textContent =
-                        "Could not load saved progress. Run the updated " +
-                        "supabase-setup.sql and check your database configuration. " +
-                        (error.message || "");
-                    return;
-                }
-
-                let done = 0;
-
+                const list = $('statusList'); list.innerHTML = ''; $('statusMessage').textContent = 'Loading daily progression…'; let statuses; try { statuses = await fetchStatuses(); } catch (error) { $('statusMessage').textContent = 'Could not load progression. Apply the supplied progression SQL migration and verify Supabase configuration. ' + (error.message || ''); return; }
+                const programs = getPrograms(); if (!programs.length) { list.innerHTML = '<div class="empty">No programs are listed in this student profile.</div>'; return; }
+                let done = 0, total = 0; const fragment = document.createDocumentFragment();
                 dates.forEach(date => {
-                    const status = statuses.get(date) || {
-                        completed: false,
-                        rating: ""
-                    };
-
-                    if (status.completed) done++;
-
-                    const row = document.createElement("div");
-                    row.className = "day";
-                    row.dataset.date = date;
-
-                    const title = document.createElement("div");
-                    const strong = document.createElement("strong");
-                    strong.textContent = dateLabel(date);
-                    title.appendChild(strong);
-
-                    const small = document.createElement("small");
-                    small.textContent = status.updated_at
-                        ? "Updated " + new Date(status.updated_at).toLocaleDateString()
-                        : "Not updated";
-                    title.appendChild(small);
-
-                    // Completed checkbox
-                    const completedLabel = document.createElement("label");
-                    const check = document.createElement("input");
-
-                    check.type = "checkbox";
-                    check.checked = !!status.completed;
-                    check.disabled = !signedInMentor;
-
-                    completedLabel.appendChild(check);
-                    completedLabel.appendChild(
-                        document.createTextNode("Completed")
-                    );
-
-                    // Performance selector
-                    const select = document.createElement("select");
-                    select.setAttribute(
-                        "aria-label",
-                        "Performance for " + dateLabel(date)
-                    );
-                    select.disabled = !signedInMentor;
-
-                    [
-                        ["", "Choose status"],
-                        ["Excellent", "Excellent"],
-                        ["Good", "Good"],
-                        ["Average", "Average"],
-                        ["Poor", "Poor"]
-                    ].forEach(([value, label]) => {
-                        const option = document.createElement("option");
-                        option.value = value;
-                        option.textContent = label;
-                        select.appendChild(option);
-                    });
-
-                    select.value = status.rating || "";
-
-                    // Save daily status to Supabase.
-                    const save = document.createElement("button");
-                    save.className = "btn save";
-                    save.type = "button";
-                    save.textContent = "Save";
-                    save.disabled = !signedInMentor;
-
-                    save.addEventListener("click", async () => {
-                        save.disabled = true;
-                        save.textContent = "Saving…";
-                        $("statusMessage").textContent = "";
-
-                        try {
-                            const { data, error } = await db.rpc(
-                                "mentor_save_daily_status",
-                                {
-                                    p_admission_no: admissionNo,
-                                    p_mentor_name: signedInMentor,
-                                    p_passkey: signedInPasskey,
-                                    p_progress_date: date,
-                                    p_completed: check.checked,
-                                    p_rating: select.value || null
-                                }
-                            );
-
-                            if (error) throw error;
-
-                            if (data !== true) {
-                                throw new Error(
-                                    "The passkey or mentor assignment was not accepted."
-                                );
-                            }
-
-                            $("statusMessage").textContent =
-                                "Saved progress for " + dateLabel(date) + ".";
-
-                            await renderStatuses();
-                        } catch (error) {
-                            $("statusMessage").textContent =
-                                "Could not save. " +
-                                (error.message ||
-                                    "Check the passkey, assigned mentor, and database setup.");
-
-                            save.disabled = false;
-                            save.textContent = "Save";
-                        }
-                    });
-
-                    row.append(title, completedLabel, select, save);
-                    list.appendChild(row);
-                });
-
-                $("progressCount").textContent =
-                    done + " / " + dates.length + " completed";
-
-                if (!signedInMentor) {
-                    $("statusMessage").textContent =
-                        "View-only mode. Sign in as the assigned mentor to update progress.";
-                }
+                    const dateCard = document.createElement('section'); dateCard.className = 'date-card'; const dateHead = document.createElement('div'); dateHead.className = 'date-head'; const title = document.createElement('strong'); title.textContent = dateLabel(date); const dailyPill = document.createElement('span'); dailyPill.className = 'pill'; const rows = [];
+                    const body = document.createElement('div'); programs.forEach(program => {
+                        const key = date + '|' + program.code; const status = statuses.get(key) || { completed: false, rating: '' }; total++; if (status.completed) done++;
+                        const row = document.createElement('div'); row.className = 'program-row'; const meta = document.createElement('div'); meta.className = 'program-meta'; const name = document.createElement('div'); name.className = 'program-name'; name.textContent = program.name; const code = document.createElement('span'); code.className = 'program-code'; code.textContent = 'Code: ' + program.code; meta.append(name, code);
+                        const label = document.createElement('label'); label.className = 'check-label'; const check = document.createElement('input'); check.type = 'checkbox'; check.checked = !!status.completed; check.disabled = !sessionRole; label.append(check, document.createTextNode('Completed'));
+                        const select = document.createElement('select'); select.className = 'rating-select'; select.setAttribute('aria-label', 'Performance for ' + program.name + ' on ' + dateLabel(date)); select.disabled = !sessionRole;[['', 'Choose performance'], ['Excellent', 'Excellent'], ['Good', 'Good'], ['Average', 'Average'], ['Poor', 'Poor']].forEach(([value, labelText]) => { const option = document.createElement('option'); option.value = value; option.textContent = labelText; select.appendChild(option); }); select.value = status.rating || '';
+                        const save = document.createElement('button'); save.type = 'button'; save.className = 'btn save-btn'; save.textContent = 'Save'; save.disabled = !sessionRole;
+                        save.addEventListener('click', async () => {
+                            save.disabled = true; save.textContent = 'Saving…'; $('statusMessage').textContent = ''; try {
+                                if (sessionRole === 'admin') {
+                                    const { error } = await db.from('student_daily_progress').upsert({ admission_no: admissionNo, progress_date: date, program_code: program.code, program_name: program.name, completed: check.checked, rating: select.value || null, updated_at: new Date().toISOString(), updated_by: 'admin' }, { onConflict: 'admission_no,progress_date,program_code' }); if (error) throw error;
+                                } else { const { data, error } = await db.rpc('mentor_save_program_status', { p_admission_no: admissionNo, p_mentor_name: signedInMentor, p_passkey: signedInPasskey, p_progress_date: date, p_program_code: program.code, p_program_name: program.name, p_completed: check.checked, p_rating: select.value || null }); if (error) throw error; if (data !== true) throw new Error('The passkey or mentor assignment was not accepted.'); }
+                                $('statusMessage').textContent = 'Saved ' + program.name + ' for ' + dateLabel(date) + '.'; await renderStatuses();
+                            } catch (error) { $('statusMessage').textContent = 'Could not save progression. ' + (error.message || 'Check the SQL migration and access permissions.'); save.disabled = !sessionRole; save.textContent = 'Save'; }
+                        });
+                        if (!sessionRole) { check.disabled = true; select.disabled = true; save.disabled = true; }
+                        row.append(meta, label, select, save); body.appendChild(row); rows.push({ check, pill: null });
+                    }); const completedCount = rows.filter(r => r.check.checked).length; dailyPill.textContent = completedCount + ' / ' + programs.length + ' programs done'; if (completedCount === programs.length) dailyPill.classList.add('done'); dateHead.append(title, dailyPill); dateCard.append(dateHead, body); fragment.appendChild(dateCard);
+                }); list.appendChild(fragment); $('progressCount').textContent = done + ' / ' + total + ' program-days completed'; $('statusMessage').textContent = sessionRole === 'admin' ? 'Admin mode: progression is editable.' : sessionRole === 'mentor' ? 'Mentor mode: progression is editable.' : '';
             }
-
-            // Mentor passkey validation.
-            $("mentorForm").addEventListener("submit", async event => {
-                event.preventDefault();
-
-                const name = String(profile.mentor || "").trim();
-                const passkey = $("mentorPasskey").value;
-
-                $("loginButton").disabled = true;
-                $("loginMessage").textContent = "Verifying passkey…";
-
-                try {
-                    if (!name) {
-                        throw new Error(
-                            "No mentor is assigned to this student. Contact the Control Room."
-                        );
-                    }
-
-                    const { data, error } = await db.rpc(
-                        "mentor_passkey_valid",
-                        {
-                            p_mentor_name: name,
-                            p_passkey: passkey
-                        }
-                    );
-
-                    if (error) throw error;
-
-                    if (data !== true) {
-                        throw new Error("Incorrect passkey or mentor assignment.");
-                    }
-
-                    signedInMentor = name;
-                    signedInPasskey = passkey;
-
-                    $("mentorState").textContent = "Signed in";
-                    $("loginPanel").classList.add("hidden");
-                    $("logoutPanel").classList.remove("hidden");
-
-                    $("signedInText").textContent =
-                        "Signed in as " + name +
-                        ". You can now update the daily checklist and performance ratings.";
-
-                    $("loginMessage").textContent = "";
-
-                    await renderStatuses();
-
-                } catch (error) {
-                    $("loginMessage").textContent =
-                        error.message || "Login failed. Check the passkey and database setup.";
-                } finally {
-                    $("loginButton").disabled = false;
-                }
-            });
-
-            // Sign out of mentor mode.
-            $("logoutButton").addEventListener("click", () => {
-                signedInMentor = "";
-                signedInPasskey = "";
-
-                $("mentorPasskey").value = "";
-                $("mentorState").textContent = "Not signed in";
-                $("loginPanel").classList.remove("hidden");
-                $("logoutPanel").classList.add("hidden");
-
-                renderStatuses();
-            });
         })();
     </script>
 </body>
