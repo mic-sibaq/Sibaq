@@ -1,16 +1,714 @@
+
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#4f46e5"><title>Student Profile | SIBAQ National Arts Fest</title>
-<style>
-:root{font-family:Inter,Segoe UI,Arial,sans-serif;color:#172033;background:#f3f6fb}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(135deg,#eef2ff,#f8fafc)}.card{width:min(100%,650px);background:white;border:1px solid #dfe5ef;border-radius:24px;box-shadow:0 20px 60px #17203318;overflow:hidden}.head{padding:28px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white}.kicker{font-size:12px;letter-spacing:2px;font-weight:800;opacity:.85;text-transform:uppercase}h1{margin:10px 0 4px;font-size:clamp(25px,6vw,36px);overflow-wrap:anywhere}.sub{opacity:.9}.body{padding:22px}.row{padding:15px 0;border-bottom:1px solid #e7ebf2}.row:last-child{border:0}.label{font-size:12px;color:#667085;text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-bottom:5px}.value{font-size:18px;font-weight:700;overflow-wrap:anywhere;white-space:pre-wrap;line-height:1.5}.foot{text-align:center;color:#667085;font-size:12px;padding:0 22px 22px}.error{color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;padding:16px;border-radius:12px;line-height:1.5}.updated{font-size:12px;color:#667085;margin-top:18px}
-</style></head><body>
-<main class="card" id="profile" hidden><header class="head"><div class="kicker">SIBAQ • National Arts Fest</div><h1 id="studentName">Student Profile</h1><div class="sub">Official student information</div></header><section class="body">
-<div class="row"><div class="label">Admission Number</div><div class="value" id="admissionValue"></div></div>
-<div class="row"><div class="label">Name</div><div class="value" id="nameValue"></div></div>
-<div class="row"><div class="label">Mentor</div><div class="value" id="mentorValue"></div></div>
-<div class="row"><div class="label">Programs</div><div class="value" id="programsValue"></div></div>
-<div class="row"><div class="label">Program Codes</div><div class="value" id="codesValue"></div></div>
-<div class="updated" id="updatedValue"></div></section><footer class="foot">SIBAQ National Arts Fest • If any information is incorrect, please contact the Control Room.</footer></main>
-<div id="message" class="error" hidden></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script>
-(async function(){const message=document.getElementById('message');function fail(t){message.hidden=false;message.textContent=t;}const cfg=window.SIBAQ_SUPABASE_CONFIG||{};if(!window.supabase||!cfg.url||!cfg.anonKey||cfg.url.includes('YOUR_')){fail('The student profile database is not configured yet. Please contact the SIBAQ Control Room.');return;}const id=new URLSearchParams(location.search).get('id');if(!id){fail('This QR link has no admission number. Please contact the Control Room.');return;}try{const db=window.supabase.createClient(cfg.url,cfg.anonKey);const {data,error}=await db.from('student_profiles').select('admission_no,name,mentor,programs,program_codes,updated_at').eq('admission_no',id).maybeSingle();if(error)throw error;if(!data){fail('No profile was found for admission number '+id+'. Please ask the Control Room to upload the student list.');return;}const put=(id,value)=>document.getElementById(id).textContent=value||'Not provided';put('admissionValue',data.admission_no);put('nameValue',data.name);put('mentorValue',data.mentor);put('programsValue',(data.programs||[]).join(String.fromCharCode(10)));put('codesValue',(data.program_codes||[]).join(String.fromCharCode(10)));document.getElementById('studentName').textContent=data.name||'Student Profile';document.getElementById('updatedValue').textContent=data.updated_at?'Last updated: '+new Date(data.updated_at).toLocaleString():'Profile information';document.getElementById('profile').hidden=false;document.title=(data.name||'Student Profile')+' | SIBAQ National Arts Fest';}catch(e){fail('Could not load this profile. Please check your internet connection or contact the Control Room. Details: '+(e.message||'database error'));}})();
-</script></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#4f46e5">
+  <title>Student Profile | SIBAQ National Arts Fest</title>
+
+  <style>
+    :root {
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      color: #172033;
+      background: #f3f6fb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 20px;
+      background: linear-gradient(135deg, #eef2ff, #f8fafc);
+    }
+
+    .wrap { width: min(100%, 820px); margin: 0 auto; }
+
+    .card {
+      background: white;
+      border: 1px solid #dfe5ef;
+      border-radius: 22px;
+      box-shadow: 0 18px 55px #17203312;
+      overflow: hidden;
+      margin-bottom: 18px;
+    }
+
+    .head {
+      padding: 26px;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+    }
+
+    .kicker {
+      font-size: 12px;
+      letter-spacing: 2px;
+      font-weight: 800;
+      opacity: .85;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 10px 0 4px;
+      font-size: clamp(25px, 6vw, 36px);
+      overflow-wrap: anywhere;
+    }
+
+    .sub { opacity: .9; }
+    .body { padding: 22px; }
+
+    .row {
+      padding: 14px 0;
+      border-bottom: 1px solid #e7ebf2;
+    }
+
+    .row:last-child { border: 0; }
+
+    .label {
+      font-size: 12px;
+      color: #667085;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .value {
+      font-size: 17px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
+    .foot {
+      text-align: center;
+      color: #667085;
+      font-size: 12px;
+      padding: 0 22px 22px;
+    }
+
+    .error {
+      color: #991b1b;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      padding: 15px;
+      border-radius: 12px;
+      line-height: 1.5;
+      margin: 12px 0;
+    }
+
+    .updated {
+      font-size: 12px;
+      color: #667085;
+      margin-top: 16px;
+    }
+
+    .section-title { margin: 0 0 7px; font-size: 22px; }
+
+    .muted {
+      color: #667085;
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0 0 16px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      background: #4f46e5;
+      color: white;
+      padding: 11px 15px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .btn:disabled { opacity: .6; cursor: wait; }
+    .btn.secondary { background: #eef2ff; color: #3730a3; }
+
+    .field { display: grid; gap: 6px; margin: 10px 0; }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 750;
+      color: #344054;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cfd6e3;
+      border-radius: 10px;
+      font: inherit;
+    }
+
+    .login-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .status-list { display: grid; gap: 10px; }
+
+    .day {
+      border: 1px solid #e0e6f0;
+      border-radius: 14px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: minmax(100px, 1fr) minmax(140px, 1fr) minmax(150px, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .day strong { font-size: 15px; }
+
+    .day small {
+      display: block;
+      color: #667085;
+      margin-top: 3px;
+    }
+
+    .day label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .day input[type="checkbox"] {
+      width: 19px;
+      height: 19px;
+      accent-color: #4f46e5;
+    }
+
+    .day select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #cfd6e3;
+      border-radius: 9px;
+      background: white;
+      font: inherit;
+    }
+
+    .day .save { padding: 9px 11px; white-space: nowrap; }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 99px;
+      background: #f2f4f7;
+      color: #475467;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .pill.done { background: #dcfce7; color: #166534; }
+
+    .notice {
+      font-size: 13px;
+      margin-top: 10px;
+      color: #475467;
+      min-height: 18px;
+    }
+
+    .hidden { display: none !important; }
+
+    .status-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0 16px;
+    }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    [hidden] { display: none !important; }
+
+    @media (max-width: 640px) {
+      body { padding: 10px; }
+      .body { padding: 16px; }
+      .login-grid { grid-template-columns: 1fr; }
+      .day { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .day .save { grid-column: 1 / -1; width: 100%; }
+      .day select { min-width: 0; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <!-- STUDENT PROFILE -->
+  <main class="card" id="profile" hidden>
+    <header class="head">
+      <div class="kicker">SIBAQ • National Arts Fest</div>
+      <h1 id="studentName">Student Profile</h1>
+      <div class="sub">Student information and daily progress</div>
+    </header>
+
+    <section class="body">
+      <div class="row">
+        <div class="label">Admission Number</div>
+        <div class="value" id="admissionValue"></div>
+      </div>
+
+      <div class="row">
+        <div class="label">Name</div>
+        <div class="value" id="nameValue"></div>
+      </div>
+
+      <div class="row">
+        <div class="label">Mentor</div>
+        <div class="value" id="mentorValue"></div>
+      </div>
+
+      <div class="row">
+        <div class="label">Programs</div>
+        <div class="value" id="programsValue"></div>
+      </div>
+
+      <div class="row">
+        <div class="label">Program Codes</div>
+        <div class="value" id="codesValue"></div>
+      </div>
+
+      <div class="updated" id="updatedValue"></div>
+    </section>
+
+    <footer class="foot">
+      SIBAQ National Arts Fest • Contact the Control Room if information is incorrect.
+    </footer>
+  </main>
+
+  <div id="message" class="error" hidden></div>
+
+  <!-- DAILY PROGRESS -->
+  <section class="card" id="progressCard" hidden>
+    <div class="body">
+      <div class="topline">
+        <div>
+          <h2 class="section-title">Daily Student Progress</h2>
+          <p class="muted">
+            Progress from 11 October to 3 November 2026.
+            Students can view this list; only the assigned mentor
+            with a valid passkey can update it.
+          </p>
+        </div>
+        <span class="pill" id="progressCount">0 / 24 completed</span>
+      </div>
+
+      <div class="status-summary">
+        <span class="pill">✓ Completed: tick the box</span>
+        <span class="pill">Performance: Excellent / Good / Average / Poor</span>
+      </div>
+
+      <div id="statusList" class="status-list"></div>
+      <div id="statusMessage" class="notice" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- MENTOR LOGIN -->
+  <section class="card" id="mentorCard" hidden>
+    <div class="body">
+      <div class="topline">
+        <div>
+          <h2 class="section-title">Mentor Login</h2>
+          <p class="muted">
+            Enter the mentor name assigned to this student and your passkey
+            to edit the daily checklist.
+          </p>
+        </div>
+        <span class="pill" id="mentorState">Not signed in</span>
+      </div>
+
+      <div id="loginPanel">
+        <form id="mentorForm">
+          <div class="login-grid">
+            <div class="field">
+              <label for="mentorName">Mentor name</label>
+              <input id="mentorName" autocomplete="username"
+                     required placeholder="Enter your mentor name">
+            </div>
+
+            <div class="field">
+              <label for="mentorPasskey">Passkey</label>
+              <input id="mentorPasskey" type="password"
+                     autocomplete="current-password"
+                     required placeholder="Enter passkey">
+            </div>
+          </div>
+
+          <button class="btn" id="loginButton" type="submit">
+            Verify &amp; sign in
+          </button>
+
+          <div id="loginMessage" class="notice" aria-live="polite"></div>
+        </form>
+      </div>
+
+      <div id="logoutPanel" class="hidden">
+        <p class="muted" id="signedInText"></p>
+        <button class="btn secondary" id="logoutButton" type="button">
+          Sign out
+        </button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+
+<script>
+(async function () {
+  const $ = id => document.getElementById(id);
+  const message = $("message");
+
+  function fail(text) {
+    message.hidden = false;
+    message.textContent = text;
+  }
+
+  const cfg = window.SIBAQ_SUPABASE_CONFIG || {};
+
+  if (
+    !window.supabase ||
+    !cfg.url ||
+    !cfg.anonKey ||
+    cfg.url.includes("YOUR_")
+  ) {
+    fail(
+      "The student database is not configured yet. Please contact the SIBAQ Control Room."
+    );
+    return;
+  }
+
+  // The QR URL should look like:
+  // https://your-site.vercel.app/student.html?id=STUDENT_ADMISSION_NUMBER
+  const admissionNo = new URLSearchParams(location.search).get("id");
+
+  if (!admissionNo) {
+    fail(
+      "This QR link has no admission number. Please contact the Control Room."
+    );
+    return;
+  }
+
+  const db = window.supabase.createClient(cfg.url, cfg.anonKey);
+
+  let profile = null;
+  let signedInMentor = "";
+  let signedInPasskey = "";
+
+  // Checklist dates: 11 October to 3 November 2026, inclusive.
+  const dates = [];
+
+  for (
+    let d = new Date(Date.UTC(2026, 9, 11));
+    d <= new Date(Date.UTC(2026, 10, 3));
+    d.setUTCDate(d.getUTCDate() + 1)
+  ) {
+    dates.push(d.toISOString().slice(0, 10));
+  }
+
+  const dateLabel = iso =>
+    new Date(iso + "T00:00:00Z").toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      timeZone: "UTC"
+    });
+
+  const norm = value =>
+    String(value || "").trim().toLocaleLowerCase();
+
+  // Load student details from the online database.
+  try {
+    const { data, error } = await db
+      .from("student_profiles")
+      .select(
+        "admission_no,name,mentor,programs,program_codes,updated_at"
+      )
+      .eq("admission_no", admissionNo)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!data) {
+      fail(
+        "No profile was found for admission number " +
+        admissionNo +
+        ". Please ask the Control Room to upload the student list."
+      );
+      return;
+    }
+
+    profile = data;
+
+    const put = (id, value) => {
+      $(id).textContent = value || "Not provided";
+    };
+
+    put("admissionValue", data.admission_no);
+    put("nameValue", data.name);
+    put("mentorValue", data.mentor);
+    put("programsValue", (data.programs || []).join("\n"));
+    put("codesValue", (data.program_codes || []).join("\n"));
+
+    $("studentName").textContent = data.name || "Student Profile";
+
+    $("updatedValue").textContent = data.updated_at
+      ? "Profile last updated: " + new Date(data.updated_at).toLocaleString()
+      : "Profile information";
+
+    $("profile").hidden = false;
+    $("progressCard").hidden = false;
+    $("mentorCard").hidden = false;
+
+    document.title =
+      (data.name || "Student Profile") + " | SIBAQ National Arts Fest";
+
+    await renderStatuses();
+  } catch (error) {
+    fail(
+      "Could not load this profile. Please check your internet connection " +
+      "or contact the Control Room. Details: " +
+      (error.message || "database error")
+    );
+    return;
+  }
+
+  async function fetchStatuses() {
+    const { data, error } = await db
+      .from("student_daily_progress")
+      .select("progress_date,completed,rating,updated_at,updated_by")
+      .eq("admission_no", admissionNo)
+      .gte("progress_date", dates[0])
+      .lte("progress_date", dates[dates.length - 1]);
+
+    if (error) throw error;
+
+    return new Map(
+      (data || []).map(item => [item.progress_date, item])
+    );
+  }
+
+  // Display all daily rows. Students are view-only unless their mentor signs in.
+  async function renderStatuses() {
+    const list = $("statusList");
+    list.innerHTML = "";
+
+    let statuses;
+
+    try {
+      statuses = await fetchStatuses();
+    } catch (error) {
+      $("statusMessage").textContent =
+        "Could not load saved progress. Run the updated " +
+        "supabase-setup.sql and check your database configuration. " +
+        (error.message || "");
+      return;
+    }
+
+    let done = 0;
+
+    dates.forEach(date => {
+      const status = statuses.get(date) || {
+        completed: false,
+        rating: ""
+      };
+
+      if (status.completed) done++;
+
+      const row = document.createElement("div");
+      row.className = "day";
+      row.dataset.date = date;
+
+      const title = document.createElement("div");
+      const strong = document.createElement("strong");
+      strong.textContent = dateLabel(date);
+      title.appendChild(strong);
+
+      const small = document.createElement("small");
+      small.textContent = status.updated_at
+        ? "Updated " + new Date(status.updated_at).toLocaleDateString()
+        : "Not updated";
+      title.appendChild(small);
+
+      // Completed checkbox
+      const completedLabel = document.createElement("label");
+      const check = document.createElement("input");
+
+      check.type = "checkbox";
+      check.checked = !!status.completed;
+      check.disabled = !signedInMentor;
+
+      completedLabel.appendChild(check);
+      completedLabel.appendChild(
+        document.createTextNode("Completed")
+      );
+
+      // Performance selector
+      const select = document.createElement("select");
+      select.setAttribute(
+        "aria-label",
+        "Performance for " + dateLabel(date)
+      );
+      select.disabled = !signedInMentor;
+
+      [
+        ["", "Choose status"],
+        ["Excellent", "Excellent"],
+        ["Good", "Good"],
+        ["Average", "Average"],
+        ["Poor", "Poor"]
+      ].forEach(([value, label]) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = label;
+        select.appendChild(option);
+      });
+
+      select.value = status.rating || "";
+
+      // Save daily status to Supabase.
+      const save = document.createElement("button");
+      save.className = "btn save";
+      save.type = "button";
+      save.textContent = "Save";
+      save.disabled = !signedInMentor;
+
+      save.addEventListener("click", async () => {
+        save.disabled = true;
+        save.textContent = "Saving…";
+        $("statusMessage").textContent = "";
+
+        try {
+          const { data, error } = await db.rpc(
+            "mentor_save_daily_status",
+            {
+              p_admission_no: admissionNo,
+              p_mentor_name: signedInMentor,
+              p_passkey: signedInPasskey,
+              p_progress_date: date,
+              p_completed: check.checked,
+              p_rating: select.value || null
+            }
+          );
+
+          if (error) throw error;
+
+          if (data !== true) {
+            throw new Error(
+              "The passkey or mentor assignment was not accepted."
+            );
+          }
+
+          $("statusMessage").textContent =
+            "Saved progress for " + dateLabel(date) + ".";
+
+          await renderStatuses();
+        } catch (error) {
+          $("statusMessage").textContent =
+            "Could not save. " +
+            (error.message ||
+              "Check the passkey, assigned mentor, and database setup.");
+
+          save.disabled = false;
+          save.textContent = "Save";
+        }
+      });
+
+      row.append(title, completedLabel, select, save);
+      list.appendChild(row);
+    });
+
+    $("progressCount").textContent =
+      done + " / " + dates.length + " completed";
+
+    if (!signedInMentor) {
+      $("statusMessage").textContent =
+        "View-only mode. Sign in as the assigned mentor to update progress.";
+    }
+  }
+
+  // Mentor passkey validation.
+  $("mentorForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const name = $("mentorName").value.trim();
+    const passkey = $("mentorPasskey").value;
+
+    $("loginButton").disabled = true;
+    $("loginMessage").textContent = "Verifying passkey…";
+
+    try {
+      const { data, error } = await db.rpc(
+        "mentor_passkey_valid",
+        {
+          p_mentor_name: name,
+          p_passkey: passkey
+        }
+      );
+
+      if (error) throw error;
+
+      if (data !== true) {
+        throw new Error("Incorrect mentor name or passkey.");
+      }
+
+      if (norm(profile.mentor) !== norm(name)) {
+        throw new Error(
+          "This mentor is not assigned to this student. Assigned mentor: " +
+          (profile.mentor || "not provided") +
+          "."
+        );
+      }
+
+      signedInMentor = name;
+      signedInPasskey = passkey;
+
+      $("mentorState").textContent = "Signed in";
+      $("loginPanel").classList.add("hidden");
+      $("logoutPanel").classList.remove("hidden");
+
+      $("signedInText").textContent =
+        "Signed in as " + name +
+        ". You can now tick completion and select a performance rating for each date.";
+
+      $("loginMessage").textContent = "";
+
+      await renderStatuses();
+    } catch (error) {
+      $("loginMessage").textContent =
+        error.message ||
+        "Login failed. Check the mentor name, passkey, and database setup.";
+    } finally {
+      $("loginButton").disabled = false;
+    }
+  });
+
+  // Sign out of mentor mode.
+  $("logoutButton").addEventListener("click", () => {
+    signedInMentor = "";
+    signedInPasskey = "";
+
+    $("mentorPasskey").value = "";
+    $("mentorState").textContent = "Not signed in";
+    $("loginPanel").classList.remove("hidden");
+    $("logoutPanel").classList.add("hidden");
+
+    renderStatuses();
+  });
+})();
+</script>
+</body>
+</html>
