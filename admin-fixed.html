@@ -4,9 +4,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <title>Arts Fest Control Room</title>
 
   <style>
@@ -336,13 +333,6 @@
     .schedule-time {
       font-weight: 800;
     }
-    .line-chart-wrap {
-  position: relative;
-  width: 100%;
-  height: 420px;
-  min-height: 300px;
-  margin: 16px 0 24px;
-}
 
     .badge {
       display: inline-block;
@@ -1580,137 +1570,6 @@
       renderSchedule();
       automaticAnnouncements();
     }
-
-    
-let allStudentsLineChart = null;
-
-function renderAllStudentsLineGraph() {
-  const canvas = document.getElementById("allStudentsLineChart");
-  const message = document.getElementById("allStudentsLineChartMessage");
-
-  if (!canvas || typeof Chart === "undefined") {
-    if (message) message.textContent =
-      "Line graph could not load. Check the Chart.js script.";
-    return;
-  }
-
-  if (!graphProfilesCache.length) {
-    if (message) message.textContent = "No student data available.";
-    if (allStudentsLineChart) {
-      allStudentsLineChart.destroy();
-      allStudentsLineChart = null;
-    }
-    return;
-  }
-
-  const dates = [];
-  for (
-    let d = new Date(GRAPH_START_DATE + "T00:00:00Z");
-    d <= new Date(GRAPH_END_DATE + "T00:00:00Z");
-    d.setUTCDate(d.getUTCDate() + 1)
-  ) {
-    dates.push(d.toISOString().slice(0, 10));
-  }
-
-  const labels = dates.map(date =>
-    new Date(date + "T00:00:00Z").toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      timeZone: "UTC"
-    })
-  );
-
-  const datasets = graphProfilesCache.map(profile => {
-    const statuses = Array.isArray(profile._graphStatuses)
-      ? profile._graphStatuses : [];
-
-    const completedByDate = new Map(
-      statuses.map(status => [
-        status.progress_date + "|" +
-        String(status.program_code || "").trim().toLowerCase(),
-        status.completed === true
-      ])
-    );
-
-    const programs = graphGetPrograms(profile);
-
-    let cumulative = 0;
-
-    const values = dates.map(date => {
-      programs.forEach(program => {
-        const key = date + "|" + program.code.toLowerCase();
-        if (completedByDate.get(key)) cumulative++;
-      });
-
-      return cumulative;
-    });
-
-    return {
-      label: String(profile.admission_no) + " — " +
-        (profile.name || "Unnamed student"),
-      data: values,
-      tension: 0.25,
-      pointRadius: 2,
-      pointHoverRadius: 5,
-      borderWidth: 2,
-      fill: false
-    };
-  });
-
-  if (allStudentsLineChart) {
-    allStudentsLineChart.destroy();
-  }
-
-  allStudentsLineChart = new Chart(canvas, {
-    type: "line",
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: {
-        mode: "nearest",
-        intersect: false
-      },
-      plugins: {
-        legend: {
-          position: "bottom"
-        },
-        tooltip: {
-          callbacks: {
-            label: context =>
-              context.dataset.label + ": " +
-              context.parsed.y + " completed programme-days"
-          }
-        }
-      },
-      scales: {
-        x: {
-          title: {
-            display: true,
-            text: "Date"
-          }
-        },
-        y: {
-          beginAtZero: true,
-          ticks: {
-            precision: 0
-          },
-          title: {
-            display: true,
-            text: "Cumulative completed programme-days"
-          }
-        }
-      }
-    }
-  });
-
-  if (message) {
-    message.textContent =
-      "Each line represents one student. The total includes all of that student's programmes.";
-  }
-}
-
-renderAllStudentsLineGraph();
 
 
     /* =========================================================
