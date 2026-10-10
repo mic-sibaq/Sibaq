@@ -45,6 +45,27 @@
             color: white
         }
 
+        .head-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px
+        }
+
+        .head-copy {
+            min-width: 0
+        }
+
+        .student-photo {
+            width: clamp(88px, 22vw, 132px);
+            height: clamp(88px, 22vw, 132px);
+            flex: 0 0 auto;
+            object-fit: cover;
+            border: 3px solid #ffffffb3;
+            border-radius: 50%;
+            background: #ffffff26
+        }
+
         .kicker {
             font-size: 11px;
             letter-spacing: 1.8px;
@@ -492,6 +513,16 @@
         }
 
         @media(max-width:390px) {
+            .head-content {
+                align-items: flex-start;
+                gap: 12px
+            }
+
+            .student-photo {
+                width: 76px;
+                height: 76px
+            }
+
             .program-row {
                 grid-template-columns: 1fr
             }
@@ -523,9 +554,14 @@
     <div class="wrap">
         <main class="card" id="profile" hidden>
             <header class="head">
-                <div class="kicker">SIBAQ • National Arts Fest</div>
-                <h1 id="studentName">Student Profile</h1>
-                <div class="sub">Student information and program-wise daily progression</div>
+                <div class="head-content">
+                    <div class="head-copy">
+                        <div class="kicker">SIBAQ • National Arts Fest</div>
+                        <h1 id="studentName">Student Profile</h1>
+                        <div class="sub">Student information and program-wise daily progression</div>
+                    </div>
+                    <img class="student-photo" id="studentPhoto" alt="" hidden>
+                </div>
             </header>
             <section class="body">
                 <div class="row">
@@ -626,6 +662,11 @@
                 const {data, error} = await db.from('student_profiles').select('admission_no,name,mentor,programs,program_codes,program_mentors,updated_at').eq('admission_no', admissionNo).maybeSingle();
                 if (error) throw error; if (!data) {fail('No profile was found for admission number ' + admissionNo + '. Please ask the Control Room to upload the student list.'); return;}
                 profile = data; text('admissionValue', data.admission_no); text('nameValue', data.name);
+                const photo = $('studentPhoto');
+                photo.alt = 'Photo of ' + (data.name || 'student');
+                photo.onerror = () => {photo.hidden = true;};
+                photo.src = db.storage.from('Images').getPublicUrl(String(data.admission_no).trim() + '.png').data.publicUrl;
+                photo.hidden = false;
                 const programs = getPrograms(); const picker = $('programSelect'); picker.innerHTML = '';
                 if (programs.length) {programs.forEach((program, index) => {const option = document.createElement('option'); option.value = program.code; option.textContent = program.name + (program.code ? ' (' + program.code + ')' : ''); picker.appendChild(option);}); selectedProgramCode = programs[0].code; picker.value = selectedProgramCode; $('codesValue').textContent = selectedProgramCode; text('mentorValue', getMentorForProgram(programs[0])); $('programPickerHelp').textContent = programs.length > 1 ? 'Select a program to see only its daily progression and performance. Your mentor can update the selected program.' : 'Your daily progression and performance for this program are shown below.';} else {$('codesValue').textContent = 'Not provided'; $('programPickerHelp').textContent = 'No programs are listed in this student profile.';}
                 picker.addEventListener('change', () => {selectedProgramCode = picker.value; const selected = getPrograms().find(p => p.code === selectedProgramCode); $('codesValue').textContent = selected ? selected.code : 'Not provided'; text('mentorValue', getMentorForProgram(selected)); if (sessionRole === 'mentor') hideProgression(); else renderStatuses();});
