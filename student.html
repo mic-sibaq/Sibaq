@@ -627,8 +627,8 @@
                 if (error) throw error; if (!data) {fail('No profile was found for admission number ' + admissionNo + '. Please ask the Control Room to upload the student list.'); return;}
                 profile = data; text('admissionValue', data.admission_no); text('nameValue', data.name);
                 const programs = getPrograms(); const picker = $('programSelect'); picker.innerHTML = '';
-                if (programs.length) {programs.forEach((program, index) => {const option = document.createElement('option'); option.value = program.code; option.textContent = program.name + (program.code ? ' (' + program.code + ')' : ''); picker.appendChild(option);}); selectedProgramCode = programs[0].code; picker.value = selectedProgramCode; $('codesValue').textContent = selectedProgramCode; text('mentorValue', programs[0].mentor || data.mentor); $('programPickerHelp').textContent = programs.length > 1 ? 'Select a program to see only its daily progression and performance. Your mentor can update the selected program.' : 'Your daily progression and performance for this program are shown below.';} else {$('codesValue').textContent = 'Not provided'; $('programPickerHelp').textContent = 'No programs are listed in this student profile.';}
-                picker.addEventListener('change', () => {selectedProgramCode = picker.value; const selected = getPrograms().find(p => p.code === selectedProgramCode); $('codesValue').textContent = selected ? selected.code : 'Not provided'; text('mentorValue', selected ? selected.mentor : profile.mentor); if (sessionRole === 'mentor') hideProgression(); else renderStatuses();});
+                if (programs.length) {programs.forEach((program, index) => {const option = document.createElement('option'); option.value = program.code; option.textContent = program.name + (program.code ? ' (' + program.code + ')' : ''); picker.appendChild(option);}); selectedProgramCode = programs[0].code; picker.value = selectedProgramCode; $('codesValue').textContent = selectedProgramCode; text('mentorValue', getMentorForProgram(programs[0])); $('programPickerHelp').textContent = programs.length > 1 ? 'Select a program to see only its daily progression and performance. Your mentor can update the selected program.' : 'Your daily progression and performance for this program are shown below.';} else {$('codesValue').textContent = 'Not provided'; $('programPickerHelp').textContent = 'No programs are listed in this student profile.';}
+                picker.addEventListener('change', () => {selectedProgramCode = picker.value; const selected = getPrograms().find(p => p.code === selectedProgramCode); $('codesValue').textContent = selected ? selected.code : 'Not provided'; text('mentorValue', getMentorForProgram(selected)); if (sessionRole === 'mentor') hideProgression(); else renderStatuses();});
                 $('studentName').textContent = data.name || 'Student Profile';
                 $('updatedValue').textContent = data.updated_at ? 'Profile last updated: ' + new Date(data.updated_at).toLocaleString() : 'Profile information'; $('profile').hidden = false;
                 document.title = (data.name || 'Student Profile') + ' | SIBAQ National Arts Fest';
@@ -642,7 +642,7 @@
             $('progressCard').hidden = false;
 
             $('mentorForm').addEventListener('submit', async event => {
-                event.preventDefault(); const passkey = $('mentorPasskey').value; const selected = getPrograms().find(p => p.code === selectedProgramCode); const mentorName = String(selected?.mentor || profile.mentor || '').trim(); const button = $('mentorLoginButton'); button.disabled = true; $('mentorLoginMessage').textContent = 'Verifying passkey…';
+                event.preventDefault(); const passkey = $('mentorPasskey').value; const selected = getPrograms().find(p => p.code === selectedProgramCode); const mentorName = String(getMentorForProgram(selected) || '').trim(); const button = $('mentorLoginButton'); button.disabled = true; $('mentorLoginMessage').textContent = 'Verifying passkey…';
                 try {
                     if (!mentorName) throw new Error('No mentor is assigned to this program. Please contact the Control Room.');
                     const {data, error} = await db.rpc('mentor_passkey_valid', {p_admission_no: admissionNo, p_program_code: selectedProgramCode, p_mentor_name: mentorName, p_passkey: passkey}); if (error) throw error; if (data !== true) throw new Error('Incorrect passkey or mentor assignment for this program.');
@@ -651,6 +651,17 @@
             });
 
             function getPrograms() {const names = Array.isArray(profile.programs) ? profile.programs : []; const codes = Array.isArray(profile.program_codes) ? profile.program_codes : []; const mentors = Array.isArray(profile.program_mentors) ? profile.program_mentors : []; const n = Math.max(names.length, codes.length, mentors.length); const out = [], seen = new Set(); for (let i = 0; i < n; i++) {const name = String(names[i] || '').trim(); const code = String(codes[i] || '').trim(); const mentor = String(mentors[i] || '').trim(); if (!name && !code) continue; const key = code.toLocaleLowerCase() + '|' + name.toLocaleLowerCase(); if (seen.has(key)) continue; seen.add(key); out.push({name: name || 'Program ' + (i + 1), code: code || 'PROGRAM-' + (i + 1), mentor});} return out;}
+            function getMentorForProgram(program) {
+                if (!program) return '';
+                const mentors = Array.isArray(profile?.program_mentors) ? profile.program_mentors : [];
+                const hasProgramMentorAssignments = mentors.length > 0;
+                if (String(program.mentor || '').trim()) return String(program.mentor).trim();
+                // Only use the legacy single mentor field when this is a single-program
+                // profile with no programme-specific mentor array. Never show the first
+                // programme's mentor as the mentor for a different programme.
+                if (!hasProgramMentorAssignments && getPrograms().length === 1) return String(profile?.mentor || '').trim();
+                return '';
+            }
             function ratingClass(rating) {return ({Excellent: 'rating-excellent', Good: 'rating-good', Average: 'rating-average', Poor: 'rating-poor'})[rating] || 'rating-unrated';}
             async function fetchStatuses() {const rpcName = sessionRole === 'mentor' ? 'mentor_get_program_status' : 'student_get_program_status'; const args = sessionRole === 'mentor' ? {p_admission_no: admissionNo, p_program_code: selectedProgramCode, p_mentor_name: signedInMentor, p_passkey: signedInPasskey, p_start_date: dates[0], p_end_date: dates[dates.length - 1]} : {p_admission_no: admissionNo, p_start_date: dates[0], p_end_date: dates[dates.length - 1]}; const {data, error} = await db.rpc(rpcName, args); if (error) throw error; return new Map((data || []).map(item => [item.progress_date + '|' + item.program_code, item]));}
             async function renderStatuses() {

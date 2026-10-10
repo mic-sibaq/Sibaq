@@ -2797,18 +2797,48 @@
     }
     function setDbStatus(text) {const el = document.getElementById('dbStatus'); if (el) el.textContent = text;}
     function normalizeAdmission(value) {return String(value ?? '').trim().replace(/\s+/g, ' ').toLocaleUpperCase();}
-    function uniqueStudentRoster() {
+    function programAssignmentKey(code, program) {
+      const normalizedCode = String(code || '').trim().toLocaleLowerCase();
+      const normalizedProgram = String(program || '').trim().toLocaleLowerCase();
+      return normalizedCode ? 'code:' + normalizedCode : 'program:' + normalizedProgram;
+    }
+
+    // A mentor belongs to a programme, not to an individual student. Build the
+    // programme -> mentor map from all imported rows first, then apply it to every
+    // student enrolled in that programme.
+    function buildProgramMentorMap() {
       const map = new Map();
+      const conflicts = [];
+      const rows = [...(students || []).filter(s => s.source === 'csv'), ...(students || []).filter(s => s.source !== 'csv')];
+      rows.forEach(s => {
+        const code = String(s.programCode ?? s.program_code ?? '').trim();
+        const program = String(s.program || '').trim();
+        const mentor = String(s.mentor || '').trim();
+        if (!(code || program) || !mentor) return;
+        const key = programAssignmentKey(code, program);
+        const existing = map.get(key);
+        if (!existing) {map.set(key, {mentor, program, code}); return;}
+        if (existing.mentor.toLocaleLowerCase() !== mentor.toLocaleLowerCase()) {
+          conflicts.push({program: program || existing.program, code: code || existing.code, first: existing.mentor, other: mentor});
+        }
+      });
+      return {map, conflicts};
+    }
+
+    function uniqueStudentRoster() {
+      const studentMap = new Map();
+      const programAssignments = buildProgramMentorMap().map;
       (students || []).forEach(s => {
         const admissionNo = String(s.adNo ?? s.admissionNo ?? s.admission_no ?? '').trim();
         const key = normalizeAdmission(admissionNo);
         if (!key) return;
-        if (!map.has(key)) map.set(key, {admission_no: admissionNo, name: String(s.name || '').trim(), mentor: '', programs: [], program_codes: [], program_mentors: [], _programPairs: []});
-        const p = map.get(key);
+        if (!studentMap.has(key)) studentMap.set(key, {admission_no: admissionNo, name: String(s.name || '').trim(), mentor: '', programs: [], program_codes: [], program_mentors: [], _programPairs: []});
+        const p = studentMap.get(key);
         if (String(s.name || '').trim()) p.name = String(s.name).trim();
         const program = String(s.program || '').trim();
         const code = String(s.programCode ?? s.program_code ?? '').trim();
-        const mentor = String(s.mentor || '').trim();
+        const keyForProgram = programAssignmentKey(code, program);
+        const mentor = programAssignments.get(keyForProgram)?.mentor || String(s.mentor || '').trim();
         if (program || code) {
           const pairKey = (code.toLocaleLowerCase()) + '|' + (program.toLocaleLowerCase());
           const existing = p._programPairs.find(item => item.key === pairKey);
@@ -2816,7 +2846,7 @@
           else if (mentor) existing.mentor = mentor;
         }
       });
-      return [...map.values()].map(p => {
+      return [...studentMap.values()].map(p => {
         p._programPairs.sort((a, b) => (a.code || a.program).localeCompare(b.code || b.program));
         p.programs = p._programPairs.map(x => x.program);
         p.program_codes = p._programPairs.map(x => x.code);
@@ -2844,7 +2874,9 @@
       const payload = roster.map(p => ({...p, updated_at: new Date().toISOString()}));
       const {error} = await db.from('student_profiles').upsert(payload, {onConflict: 'admission_no'});
       if (error) {setDbStatus('Upload failed: ' + error.message + ' — check that the SQL setup was completed.'); return;}
-      setDbStatus(`Success: ${roster.length} unique student profiles uploaded/updated. Repeated program rows were combined. Existing QR codes will keep working.`);
+      const mentorConflicts = buildProgramMentorMap().conflicts;
+      const conflictNote = mentorConflicts.length ? ` Warning: ${mentorConflicts.length} programme(s) have different mentor names in the CSV; the first non-empty mentor found was applied to all students in that programme. Check the CSV rows for those programmes.` : '';
+      setDbStatus(`Success: ${roster.length} unique student profiles uploaded/updated. Programme mentors were applied consistently to all students enrolled in each programme. Existing QR codes will keep working.${conflictNote}`);
       await loadOnlineProfiles();
     }
     async function loadOnlineProfiles() {
