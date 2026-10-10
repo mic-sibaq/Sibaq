@@ -2000,18 +2000,18 @@ body.dark .matrix-summary-pill {
   </p>
 
   <div class="btn-row" style="margin:14px 0">
-    <button class="btn green" id="allStudentsGraphBtn"
-      onclick="showAllStudentsGraph()">
-      📈 All Students Graph
-    </button>
-
-    <button class="btn secondary" id="individualGraphBtn"
+    <button class="btn green" id="individualGraphBtn"
       onclick="showIndividualGraph()">
       👤 Individual Student Graph
     </button>
+
+    <button class="btn secondary" id="allStudentsGraphBtn"
+      onclick="showAllStudentsGraph()">
+      📈 Overall Ratings Breakdown
+    </button>
   </div>
 
-  <div id="allStudentsGraphPanel">
+  <div id="allStudentsGraphPanel" hidden>
     <div id="allGraphSummary" class="graph-summary">
       <div class="graph-stat">
         <span>Total Students</span>
@@ -2030,16 +2030,6 @@ body.dark .matrix-summary-pill {
         <strong id="graphOverallPercent">—</strong>
       </div>
     </div>
-
-    <h3>Programme-wise Completion</h3>
-    <p class="muted">
-      Each bar represents the percentage of scheduled programme-days
-      completed by all students enrolled in that programme.
-    </p>
-    <div class="chart-canvas-wrapper" style="margin-bottom:14px">
-      <canvas id="allProgramCanvas"></canvas>
-    </div>
-    <div id="allProgramGraph" class="graph-bars"></div>
 
     <div class="rating-bar-section-head">
       <div>
@@ -2075,7 +2065,7 @@ body.dark .matrix-summary-pill {
     </button>
   </div>
 
-  <div id="individualGraphPanel" hidden>
+  <div id="individualGraphPanel">
     <!-- SEARCH & CONTROLS TOOLBAR -->
     <div class="individual-search-bar">
       <div class="search-input-group">
@@ -2205,19 +2195,6 @@ body.dark .matrix-summary-pill {
         </div>
       </div>
 
-      <!-- CHART 3: PROGRAMME-BY-PROGRAMME COMPARISON -->
-      <div class="chart-panel full-width-chart">
-        <div class="chart-panel-head">
-          <div>
-            <h3 class="chart-title">📊 Programme-Wise Completion & Quality Analysis</h3>
-            <p class="chart-subtitle">Completed practice sessions against 24-day scheduled requirements</p>
-          </div>
-        </div>
-        <div class="chart-canvas-wrapper bar-canvas-wrapper">
-          <canvas id="individualProgramsCanvas"></canvas>
-        </div>
-        <div id="individualProgramGraph" class="graph-bars" style="margin-top:14px"></div>
-      </div>
 
       <!-- CHART 4: 24-DAY OFFICIAL ATTENDANCE & EVALUATION MATRIX -->
       <div class="chart-panel">
@@ -6105,10 +6082,18 @@ function handleThemeChangeForCharts() {
   }
 }
 
-// Keep the board ready when page loads
-graphSetPanel(false);
+// Keep the board ready when page loads: display individual student graph in that place by default
+graphSetPanel(true);
 updateGraphStudentPicker();
-renderAllStudentsGraph();
+const availableStudents = getAvailableStudentList();
+if (availableStudents.length > 0) {
+  const firstStudent = availableStudents[0];
+  const input = document.getElementById("graphAdmissionSearch");
+  if (input) input.value = firstStudent.admission_no;
+  searchIndividualGraph();
+} else {
+  loadSampleIndividualGraph();
+}
 
     loadSettings();
     renderStudents();
