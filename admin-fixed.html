@@ -1946,7 +1946,7 @@
         announcementChimeTimer = null;
       }
       if (announcementAudioContext) {
-        try { announcementAudioContext.close(); } catch (e) { }
+        try {announcementAudioContext.close();} catch (e) { }
         announcementAudioContext = null;
       }
       if (announcementChimeResolve) {
@@ -1964,7 +1964,7 @@
           stopAnnouncementAudio();
           announcementChimeResolve = resolve;
           const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-          if (!AudioContextClass) { resolve(); return; }
+          if (!AudioContextClass) {resolve(); return;}
 
           const ctx = new AudioContextClass();
           announcementAudioContext = ctx;
@@ -1977,9 +1977,9 @@
           master.connect(ctx.destination);
 
           const notes = [
-            { frequency: 659.25, start: 0, duration: .38 },
-            { frequency: 783.99, start: .13, duration: .58 },
-            { frequency: 1046.50, start: .27, duration: .82 }
+            {frequency: 659.25, start: 0, duration: .38},
+            {frequency: 783.99, start: .13, duration: .58},
+            {frequency: 1046.50, start: .27, duration: .82}
           ];
 
           notes.forEach(note => {
@@ -2486,9 +2486,9 @@
       for (let i = 0; i < source.length; i++) {
         const ch = source[i];
         if (ch === '"') {
-          if (quoted && source[i + 1] === '"') { cell += '"'; i++; }
+          if (quoted && source[i + 1] === '"') {cell += '"'; i++;}
           else quoted = !quoted;
-        } else if (ch === ',' && !quoted) { row.push(cell); cell = ''; }
+        } else if (ch === ',' && !quoted) {row.push(cell); cell = '';}
         else if ((ch === '\n' || ch === '\r') && !quoted) {
           if (ch === '\r' && source[i + 1] === '\n') i++;
           row.push(cell); cell = '';
@@ -2496,7 +2496,7 @@
           row = [];
         } else cell += ch;
       }
-      if (cell !== '' || row.length) { row.push(cell); if (row.some(value => String(value).trim() !== '')) rows.push(row); }
+      if (cell !== '' || row.length) {row.push(cell); if (row.some(value => String(value).trim() !== '')) rows.push(row);}
       return rows;
     }
 
@@ -2513,7 +2513,7 @@
         mentor: ['mentor', 'mentor name']
       };
       const findIndex = keys => headers.findIndex(h => keys.includes(h));
-      const indexes = { adNo: findIndex(aliases.adNo), name: findIndex(aliases.name), programCode: findIndex(aliases.programCode), program: findIndex(aliases.program), mentor: findIndex(aliases.mentor) };
+      const indexes = {adNo: findIndex(aliases.adNo), name: findIndex(aliases.name), programCode: findIndex(aliases.programCode), program: findIndex(aliases.program), mentor: findIndex(aliases.mentor)};
       if (indexes.adNo < 0 || indexes.name < 0 || indexes.programCode < 0 || indexes.program < 0) {
         throw new Error('CSV must contain Admission No., Name, Program Code and Program columns. Mentor is optional. Other columns will be preserved in the imported row data.');
       }
@@ -2521,7 +2521,7 @@
       // The original headers and cell values are retained in csvOriginalRow for traceability.
       return rows.slice(1).map((row, index) => {
         const raw = {};
-        originalHeaders.forEach((header, column) => { raw[header || ('Column ' + (column + 1))] = String(row[column] ?? ''); });
+        originalHeaders.forEach((header, column) => {raw[header || ('Column ' + (column + 1))] = String(row[column] ?? '');});
         return {
           adNo: String(row[indexes.adNo] ?? '').trim(),
           name: String(row[indexes.name] ?? '').trim(),
@@ -2543,7 +2543,7 @@
       reader.onload = function (event) {
         try {
           const imported = parseCSVText(event.target.result);
-          if (!imported.length) { toast('No data rows were found in the CSV.'); return; }
+          if (!imported.length) {toast('No data rows were found in the CSV.'); return;}
           // Re-uploading the same filename replaces its previous import, but every row
           // in the selected file is imported, even repeated programme/student rows.
           students = students.filter(s => !(s.source === 'csv' && s.csvFileName === file.name));
@@ -2557,10 +2557,10 @@
           updateCSVStatus();
           const validProfiles = new Set(imported.map(s => normalizeAdmission(s.adNo)).filter(Boolean)).size;
           toast(`${imported.length} of ${imported.length} CSV data rows imported from ${file.name}. No repeated programme rows were skipped. ${validProfiles} unique admission numbers detected for student profiles.`);
-        } catch (error) { toast(error.message || 'Could not read the CSV file.'); }
-        finally { input.value = ''; }
+        } catch (error) {toast(error.message || 'Could not read the CSV file.');}
+        finally {input.value = '';}
       };
-      reader.onerror = function () { toast('Could not read the selected CSV file.'); input.value = ''; };
+      reader.onerror = function () {toast('Could not read the selected CSV file.'); input.value = '';};
       reader.readAsText(file);
     }
 
@@ -2795,109 +2795,117 @@
       if (!window.__sibaQDb) window.__sibaQDb = window.supabase.createClient(window.SIBAQ_SUPABASE_CONFIG.url, window.SIBAQ_SUPABASE_CONFIG.anonKey);
       return window.__sibaQDb;
     }
-    function setDbStatus(text) { const el = document.getElementById('dbStatus'); if (el) el.textContent = text; }
-    function normalizeAdmission(value) { return String(value ?? '').trim().replace(/\s+/g, ' ').toLocaleUpperCase(); }
+    function setDbStatus(text) {const el = document.getElementById('dbStatus'); if (el) el.textContent = text;}
+    function normalizeAdmission(value) {return String(value ?? '').trim().replace(/\s+/g, ' ').toLocaleUpperCase();}
     function uniqueStudentRoster() {
       const map = new Map();
       (students || []).forEach(s => {
         const admissionNo = String(s.adNo ?? s.admissionNo ?? s.admission_no ?? '').trim();
         const key = normalizeAdmission(admissionNo);
         if (!key) return;
-        if (!map.has(key)) map.set(key, { admission_no: admissionNo, name: String(s.name || '').trim(), mentor: String(s.mentor || '').trim(), programs: [], program_codes: [], _programPairs: [] });
+        if (!map.has(key)) map.set(key, {admission_no: admissionNo, name: String(s.name || '').trim(), mentor: '', programs: [], program_codes: [], program_mentors: [], _programPairs: []});
         const p = map.get(key);
         if (String(s.name || '').trim()) p.name = String(s.name).trim();
-        if (String(s.mentor || '').trim()) p.mentor = String(s.mentor).trim();
         const program = String(s.program || '').trim();
         const code = String(s.programCode ?? s.program_code ?? '').trim();
+        const mentor = String(s.mentor || '').trim();
         if (program || code) {
           const pairKey = (code.toLocaleLowerCase()) + '|' + (program.toLocaleLowerCase());
-          if (!p._programPairs.some(item => item.key === pairKey)) p._programPairs.push({ key: pairKey, program, code });
+          const existing = p._programPairs.find(item => item.key === pairKey);
+          if (!existing) p._programPairs.push({key: pairKey, program, code, mentor});
+          else if (mentor) existing.mentor = mentor;
         }
       });
       return [...map.values()].map(p => {
         p._programPairs.sort((a, b) => (a.code || a.program).localeCompare(b.code || b.program));
         p.programs = p._programPairs.map(x => x.program);
         p.program_codes = p._programPairs.map(x => x.code);
+        p.program_mentors = p._programPairs.map(x => x.mentor || '');
+        p.mentor = p.program_mentors.find(Boolean) || '';
         delete p._programPairs;
         return p;
       });
     }
     async function signInDatabaseAdmin() {
-      const db = getDbClient(); if (!db) { setDbStatus('Supabase is not configured. Edit supabase-config.js with your Project URL and anon/publishable key, then redeploy.'); return; }
+      const db = getDbClient(); if (!db) {setDbStatus('Supabase is not configured. Edit supabase-config.js with your Project URL and anon/publishable key, then redeploy.'); return;}
       const email = document.getElementById('dbEmail').value.trim(), password = document.getElementById('dbPassword').value;
-      if (!email || !password) { setDbStatus('Enter the admin email and password.'); return; }
+      if (!email || !password) {setDbStatus('Enter the admin email and password.'); return;}
       setDbStatus('Signing in…');
-      const { error } = await db.auth.signInWithPassword({ email, password });
+      const {error} = await db.auth.signInWithPassword({email, password});
       setDbStatus(error ? 'Sign-in failed: ' + error.message : 'Signed in successfully. You can now upload and edit online student profiles.');
       if (!error) await loadOnlineProfiles();
     }
-    async function signOutDatabaseAdmin() { const db = getDbClient(); if (!db) { setDbStatus('Supabase is not configured yet.'); return; } const { error } = await db.auth.signOut(); setDbStatus(error ? 'Sign-out failed: ' + error.message : 'Signed out.'); }
+    async function signOutDatabaseAdmin() {const db = getDbClient(); if (!db) {setDbStatus('Supabase is not configured yet.'); return;} const {error} = await db.auth.signOut(); setDbStatus(error ? 'Sign-out failed: ' + error.message : 'Signed out.');}
     async function syncStudentsToDatabase() {
-      const db = getDbClient(); if (!db) { setDbStatus('Supabase is not configured. Complete setup in README.txt first.'); return; }
-      const { data: { session } } = await db.auth.getSession(); if (!session) { setDbStatus('Please sign in with the Supabase admin account first.'); return; }
-      const roster = uniqueStudentRoster(); if (!roster.length) { setDbStatus('No students with admission numbers found. Import your CSV first.'); return; }
+      const db = getDbClient(); if (!db) {setDbStatus('Supabase is not configured. Complete setup in README.txt first.'); return;}
+      const {data: {session}} = await db.auth.getSession(); if (!session) {setDbStatus('Please sign in with the Supabase admin account first.'); return;}
+      const roster = uniqueStudentRoster(); if (!roster.length) {setDbStatus('No students with admission numbers found. Import your CSV first.'); return;}
       setDbStatus(`Uploading ${roster.length} unique students…`);
-      const payload = roster.map(p => ({ ...p, updated_at: new Date().toISOString() }));
-      const { error } = await db.from('student_profiles').upsert(payload, { onConflict: 'admission_no' });
-      if (error) { setDbStatus('Upload failed: ' + error.message + ' — check that the SQL setup was completed.'); return; }
+      const payload = roster.map(p => ({...p, updated_at: new Date().toISOString()}));
+      const {error} = await db.from('student_profiles').upsert(payload, {onConflict: 'admission_no'});
+      if (error) {setDbStatus('Upload failed: ' + error.message + ' — check that the SQL setup was completed.'); return;}
       setDbStatus(`Success: ${roster.length} unique student profiles uploaded/updated. Repeated program rows were combined. Existing QR codes will keep working.`);
       await loadOnlineProfiles();
     }
     async function loadOnlineProfiles() {
-      const db = getDbClient(); if (!db) { setDbStatus('Supabase is not configured. Complete setup in README.txt first.'); return; }
-      const { data: { session } } = await db.auth.getSession(); if (!session) { setDbStatus('Sign in first to load and edit online profiles.'); return; }
+      const db = getDbClient(); if (!db) {setDbStatus('Supabase is not configured. Complete setup in README.txt first.'); return;}
+      const {data: {session}} = await db.auth.getSession(); if (!session) {setDbStatus('Sign in first to load and edit online profiles.'); return;}
       setDbStatus('Loading online profiles…');
-      const { data, error } = await db.from('student_profiles').select('*').order('admission_no');
-      if (error) { setDbStatus('Could not load profiles: ' + error.message); return; }
+      const {data, error} = await db.from('student_profiles').select('*').order('admission_no');
+      if (error) {setDbStatus('Could not load profiles: ' + error.message); return;}
       onlineProfileCache = data || []; renderOnlineProfiles(onlineProfileCache);
       setDbStatus(`Loaded ${onlineProfileCache.length} online profiles. Edit any fields and click Save Profile.`);
     }
     function renderOnlineProfiles(list) {
       const root = document.getElementById('onlineProfiles'); if (!root) return; root.innerHTML = '';
-      if (!list.length) { root.textContent = 'No online profiles loaded yet.'; return; }
+      if (!list.length) {root.textContent = 'No online profiles loaded yet.'; return;}
       list.forEach((p, i) => {
         const card = document.createElement('div'); card.className = 'online-profile-card';
         const title = document.createElement('strong'); title.textContent = `Admission No.: ${p.admission_no}`; card.appendChild(title);
-        const fields = [['name', 'Student name', p.name || '', 'input'], ['mentor', 'Mentor', p.mentor || '', 'input'], ['programs', 'Programs (one per line)', (p.programs || []).join('\n'), 'textarea'], ['program_codes', 'Program codes (one per line)', (p.program_codes || []).join('\n'), 'textarea']];
-        fields.forEach(([key, label, value, type]) => { const lab = document.createElement('label'); lab.textContent = label; const el = document.createElement(type === 'textarea' ? 'textarea' : 'input'); el.value = value; el.dataset.field = key; card.append(lab, el); });
+        const fields = [['name', 'Student name', p.name || '', 'input'], ['mentor', 'Mentor', p.mentor || '', 'input'], ['programs', 'Programs (one per line)', (p.programs || []).join('\n'), 'textarea'], ['program_codes', 'Program codes (one per line)', (p.program_codes || []).join('\n'), 'textarea'], ['program_mentors', 'Mentors per program (same order; one per line)', (p.program_mentors || []).join('\n'), 'textarea']];
+        fields.forEach(([key, label, value, type]) => {const lab = document.createElement('label'); lab.textContent = label; const el = document.createElement(type === 'textarea' ? 'textarea' : 'input'); el.value = value; el.dataset.field = key; card.append(lab, el);});
         const btn = document.createElement('button'); btn.className = 'btn green'; btn.style.marginTop = '10px'; btn.textContent = '💾 Save Profile'; btn.onclick = () => saveOnlineProfile(p.admission_no, card); card.appendChild(btn); root.appendChild(card);
       });
     }
-    function linesFromField(value) { return [...new Set(String(value || '').split(/\r?\n/).map(x => x.trim()).filter(Boolean))]; }
+    function linesFromField(value) {return [...new Set(String(value || '').split(/\r?\n/).map(x => x.trim()).filter(Boolean))];}
     async function saveOnlineProfile(admissionNo, card) {
-      const db = getDbClient(); if (!db) { setDbStatus('Supabase is not configured.'); return; }
-      const { data: { session } } = await db.auth.getSession(); if (!session) { setDbStatus('Sign in first to save profile updates.'); return; }
+      const db = getDbClient(); if (!db) {setDbStatus('Supabase is not configured.'); return;}
+      const {data: {session}} = await db.auth.getSession(); if (!session) {setDbStatus('Sign in first to save profile updates.'); return;}
       const get = k => card.querySelector(`[data-field="${k}"]`).value.trim();
-      const payload = { admission_no: admissionNo, name: get('name'), mentor: get('mentor'), programs: linesFromField(get('programs')), program_codes: linesFromField(get('program_codes')), updated_at: new Date().toISOString() };
-      const { error } = await db.from('student_profiles').upsert(payload, { onConflict: 'admission_no' });
-      if (error) { setDbStatus('Profile update failed: ' + error.message); return; }
+      const programs = String(get('programs') || '').split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+      const programCodes = String(get('program_codes') || '').split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+      const programMentors = String(get('program_mentors') || '').split(/\r?\n/).map(x => x.trim());
+      while (programMentors.length < Math.max(programs.length, programCodes.length)) programMentors.push('');
+      const payload = {admission_no: admissionNo, name: get('name'), mentor: programMentors.find(Boolean) || get('mentor'), programs, program_codes: programCodes, program_mentors: programMentors.slice(0, Math.max(programs.length, programCodes.length)), updated_at: new Date().toISOString()};
+      const {error} = await db.from('student_profiles').upsert(payload, {onConflict: 'admission_no'});
+      if (error) {setDbStatus('Profile update failed: ' + error.message); return;}
       setDbStatus(`Updated ${admissionNo}. The student's existing QR now shows the new information.`);
     }
-    function qrValue(student) { return { id: student.admission_no, admissionNo: student.admission_no, name: student.name }; }
+    function qrValue(student) {return {id: student.admission_no, admissionNo: student.admission_no, name: student.name};}
     function buildStudentProfileUrl(student) {
       const base = (document.getElementById('qrBaseUrl').value.trim() || window.location.origin).replace(/\/+$/, '');
       return `${base}/student.html?id=${encodeURIComponent(student.admission_no)}`;
     }
-    function loadQrLibraries() { return new Promise((resolve, reject) => { if (window.QRCode && window.JSZip) { resolve(); return; } let pending = 0; const done = () => { if (window.QRCode && window.JSZip) resolve(); }; const load = (src, test) => { if (test()) { done(); return; } pending++; const script = document.createElement('script'); script.src = src; script.onload = () => { pending--; done(); }; script.onerror = () => reject(new Error('Could not load QR/ZIP library. Check your internet connection and try again.')); document.head.appendChild(script); }; load('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js', () => !!window.QRCode); load('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', () => !!window.JSZip); }); }
+    function loadQrLibraries() {return new Promise((resolve, reject) => {if (window.QRCode && window.JSZip) {resolve(); return;} let pending = 0; const done = () => {if (window.QRCode && window.JSZip) resolve();}; const load = (src, test) => {if (test()) {done(); return;} pending++; const script = document.createElement('script'); script.src = src; script.onload = () => {pending--; done();}; script.onerror = () => reject(new Error('Could not load QR/ZIP library. Check your internet connection and try again.')); document.head.appendChild(script);}; load('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js', () => !!window.QRCode); load('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', () => !!window.JSZip);});}
     async function generateStudentQRCodes() {
       const status = document.getElementById('qrStatus'), preview = document.getElementById('qrPreview');
       const roster = uniqueStudentRoster();
-      if (!roster.length) { status.textContent = 'No students found. Import your CSV above first. Each student needs an admission number.'; return; }
-      if (!window.QRCode) { status.textContent = 'Loading QR code tools…'; try { await loadQrLibraries(); } catch (e) { status.textContent = e.message; return; } }
-      generatedQrItems = roster.map(s => ({ student: qrValue(s), url: buildStudentProfileUrl(s) })); preview.innerHTML = '';
+      if (!roster.length) {status.textContent = 'No students found. Import your CSV above first. Each student needs an admission number.'; return;}
+      if (!window.QRCode) {status.textContent = 'Loading QR code tools…'; try {await loadQrLibraries();} catch (e) {status.textContent = e.message; return;} }
+      generatedQrItems = roster.map(s => ({student: qrValue(s), url: buildStudentProfileUrl(s)})); preview.innerHTML = '';
       for (let i = 0; i < generatedQrItems.length; i++) {
         const entry = generatedQrItems[i], card = document.createElement('div'); card.className = 'qr-card'; const qrBox = document.createElement('div'); qrBox.id = 'student-qr-' + i;
         const name = document.createElement('strong'); name.textContent = entry.student.name || ('Student ' + (i + 1)); const details = document.createElement('small'); details.textContent = 'Admission No.: ' + entry.student.admissionNo;
-        const link = document.createElement('a'); link.className = 'qr-download'; link.href = '#'; link.textContent = 'Download PNG'; link.addEventListener('click', async ev => { ev.preventDefault(); const canvas = qrBox.querySelector('canvas'), img = qrBox.querySelector('img'), dataUrl = canvas ? canvas.toDataURL('image/png') : (img ? img.src : ''); if (!dataUrl) { alert('QR image is not ready yet.'); return; } const a = document.createElement('a'); a.href = dataUrl; a.download = safeFileName(entry.student.admissionNo || entry.student.name) + '-QR.png'; a.click(); });
-        card.append(qrBox, name, details, link); preview.appendChild(card); new QRCode(qrBox, { text: entry.url, width: 180, height: 180, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+        const link = document.createElement('a'); link.className = 'qr-download'; link.href = '#'; link.textContent = 'Download PNG'; link.addEventListener('click', async ev => {ev.preventDefault(); const canvas = qrBox.querySelector('canvas'), img = qrBox.querySelector('img'), dataUrl = canvas ? canvas.toDataURL('image/png') : (img ? img.src : ''); if (!dataUrl) {alert('QR image is not ready yet.'); return;} const a = document.createElement('a'); a.href = dataUrl; a.download = safeFileName(entry.student.admissionNo || entry.student.name) + '-QR.png'; a.click();});
+        card.append(qrBox, name, details, link); preview.appendChild(card); new QRCode(qrBox, {text: entry.url, width: 180, height: 180, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M});
       }
       status.textContent = `Generated ${generatedQrItems.length} QR codes for ${generatedQrItems.length} unique admission numbers. Before printing, sign in and click “Upload / Update Unique Students” so every profile exists online.`;
     }
-    function safeFileName(value) { return String(value || 'student').normalize('NFKD').replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'student'; }
-    async function getQrDataUrl(index) { const box = document.getElementById('student-qr-' + index); if (!box) return null; const canvas = box.querySelector('canvas'), img = box.querySelector('img'); if (canvas) return canvas.toDataURL('image/png'); if (img) return img.src; return null; }
-    async function downloadAllQRCodes() { if (!generatedQrItems.length) await generateStudentQRCodes(); if (!generatedQrItems.length) return; try { if (!window.JSZip) await loadQrLibraries(); const zip = new JSZip(); for (let i = 0; i < generatedQrItems.length; i++) { const dataUrl = await getQrDataUrl(i); if (dataUrl) zip.file(`${safeFileName(generatedQrItems[i].student.admissionNo)}-QR.png`, dataUrl.split(',')[1], { base64: true }); } const blob = await zip.generateAsync({ type: 'blob' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'SIBAQ-Student-QR-Codes.zip'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1500); document.getElementById('qrStatus').textContent = `Downloaded ZIP with ${generatedQrItems.length} unique student QR codes.`; } catch (e) { document.getElementById('qrStatus').textContent = 'ZIP download failed: ' + e.message; } }
-    function printQRCodes() { if (!generatedQrItems.length) { alert('Please generate QR codes first.'); return; } document.body.classList.add('qr-print-mode'); window.print(); setTimeout(() => document.body.classList.remove('qr-print-mode'), 800); }
-    function clearQRCodes() { generatedQrItems = []; document.getElementById('qrPreview').innerHTML = ''; document.getElementById('qrStatus').textContent = 'QR code preview cleared.'; }
+    function safeFileName(value) {return String(value || 'student').normalize('NFKD').replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'student';}
+    async function getQrDataUrl(index) {const box = document.getElementById('student-qr-' + index); if (!box) return null; const canvas = box.querySelector('canvas'), img = box.querySelector('img'); if (canvas) return canvas.toDataURL('image/png'); if (img) return img.src; return null;}
+    async function downloadAllQRCodes() {if (!generatedQrItems.length) await generateStudentQRCodes(); if (!generatedQrItems.length) return; try {if (!window.JSZip) await loadQrLibraries(); const zip = new JSZip(); for (let i = 0; i < generatedQrItems.length; i++) {const dataUrl = await getQrDataUrl(i); if (dataUrl) zip.file(`${safeFileName(generatedQrItems[i].student.admissionNo)}-QR.png`, dataUrl.split(',')[1], {base64: true});} const blob = await zip.generateAsync({type: 'blob'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'SIBAQ-Student-QR-Codes.zip'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1500); document.getElementById('qrStatus').textContent = `Downloaded ZIP with ${generatedQrItems.length} unique student QR codes.`;} catch (e) {document.getElementById('qrStatus').textContent = 'ZIP download failed: ' + e.message;} }
+    function printQRCodes() {if (!generatedQrItems.length) {alert('Please generate QR codes first.'); return;} document.body.classList.add('qr-print-mode'); window.print(); setTimeout(() => document.body.classList.remove('qr-print-mode'), 800);}
+    function clearQRCodes() {generatedQrItems = []; document.getElementById('qrPreview').innerHTML = ''; document.getElementById('qrStatus').textContent = 'QR code preview cleared.';}
 
 
     loadSettings();
