@@ -664,6 +664,11 @@
                 profile = data; text('admissionValue', data.admission_no); text('nameValue', data.name);
                 const photo = $('studentPhoto');
                 const photoAdmissionNo = String(data.admission_no).trim();
+                const getPhotoUrl = fileName => {
+                    const url = new URL(db.storage.from('Images').getPublicUrl(fileName).data.publicUrl);
+                    url.searchParams.set('v', Date.now().toString());
+                    return url.toString();
+                };
                 const photoExtensions = ['png', 'jpg', 'jpeg', 'webp'];
                 let photoExtensionIndex = 0;
                 let photoObjectUrl = '';
@@ -678,22 +683,20 @@
                 photo.onerror = async () => {
                     photoExtensionIndex++;
                     if (photoExtensionIndex < photoExtensions.length) {
-                        photo.src = db.storage.from('Images').getPublicUrl(
+                        photo.src = getPhotoUrl(
                             photoAdmissionNo + '.' + photoExtensions[photoExtensionIndex]
-                        ).data.publicUrl;
+                        );
                     } else {
                         if (heicConversionAttempted) {
                             photo.hidden = true;
                             return;
                         }
                         heicConversionAttempted = true;
-                        const heicUrl = db.storage.from('Images')
-                            .getPublicUrl(photoAdmissionNo + '.heic').data.publicUrl;
+                        const heicUrl = getPhotoUrl(photoAdmissionNo + '.heic');
                         try {
-                            let response = await fetch(heicUrl);
+                            let response = await fetch(heicUrl, {cache: 'no-store'});
                             if (!response.ok) {
-                                response = await fetch(db.storage.from('Images')
-                                    .getPublicUrl(photoAdmissionNo + '.HEIC').data.publicUrl);
+                                response = await fetch(getPhotoUrl(photoAdmissionNo + '.HEIC'), {cache: 'no-store'});
                             }
                             if (!response.ok) {
                                 photo.hidden = true;
@@ -724,9 +727,7 @@
                         }
                     }
                 };
-                photo.src = db.storage.from('Images').getPublicUrl(
-                    photoAdmissionNo + '.' + photoExtensions[photoExtensionIndex]
-                ).data.publicUrl;
+                photo.src = getPhotoUrl(photoAdmissionNo + '.' + photoExtensions[photoExtensionIndex]);
                 photo.hidden = false;
                 const programs = getPrograms(); const picker = $('programSelect'); picker.innerHTML = '';
                 if (programs.length) {programs.forEach((program, index) => {const option = document.createElement('option'); option.value = program.code; option.textContent = program.name + (program.code ? ' (' + program.code + ')' : ''); picker.appendChild(option);}); selectedProgramCode = programs[0].code; picker.value = selectedProgramCode; $('codesValue').textContent = selectedProgramCode; text('mentorValue', getMentorForProgram(programs[0])); $('programPickerHelp').textContent = programs.length > 1 ? 'Select a program to see only its daily progression and performance. Your mentor can update the selected program.' : 'Your daily progression and performance for this program are shown below.';} else {$('codesValue').textContent = 'Not provided'; $('programPickerHelp').textContent = 'No programs are listed in this student profile.';}

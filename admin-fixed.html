@@ -4955,6 +4955,11 @@ function renderIndividualStudentGraph(profile, activeProgramCode = "all") {
       .map(w => w[0].toUpperCase())
       .join("");
     const admissionNo = String(profile.admission_no || "").trim();
+    const getPhotoUrl = fileName => {
+      const url = new URL(db.storage.from("Images").getPublicUrl(fileName).data.publicUrl);
+      url.searchParams.set("v", Date.now().toString());
+      return url.toString();
+    };
     avatarEl.dataset.admissionNo = admissionNo;
     avatarEl.setAttribute("aria-label", "Student photo or initials for " + (profile.name || "student"));
     avatarInitialsEl.textContent = initials || "SA";
@@ -4989,8 +4994,7 @@ function renderIndividualStudentGraph(profile, activeProgramCode = "all") {
       ) return;
       photoExtensionIndex++;
       if (photoExtensionIndex < photoExtensions.length) {
-        avatarPhotoEl.src = db?.storage.from("Images")
-          .getPublicUrl(admissionNo + "." + photoExtensions[photoExtensionIndex]).data.publicUrl || "";
+        avatarPhotoEl.src = getPhotoUrl(admissionNo + "." + photoExtensions[photoExtensionIndex]);
         return;
       }
       if (heicConversionAttempted) {
@@ -4999,18 +5003,16 @@ function renderIndividualStudentGraph(profile, activeProgramCode = "all") {
         return;
       }
       heicConversionAttempted = true;
-      const heicUrl = db?.storage.from("Images")
-        .getPublicUrl(admissionNo + ".heic").data.publicUrl;
+      const heicUrl = getPhotoUrl(admissionNo + ".heic");
       if (!heicUrl) {
         avatarPhotoEl.hidden = true;
         avatarInitialsEl.hidden = false;
         return;
       }
       try {
-        let response = await fetch(heicUrl);
+        let response = await fetch(heicUrl, { cache: "no-store" });
         if (!response.ok) {
-          response = await fetch(db.storage.from("Images")
-            .getPublicUrl(admissionNo + ".HEIC").data.publicUrl);
+          response = await fetch(getPhotoUrl(admissionNo + ".HEIC"), { cache: "no-store" });
         }
         if (!response.ok) {
           avatarPhotoEl.hidden = true;
@@ -5053,8 +5055,7 @@ function renderIndividualStudentGraph(profile, activeProgramCode = "all") {
     const db = getDbClient();
     avatarPhotoEl.removeAttribute("src");
     if (db && admissionNo) {
-      avatarPhotoEl.src = db.storage.from("Images")
-        .getPublicUrl(admissionNo + "." + photoExtensions[photoExtensionIndex]).data.publicUrl;
+      avatarPhotoEl.src = getPhotoUrl(admissionNo + "." + photoExtensions[photoExtensionIndex]);
     }
   }
 
