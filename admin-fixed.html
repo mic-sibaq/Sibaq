@@ -876,6 +876,12 @@ body.dark .stacked-bar-track {
   background: var(--kpi-color, #5b5ce2);
 }
 
+
+.rating-kpi-card .kpi-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;z-index:1;}
+.rating-kpi-card .kpi-view-btn{border:1px solid var(--border,#dfe5ef);background:var(--card,#fff);color:var(--kpi-color,#475569);border-radius:7px;padding:4px 7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.rating-kpi-card .kpi-view-btn:hover{filter:brightness(.95);transform:translateY(-1px);}
+@media(max-width:580px){.graph-data-toolbar>div{width:100%;}.graph-data-toolbar>div>div{flex:1;min-width:120px!important;}.graph-data-toolbar button{flex:1;}}
+
 .rating-kpi-card .kpi-pct {
   font-size: clamp(20px, 2.5vw, 24px);
   font-weight: 800;
@@ -2030,15 +2036,7 @@ body.dark .matrix-summary-pill {
     </div>
 
     <!-- Percentage & Count KPI Cards Grid -->
-    <div class="rating-review-layout" style="display:grid;grid-template-columns:90px minmax(0,1fr);gap:12px;align-items:start;margin-bottom:16px;">
-      <div class="rating-review-tools">
-        <button class="btn purple-btn" style="width:100%;min-height:48px" onclick="openRatingStudentView()">👁 View</button>
-        <div style="margin-top:10px">
-          <label for="ratingReviewDate">Date</label>
-          <input type="date" id="ratingReviewDate" class="input-styled" style="min-width:0;width:100%;padding:8px 5px">
-        </div>
-        <button class="btn red" style="width:100%;margin-top:8px;font-size:12px;padding:9px 5px" onclick="exportMissingResponsesPDF()">📄 Export PDF</button>
-      </div>
+    <div class="rating-review-layout" style="display:block;margin-bottom:16px;">
       <div id="allRatingsKpiGrid" class="ratings-kpi-grid"></div>
     </div>
     <div id="ratingReviewStatus" class="muted" style="font-size:12px;margin:-5px 0 16px"></div>
@@ -2066,9 +2064,18 @@ body.dark .matrix-summary-pill {
 
     <div id="allRatingGraph" class="graph-bars"></div>
 
-    <button class="btn" onclick="refreshStudentGraphs()">
-      ↻ Refresh Graph Data
-    </button>
+    <div class="graph-data-toolbar" style="display:flex;gap:10px;align-items:end;justify-content:space-between;flex-wrap:wrap;margin-top:12px;">
+      <button class="btn" onclick="refreshStudentGraphs()">↻ Refresh Graph Data</button>
+      <div style="display:flex;gap:8px;align-items:end;justify-content:flex-end;flex-wrap:wrap;margin-left:auto;">
+        <div style="min-width:150px;">
+          <label for="ratingReviewDate">Graph / Report Date</label>
+          <input type="date" id="ratingReviewDate" class="input-styled" style="width:100%;" />
+        </div>
+        <button class="btn purple-btn" onclick="viewSelectedDateGraph()">📊 View Data</button>
+        <button class="btn secondary" onclick="openRatingStudentView('missing')">👁 View Not Done</button>
+        <button class="btn red" onclick="exportMissingResponsesPDF()">📄 Export PDF</button>
+      </div>
+    </div>
   </div>
 
   <div id="individualGraphPanel">
@@ -5543,7 +5550,7 @@ function renderIndividualProgramsBarChart(programs, statuses) {
       labels: labels,
       datasets: [
         {
-          label: "Completed Days",
+          label: "Completed Programmes (Selected Day)",
           data: completedData,
           backgroundColor: "rgba(91, 92, 226, 0.85)",
           borderRadius: 8,
@@ -5692,6 +5699,7 @@ function renderAllStudentsGraph() {
   const totalCountEl = document.getElementById("allRatingsTotalCount");
   const qualityBadge = document.getElementById("allRatingsQualityIndexBadge");
 
+  const selectedGraphDate = ratingReviewDateValue();
   const programStats = new Map();
   const allRatings = [];
   let assignmentCount = 0;
@@ -5705,7 +5713,8 @@ function renderAllStudentsGraph() {
   if (hasProfiles) {
     profilesToUse.forEach(profile => {
       const programs = graphGetPrograms(profile);
-      const statuses = Array.isArray(profile._graphStatuses) ? profile._graphStatuses : [];
+      const allStatuses = Array.isArray(profile._graphStatuses) ? profile._graphStatuses : [];
+      const statuses = allStatuses.filter(status => ratingStatusDate(status) === selectedGraphDate);
       const statusByCode = new Map();
 
       statuses.forEach(status => {
@@ -5732,7 +5741,7 @@ function renderAllStudentsGraph() {
 
         const stat = programStats.get(key);
         stat.students++;
-        const expectedDays = 24;
+        const expectedDays = 1;
         stat.expected += expectedDays;
         totalExpected += expectedDays;
 
@@ -5757,14 +5766,18 @@ function renderAllStudentsGraph() {
     totalCompleted = 0;
   }
 
+  // Make the selected historical day explicit in the graph heading/status.
+  const ratingHeading = document.querySelector(".rating-bar-section-head h3");
+  if (ratingHeading) ratingHeading.textContent = `📊 Performance Ratings Breakdown — ${selectedGraphDate}`;
+
   // Summary box
   if (summary) {
     summary.replaceChildren();
     const summaryItems = [
       ["Total Students", hasProfiles ? profilesToUse.length : (window.students?.length || 0)],
       ["Programme Assignments", assignmentCount || 0],
-      ["Completed Practice Days", totalCompleted || 0],
-      ["Overall Completion", totalExpected > 0 ? graphPercent(totalCompleted, totalExpected) + "%" : "0%"]
+      ["Completed Programmes (Selected Day)", totalCompleted || 0],
+      ["Daily Completion", totalExpected > 0 ? graphPercent(totalCompleted, totalExpected) + "%" : "0%"]
     ];
 
     summaryItems.forEach(([label, value]) => {
@@ -5798,7 +5811,7 @@ function renderAllStudentsGraph() {
             borderRadius: 6
           },
           {
-            label: "Target Days",
+            label: "Assigned Programmes",
             data: sortedPrograms.map(s => s.expected),
             backgroundColor: theme.isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)",
             borderRadius: 6
@@ -5832,7 +5845,7 @@ function renderAllStudentsGraph() {
         graphAddBar(
           programGraph,
           stat.name + " (" + stat.code + ")",
-          `${stat.students} students • ${stat.completed} completed days out of ${stat.expected}`,
+          `${stat.students} students • ${stat.completed} completed on ${selectedGraphDate} out of ${stat.expected} assigned programmes`,
           graphPercent(stat.completed, stat.expected)
         );
       });
@@ -5915,10 +5928,11 @@ function renderAllStudentsGraph() {
       card.className = "rating-kpi-card";
       card.style.setProperty("--kpi-color", c.color);
       card.innerHTML = `
-        <div class="kpi-name">${c.icon} ${c.name}</div>
+        <div class="kpi-card-head"><div class="kpi-name">${c.icon} ${c.name}</div><button type="button" class="kpi-view-btn" aria-label="View ${c.name} students">View ↗</button></div>
         <div class="kpi-pct">${c.pct}</div>
-        <div class="kpi-count">${c.count.toLocaleString()} sessions</div>
+        <div class="kpi-count">${c.count.toLocaleString()} students/programmes</div>
       `;
+      card.querySelector(".kpi-view-btn").addEventListener("click", () => openRatingStudentView("rating", c.name));
       kpiGrid.appendChild(card);
     });
   }
@@ -6037,7 +6051,7 @@ function renderAllStudentsGraph() {
       graphAddBar(
         ratingGraph,
         r.name,
-        `${r.count.toLocaleString()} sessions (${r.pct}% of all evaluations)`,
+        `${r.count.toLocaleString()} students/programmes on ${selectedGraphDate} (${r.pct}% of daily records)`,
         r.pct,
         r.cls
       );
@@ -6163,10 +6177,19 @@ if (availableStudents.length > 0) {
 }
 
 
-// Date-based rating review and missing-response PDF export.
+// Date-based daily graph, rating drill-down, and missing-response PDF export.
+function graphIsoDate(dateObj) {
+  const d = new Date(dateObj.getTime() - dateObj.getTimezoneOffset() * 60000);
+  return d.toISOString().slice(0, 10);
+}
+function graphYesterdayIso() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return graphIsoDate(d);
+}
 function ratingReviewDateValue() {
   const el = document.getElementById("ratingReviewDate");
-  return el && el.value ? el.value : new Date().toLocaleDateString("en-CA");
+  return el && el.value ? el.value : graphYesterdayIso();
 }
 function ratingStatusDate(row) {
   return String(row.progress_date || row.date || row.session_date || row.updated_at || "").slice(0, 10);
@@ -6174,9 +6197,7 @@ function ratingStatusDate(row) {
 function ratingStatusProgramKey(row) {
   return String(row.program_code || row.programCode || row.code || row.program || row.program_name || "").trim().toLowerCase();
 }
-function ratingProgramsForProfile(profile) {
-  return graphGetPrograms(profile);
-}
+function ratingProgramsForProfile(profile) { return graphGetPrograms(profile); }
 function ratingRowsForDate(profile, date) {
   return (profile._graphStatuses || []).filter(row => ratingStatusDate(row) === date);
 }
@@ -6188,7 +6209,6 @@ function ratingBuildDateRows(date) {
   (graphProfilesCache || []).forEach(profile => {
     const statuses = ratingRowsForDate(profile, date);
     const programs = ratingProgramsForProfile(profile);
-    // Treat a programme as submitted only when a dated status row exists for that programme.
     const matched = new Set();
     statuses.forEach(status => {
       const key = ratingStatusProgramKey(status);
@@ -6199,12 +6219,14 @@ function ratingBuildDateRows(date) {
       if (program) {
         const id = (program.code + "|" + program.name).toLowerCase();
         matched.add(id);
-        output.push({name:profile.name || "—", admission:profile.admission_no || "—", mentor:program.mentor || status.mentor || profile.mentor || "—", program:program.name || program.code || "—", status: status.completed === true ? "Completed" : (status.completed === false ? "Not done" : "Response submitted"), rating:status.rating || "—", submitted:true});
+        const rating = String(status.rating || "").trim();
+        const completed = status.completed === true;
+        output.push({name:profile.name || "—", admission:profile.admission_no || "—", mentor:program.mentor || status.mentor || profile.mentor || "—", program:program.name || program.code || "—", programCode:program.code || status.program_code || "", status: completed ? "Completed" : (status.completed === false ? "Not done" : "Response submitted"), rating:rating || "Others", submitted:true, completed, profile});
       }
     });
     programs.forEach(program => {
       const id = (program.code + "|" + program.name).toLowerCase();
-      if (!matched.has(id)) output.push({name:profile.name || "—", admission:profile.admission_no || "—", mentor:program.mentor || profile.mentor || "—", program:program.name || program.code || "—", status:"No response", rating:"—", submitted:false});
+      if (!matched.has(id)) output.push({name:profile.name || "—", admission:profile.admission_no || "—", mentor:program.mentor || profile.mentor || "—", program:program.name || program.code || "—", programCode:program.code || "", status:"No response", rating:"Others", submitted:false, completed:false, profile});
     });
   });
   return output;
@@ -6216,57 +6238,62 @@ function ratingEnsureDataLoaded() {
   }
   return true;
 }
-function openRatingStudentView() {
+function openRatingStudentView(filter = "all", rating = "") {
   if (!ratingEnsureDataLoaded()) return;
   const date = ratingReviewDateValue();
-  const rows = ratingBuildDateRows(date);
+  let rows = ratingBuildDateRows(date);
+  if (filter === "missing") rows = rows.filter(r => !r.submitted);
+  else if (filter === "rating") {
+    rows = rows.filter(r => {
+      if (rating === "Others") return r.submitted && !["Excellent","Good","Average","Poor"].includes(r.rating);
+      return r.submitted && r.rating === rating;
+    });
+  }
   const tbody = document.getElementById("ratingReviewTableBody");
   tbody.replaceChildren();
   rows.sort((a,b) => a.name.localeCompare(b.name) || a.program.localeCompare(b.program));
   rows.forEach(r => {
     const tr = document.createElement("tr");
     [r.name,r.admission,r.mentor,r.program,r.status,r.rating].forEach((v,i) => {
-      const td = document.createElement("td");
-      td.textContent = v;
-      if (i===4 && !r.submitted) td.className = "pending";
+      const td = document.createElement("td"); td.textContent = v;
+      if ((i===4 && !r.submitted) || (i===5 && r.rating === "Poor")) td.className = "pending";
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
   });
-  document.getElementById("ratingReviewModalSubtitle").textContent = `Date: ${date} • ${rows.filter(r=>r.submitted).length} programme responses • ${rows.filter(r=>!r.submitted).length} programmes with no response`;
+  const title = document.querySelector("#ratingReviewModal h2");
+  if (title) title.textContent = filter === "missing" ? "📋 Students With No Response" : filter === "rating" ? `📋 ${rating} Students` : "📋 Student Response Details";
+  document.getElementById("ratingReviewModalSubtitle").textContent = `Date: ${date} • ${rows.length} programme records`;
   if (!rows.length) {
     const tr=document.createElement("tr"), td=document.createElement("td");
-    td.colSpan=6; td.textContent="No student/programme records found. Check that the graph data has loaded.";
+    td.colSpan=6; td.textContent="No matching student/programme records found for this date.";
     tr.appendChild(td); tbody.appendChild(tr);
   }
   document.getElementById("ratingReviewModal").classList.add("show");
 }
-function closeRatingStudentView() {
-  document.getElementById("ratingReviewModal").classList.remove("show");
-}
+function closeRatingStudentView() { document.getElementById("ratingReviewModal").classList.remove("show"); }
 function exportMissingResponsesPDF() {
   if (!ratingEnsureDataLoaded()) return;
   const date = ratingReviewDateValue();
   const missing = ratingBuildDateRows(date).filter(r => !r.submitted);
-  if (!missing.length) {
-    alert(`No missing programme responses found for ${date}.`);
-    return;
-  }
-  // Create a clean print document; choose "Save as PDF" in the browser print dialog.
+  if (!missing.length) { alert(`No missing programme responses found for ${date}.`); return; }
   const w = window.open("", "_blank");
   if (!w) { alert("Please allow pop-ups to export the PDF report."); return; }
   const rows = missing.sort((a,b)=>a.name.localeCompare(b.name)||a.program.localeCompare(b.program))
     .map((r,i)=>`<tr><td>${i+1}</td><td>${ratingEsc(r.program)}</td><td>${ratingEsc(r.mentor)}</td><td>${ratingEsc(r.admission)}</td><td>${ratingEsc(r.name)}</td></tr>`).join("");
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Missing Responses ${ratingEsc(date)}</title>
-  <style>body{font:12px Arial,sans-serif;color:#111;padding:24px}h1{font-size:20px;margin:0 0 6px}p{margin:0 0 18px;color:#444}table{width:100%;border-collapse:collapse}th,td{border:1px solid #888;padding:8px;text-align:left}th{background:#eee} @page{size:A4 landscape;margin:12mm}</style>
-  </head><body><h1>SIBAQ — Missing Student Responses</h1><p>Date: ${ratingEsc(date)} | Not-submitted programme records: ${missing.length}</p>
-  <table><thead><tr><th>No.</th><th>Not Done Programme</th><th>Mentor</th><th>Admission No.</th><th>Student Name</th></tr></thead><tbody>${rows}</tbody></table>
-  <script>window.onload=()=>{window.focus();window.print();};<\/script></body></html>`);
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Missing Responses ${ratingEsc(date)}</title><style>body{font:12px Arial,sans-serif;color:#111;padding:24px}h1{font-size:20px;margin:0 0 6px}p{margin:0 0 18px;color:#444}table{width:100%;border-collapse:collapse}th,td{border:1px solid #888;padding:8px;text-align:left}th{background:#eee}@page{size:A4 landscape;margin:12mm}</style></head><body><h1>SIBAQ — Missing Student Responses</h1><p>Date: ${ratingEsc(date)} | Not-submitted programme records: ${missing.length}</p><table><thead><tr><th>No.</th><th>Not Done Programme</th><th>Mentor</th><th>Admission No.</th><th>Student Name</th></tr></thead><tbody>${rows}</tbody></table><script>window.onload=()=>{window.focus();window.print();};<\/script></body></html>`);
   w.document.close();
+}
+function viewSelectedDateGraph() {
+  if (!ratingEnsureDataLoaded()) return;
+  renderAllStudentsGraph();
+  const date = ratingReviewDateValue();
+  const status = document.getElementById("ratingReviewStatus");
+  if (status) status.textContent = `Showing daily graph for ${date}. Historical records remain stored in the online database.`;
 }
 
     const ratingDateInput = document.getElementById("ratingReviewDate");
-    if (ratingDateInput) ratingDateInput.value = new Date().toLocaleDateString("en-CA");
+    if (ratingDateInput) ratingDateInput.value = graphYesterdayIso();
     loadSettings();
     renderStudents();
     updateCSVStatus();
