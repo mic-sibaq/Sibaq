@@ -2749,6 +2749,29 @@ body.dark .matrix-summary-pill {
     let announcementChimeTimer = null;
     let announcementChimeResolve = null;
 
+    /* Pre-warm the AudioContext on the very first user gesture so Chrome's
+       autoplay policy never blocks the chime. */
+    function getSharedAudioContext() {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return null;
+      if (!announcementAudioContext || announcementAudioContext.state === "closed") {
+        announcementAudioContext = new AudioContextClass();
+      }
+      if (announcementAudioContext.state === "suspended") {
+        announcementAudioContext.resume().catch(() => {});
+      }
+      return announcementAudioContext;
+    }
+
+    /* Unlock audio on first click or keypress anywhere on the page. */
+    function unlockAudio() {
+      getSharedAudioContext();
+      document.removeEventListener("click", unlockAudio, true);
+      document.removeEventListener("keydown", unlockAudio, true);
+    }
+    document.addEventListener("click", unlockAudio, true);
+    document.addEventListener("keydown", unlockAudio, true);
+
     function getPendingStudents() {
       return students.filter(s => !isComplete(s));
     }
@@ -3178,12 +3201,10 @@ body.dark .matrix-summary-pill {
           const AudioContextClass = window.AudioContext || window.webkitAudioContext;
           if (!AudioContextClass) {resolve(); return;}
 
-          const ctx = announcementAudioContext && announcementAudioContext.state !== "closed"
-            ? announcementAudioContext
-            : new AudioContextClass();
+          const ctx = getSharedAudioContext();
+          if (!ctx) { resolve(); return; }
           announcementAudioContext = ctx;
           const volume = getAnnouncementVolume();
-          if (ctx.state === "suspended") ctx.resume().catch(() => { });
 
           const master = ctx.createGain();
           master.gain.setValueAtTime(0.0001, ctx.currentTime);
