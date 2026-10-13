@@ -29,14 +29,15 @@ self.addEventListener("push", event => {
   const options = {
     body:               data.body,
     tag:                data.tag || ("sibaq-announcement-" + Date.now()),
-    icon:               "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAATUlEQVR42u3PMQEAAAgEIPuX1hkefECAJOmbU0BAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBgb2A6+QEdFwR/RwAAAABJRU5ErkJggg==",
-    badge:              "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAATUlEQVR42u3PMQEAAAgEIPuX1hkefECAJOmbU0BAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBgb2A6+QEdFwR/RwAAAABJRU5ErkJggg==",
-    vibrate:            [300, 150, 300, 150, 600],  /* 3-pulse vibration for pocket/lock screen */
-    requireInteraction: true,                       /* Stays on lock screen until user interacts */
+    icon:               "icon-192.png",
+    badge:              "icon-192.png",
+    vibrate:            [500, 200, 500, 200, 800],  /* High-urgency pulse to trigger floating heads-up banner */
+    requireInteraction: true,                       /* Stays on lock screen / desktop until user interacts */
     renotify:           true,                       /* Alert and vibrate for every incoming announcement */
     silent:             false,
     actions: [
-      { action: "open", title: "View Announcement 📢" }
+      { action: "open", title: "View Announcement 📢" },
+      { action: "dismiss", title: "✕ Dismiss" }
     ],
     data: {
       url:         data.url || "student.html",
@@ -53,6 +54,8 @@ self.addEventListener("push", event => {
 /* ── Notification click: open student page and trigger popup on mobile ──────────────── */
 self.addEventListener("notificationclick", event => {
   event.notification.close();
+  if (event.action === "dismiss") return;
+
   const notifData   = event.notification.data || {};
   const notifBody   = event.notification.body || notifData.body || "";
   const notifTitle  = event.notification.title || notifData.title || "SIBAQ Announcement";

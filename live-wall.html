@@ -623,9 +623,14 @@ body.dark .audio-btn.audio-active{
 </main>
 
 
-<button class="fullscreen-btn" onclick="toggleFullscreen()">
-  ⛶ Full Screen
-</button>
+<div class="wall-floating-actions" style="position:fixed; bottom:20px; right:20px; display:flex; gap:10px; z-index:9000;">
+  <button id="wallPipBtn" class="fullscreen-btn" onclick="openWallPiPWindow()" title="Keep a floating alert window on top of other apps" style="position:static; display:none; background:#4338ca;">
+    📺 Pop-up Over Apps
+  </button>
+  <button class="fullscreen-btn" onclick="toggleFullscreen()" style="position:static;">
+    ⛶ Full Screen
+  </button>
+</div>
 
 
 <!-- ANNOUNCEMENT POPUP -->
@@ -1577,6 +1582,26 @@ function showAnnouncement(data){
     } catch (_) {}
   }
 
+  /* Update floating always-on-top window if active */
+  if (wallPipWindow && !wallPipWindow.closed) {
+    try {
+      const b = wallPipWindow.document.getElementById("wPipBadge");
+      const t = wallPipWindow.document.getElementById("wPipTitle");
+      const d = wallPipWindow.document.getElementById("wPipBody");
+      const isCall = !!data.studentCall;
+      if (b) {
+        b.className = isCall ? "badge call" : "badge";
+        b.textContent = isCall ? "🚨 URGENT STAGE CALL" : (data.label || "SIBAQ ANNOUNCEMENT");
+      }
+      if (t) t.textContent = isCall ? "Student Called to Stage" : (data.label || "Announcement");
+      if (d) {
+        d.textContent = isCall
+          ? `${data.studentCall.name}\n${data.studentCall.program} (${data.studentCall.programCode})\nReport to stage now!`
+          : (data.text || "");
+      }
+    } catch (_) {}
+  }
+
   /* Speak announcement text aloud if Voice option is enabled */
   const voiceOn = document.getElementById("voiceToggle")?.checked;
   if (voiceOn) {
@@ -1591,6 +1616,49 @@ function showAnnouncement(data){
 
   clearTimeout(window.popupTimer);
   window.popupTimer=setTimeout(closePopup,18000);
+}
+
+let wallPipWindow = null;
+async function openWallPiPWindow() {
+  if (!("documentPictureInPicture" in window)) {
+    alert("Floating window requires Chrome 116+ on Desktop or Android. On phones, enable 'Pop on screen' in Chrome Notifications settings.");
+    return;
+  }
+  try {
+    if (wallPipWindow) {
+      wallPipWindow.close();
+      wallPipWindow = null;
+      const b = document.getElementById("wallPipBtn");
+      if (b) b.textContent = "📺 Pop-up Over Apps";
+      return;
+    }
+    wallPipWindow = await window.documentPictureInPicture.requestWindow({ width: 380, height: 240 });
+    wallPipWindow.document.body.innerHTML = `
+      <style>
+        body { margin:0; padding:16px; font-family:Inter,system-ui,sans-serif; background:#0f172a; color:#fff; display:flex; flex-direction:column; justify-content:center; text-align:center; height:100vh; box-sizing:border-box; }
+        .badge { display:inline-block; align-self:center; font-size:11px; font-weight:800; background:#38bdf8; color:#0f172a; padding:4px 10px; border-radius:999px; text-transform:uppercase; margin-bottom:8px; }
+        .badge.call { background:#ef4444; color:#fff; }
+        .title { font-size:15px; font-weight:700; margin-bottom:6px; }
+        .body { font-size:12px; color:#94a3b8; line-height:1.4; white-space:pre-line; }
+      </style>
+      <div id="wPipBadge" class="badge">📢 SIBAQ Floating Alert</div>
+      <div id="wPipTitle" class="title">Always On Top Active</div>
+      <div id="wPipBody" class="body">This alert window floats over other apps. When an announcement is made, it will pop up right here!</div>
+    `;
+    const b = document.getElementById("wallPipBtn");
+    if (b) b.textContent = "📺 Pop-up Active ✓";
+    wallPipWindow.addEventListener("pagehide", () => {
+      wallPipWindow = null;
+      if (b) b.textContent = "📺 Pop-up Over Apps";
+    });
+  } catch (err) {
+    console.warn("Wall PiP error:", err);
+  }
+}
+
+if ("documentPictureInPicture" in window) {
+  const b = document.getElementById("wallPipBtn");
+  if (b) b.style.display = "inline-block";
 }
 
 function closePopup(){

@@ -2,15 +2,21 @@
   "name": "SIBAQ National Arts Fest",
   "short_name": "SIBAQ",
   "description": "SIBAQ National Arts Fest — Student portal and live wall.",
-  "start_url": "/student.html",
+  "start_url": "student.html",
   "display": "standalone",
   "background_color": "#f3f6fb",
   "theme_color": "#4f46e5",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%234338ca'/><stop offset='1' stop-color='%237c3aed'/></linearGradient></defs><rect width='192' height='192' rx='40' fill='url(%23g)'/><text x='96' y='130' text-anchor='middle' font-family='Arial,sans-serif' font-weight='900' font-size='80' fill='white'>S</text></svg>",
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]

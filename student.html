@@ -804,7 +804,29 @@
                     <p id="notifMsg" class="notif-text">Get instant notifications on your phone when called to the stage or practicing.</p>
                 </div>
             </div>
-            <button class="notif-btn" id="notifBtn" type="button">Allow Alerts</button>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <button class="notif-btn" id="notifBtn" type="button">Allow Alerts</button>
+                <button class="notif-btn" id="floatingPipBtn" type="button" onclick="openFloatingPiPWindow()" title="Keep a small floating alert window over all other apps" style="display:none; background:#4338ca; border:1px solid #6366f1;">📺 Pop-up Over Apps</button>
+                <button class="notif-btn" type="button" onclick="showPopupGuide()" style="background:transparent; border:1px solid #cbd5e1; color:#475569; font-size:12px; padding:6px 10px;" title="Instructions for phone floating pop-up notifications">📱 Phone Pop-up Help</button>
+            </div>
+        </div>
+
+        <!-- Phone Floating Pop-up Help Modal -->
+        <div id="popupGuideModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.7); backdrop-filter:blur(4px); z-index:99999; align-items:center; justify-content:center; padding:16px;">
+            <div style="background:#fff; border-radius:18px; max-width:440px; width:100%; padding:22px; box-shadow:0 20px 40px rgba(0,0,0,0.25); font-family:Inter,sans-serif;">
+                <h3 style="margin-top:0; font-size:18px; color:#0f172a; display:flex; align-items:center; gap:8px;">
+                    <span>📱</span> Floating Pop-up Over Other Apps
+                </h3>
+                <p style="font-size:13px; color:#475569; line-height:1.5;">To make announcements drop down as a floating pop-up card when you are in WhatsApp or other apps:</p>
+                <ol style="font-size:13px; color:#1e293b; line-height:1.6; padding-left:20px; margin:12px 0;">
+                    <li>Open phone <b>Settings</b> &rarr; <b>Apps</b> &rarr; <b>Chrome</b>.</li>
+                    <li>Tap <b>Notifications</b> &rarr; <b>Notification categories (or Sites)</b>.</li>
+                    <li>Tap your site domain and turn <b>ON</b> <b>"Pop on screen"</b> (or <i>"Show as pop-up" / "Floating notifications"</i>).</li>
+                    <li>Ensure <b>Lock screen</b> is set to <b>"Show content"</b>.</li>
+                </ol>
+                <p style="font-size:12px; color:#64748b; margin-bottom:16px;">💡 <b>Desktop tip:</b> You can also click <b>"📺 Pop-up Over Apps"</b> to float an always-on-top window over other apps!</p>
+                <button onclick="document.getElementById('popupGuideModal').style.display='none'" style="width:100%; background:#4338ca; color:#fff; border:none; padding:10px; border-radius:10px; font-weight:700; cursor:pointer;">Got It ✓</button>
+            </div>
         </div>
 
         <main class="card" id="profile" hidden>
@@ -1260,7 +1282,24 @@
           : (data.text || data.body || "");
         time.textContent  = "Received: " + new Date().toLocaleTimeString("en-IN");
 
-        overlay.style.display = "flex";
+        // Update always-on-top Picture-in-Picture window if open
+        if (studentPipWindow && !studentPipWindow.closed) {
+          try {
+            const pBadge = studentPipWindow.document.getElementById("pipBadge");
+            const pTitle = studentPipWindow.document.getElementById("pipTitle");
+            const pDesc  = studentPipWindow.document.getElementById("pipDesc");
+            if (pBadge) {
+              pBadge.className = isCall ? "badge urgent" : "badge";
+              pBadge.textContent = isCall ? "🚨 URGENT STAGE CALL" : (data.label || "SIBAQ ANNOUNCEMENT");
+            }
+            if (pTitle) pTitle.textContent = isCall ? "You are Called to Stage!" : (data.label || "Announcement");
+            if (pDesc) {
+              pDesc.textContent = isCall
+                ? `${data.studentCall.name}\n${data.studentCall.program} (${data.studentCall.programCode})\nReport to stage now!`
+                : (data.text || data.body || "");
+            }
+          } catch (_) {}
+        }
 
         // Vibrate phone
         if ("vibrate" in navigator) {
@@ -1276,6 +1315,58 @@
           if (speakText) speakAiNotification(speakText);
         }, 420);
       };
+
+      // Picture-in-Picture Floating Window
+      let studentPipWindow = null;
+      window.openFloatingPiPWindow = async function() {
+        if (!("documentPictureInPicture" in window)) {
+          showPopupGuide();
+          return;
+        }
+        try {
+          if (studentPipWindow) {
+            studentPipWindow.close();
+            studentPipWindow = null;
+            const btn = document.getElementById("floatingPipBtn");
+            if (btn) btn.textContent = "📺 Pop-up Over Apps";
+            return;
+          }
+          studentPipWindow = await window.documentPictureInPicture.requestWindow({
+            width: 360,
+            height: 220
+          });
+          studentPipWindow.document.body.innerHTML = `
+            <style>
+              body { margin: 0; padding: 14px; font-family: Inter, system-ui, sans-serif; background: #0f172a; color: #fff; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; height: 100vh; text-align: center; }
+              .badge { display: inline-block; align-self: center; background: #38bdf8; color: #0f172a; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em; }
+              .badge.urgent { background: #ef4444; color: #fff; }
+              .title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+              .desc { font-size: 12px; color: #94a3b8; line-height: 1.4; white-space: pre-line; }
+            </style>
+            <div id="pipBadge" class="badge">📢 SIBAQ Floating Alert</div>
+            <div id="pipTitle" class="title">Always On Top Active</div>
+            <div id="pipDesc" class="desc">This pop-up floats over other apps. When an announcement is made, it will appear here instantly!</div>
+          `;
+          const btn = document.getElementById("floatingPipBtn");
+          if (btn) btn.textContent = "📺 Pop-up Active ✓";
+          studentPipWindow.addEventListener("pagehide", () => {
+            studentPipWindow = null;
+            if (btn) btn.textContent = "📺 Pop-up Over Apps";
+          });
+        } catch (e) {
+          console.warn("PiP error:", e);
+        }
+      };
+
+      window.showPopupGuide = function() {
+        const m = document.getElementById("popupGuideModal");
+        if (m) m.style.display = "flex";
+      };
+
+      if ("documentPictureInPicture" in window) {
+        const btn = document.getElementById("floatingPipBtn");
+        if (btn) btn.style.display = "inline-block";
+      }
 
       window.closeStudentAnnouncement = function() {
         const overlay = document.getElementById("mobileAnnouncementOverlay");
