@@ -167,6 +167,8 @@ async function sendPush(
         "Encryption":        `salt=${b64url(salt)}`,
         "Crypto-Key":        `dh=${b64url(serverPubRaw)}`,
         "TTL":               "86400",
+        "Urgency":           "high",
+        "Topic":             "sibaq-announcement",
         "Content-Length":    String(ciphertext.byteLength),
       },
       body: ciphertext,
@@ -235,7 +237,7 @@ Deno.serve(async (req: Request) => {
   const payloadJson = JSON.stringify({
     title: notifTitle,
     body:  notifBody,
-    tag:   "sibaq-announcement",
+    tag:   "sibaq-announcement-" + Date.now(),
   });
 
   /* Import VAPID keys once */
