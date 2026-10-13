@@ -576,11 +576,124 @@
                 padding: 12px 17px 18px
             }
         }
+
+        /* Candidate Alerts Banner */
+        .notif-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            background: linear-gradient(135deg, #eef2ff, #ede9fe);
+            border: 2px solid #6366f1;
+            border-radius: 18px;
+            padding: 16px 22px;
+            margin-bottom: 18px;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.16);
+            transition: all 0.25s ease;
+        }
+
+        .notif-bar.granted {
+            background: #ecfdf5;
+            border-color: #10b981;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.12);
+        }
+
+        .notif-content {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .notif-icon {
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+
+        .notif-copy {
+            min-width: 0;
+        }
+
+        .notif-title {
+            display: block;
+            font-size: 15px;
+            font-weight: 800;
+            color: #1e1b4b;
+        }
+
+        .notif-bar.granted .notif-title {
+            color: #065f46;
+        }
+
+        .notif-text {
+            margin: 2px 0 0;
+            font-size: 13px;
+            color: #4338ca;
+            line-height: 1.4;
+        }
+
+        .notif-bar.granted .notif-text {
+            color: #047857;
+        }
+
+        .notif-btn {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+        }
+
+        .notif-btn:hover {
+            background: #4338ca;
+            transform: scale(1.02);
+        }
+
+        .notif-btn:disabled {
+            background: #10b981;
+            color: white;
+            cursor: default;
+            transform: none;
+            box-shadow: none;
+        }
+
+        @media(max-width: 600px) {
+            .notif-bar {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: left;
+                padding: 14px 16px;
+                gap: 12px;
+            }
+            .notif-btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div class="wrap">
+        <!-- Candidate Alerts Banner -->
+        <div id="notifBar" class="notif-bar">
+            <div class="notif-content">
+                <span class="notif-icon">🔔</span>
+                <div class="notif-copy">
+                    <strong class="notif-title">Candidate Stage & Announcement Alerts</strong>
+                    <p id="notifMsg" class="notif-text">Get instant notifications on your phone when called to the stage or practicing.</p>
+                </div>
+            </div>
+            <button class="notif-btn" id="notifBtn" type="button">Allow Alerts</button>
+        </div>
+
         <main class="card" id="profile" hidden>
             <header class="head">
                 <div class="head-content">
@@ -626,10 +739,6 @@
                         type="button">Sign out</button>
                 </div>
             </section>
-            <div id="notifBar" class="notif-bar" hidden>
-                <p id="notifMsg">🔔 Get alerts on your phone even when this page is closed.</p>
-                <button class="btn" id="notifBtn" type="button" style="flex:0 0 auto;padding:10px 14px;font-size:13px">Enable Alerts</button>
-            </div>
             <footer class="foot">SIBAQ National Arts Fest • Contact the Control Room if information is incorrect.
             </footer>
         </main>
@@ -852,31 +961,28 @@
         return;
       }
 
-      /* Show the bar once the profile loads */
-      window.addEventListener('load', () => {
-        if (document.getElementById('profile') && !document.getElementById('profile').hidden) showBar();
-        /* Also watch for profile becoming visible */
-        const obs = new MutationObserver(() => {
-          const p = document.getElementById('profile');
-          if (p && !p.hidden) { showBar(); obs.disconnect(); }
-        });
-        const p = document.getElementById('profile');
-        if (p) obs.observe(p, { attributes: true, attributeFilter: ['hidden'] });
-      });
+      /* Initialize the notification bar immediately */
+      showBar();
 
       function showBar() {
         if (!bar) return;
+        bar.hidden = false;
         const perm = Notification.permission;
         if (perm === 'granted') {
           bar.classList.add('granted');
-          msg.textContent = '✅ Phone alerts are enabled. You will be notified when the Control Room sends an announcement.';
-          btn.textContent = 'Subscribed';
+          msg.textContent = '✅ Phone alerts are active! You will receive notifications when the Control Room makes an announcement.';
+          btn.textContent = 'Alerts Active ✓';
           btn.disabled = true;
-          bar.hidden = false;
         } else if (perm === 'denied') {
-          /* User blocked — don't show the bar */
+          bar.classList.remove('granted');
+          msg.textContent = '⚠️ Notifications are blocked in browser. Tap the site icon (lock/tune) in your browser address bar to allow alerts.';
+          btn.textContent = 'Blocked in Browser';
+          btn.disabled = true;
         } else {
-          bar.hidden = false;
+          bar.classList.remove('granted');
+          msg.textContent = 'Get instant notifications on your phone when called to the stage or practicing.';
+          btn.textContent = 'Allow Alerts';
+          btn.disabled = false;
         }
       }
 

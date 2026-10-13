@@ -472,9 +472,9 @@ body.dark .audio-btn.audio-active{
 
   <!-- Audio Status & Quick Controls -->
   <div class="header-audio-controls">
-    <button id="audioUnlockBtn" class="audio-btn audio-muted" onclick="handleAudioButtonClick(event)" title="Click to enable or test announcement sound">
+    <button id="audioUnlockBtn" class="audio-btn audio-muted" onclick="handleAudioButtonClick(event)" title="Click to allow announcement alerts & sound">
       <span class="audio-icon">🔔</span>
-      <span id="audioBtnText">Enable Sound</span>
+      <span id="audioBtnText">Allow Alerts & Sound</span>
     </button>
     <label class="voice-toggle" title="Speak announcement text aloud after chime">
       <input type="checkbox" id="voiceToggle" checked>
@@ -610,7 +610,7 @@ body.dark .audio-btn.audio-active{
     <div class="popup-time" id="popupTime"></div>
 
     <div id="popupSoundBanner" class="popup-sound-banner" onclick="handleAudioButtonClick(event)" style="display:none;">
-      🔔 Audio muted by browser — Click here or anywhere to hear sound!
+      🔔 Allow Alerts & Sound — Click here or tap screen to play chime!
     </div>
 
     <button class="close" onclick="closePopup()">
@@ -717,12 +717,12 @@ function updateAudioUI(unlocked) {
   if (btn) {
     if (isAudioUnlocked) {
       btn.className = "audio-btn audio-active";
-      if (text) text.textContent = "Sound ON • Test Sound 🔔";
-      btn.title = "Audio active. Click to test announcement chime.";
+      if (text) text.textContent = "Alerts & Sound ON • Test 🔔";
+      btn.title = "Alerts and audio are active. Click to test announcement sound.";
     } else {
       btn.className = "audio-btn audio-muted";
-      if (text) text.textContent = "Enable Sound (Muted)";
-      btn.title = "Browser blocked sound autoplay. Click to unmute.";
+      if (text) text.textContent = "Allow Alerts & Sound";
+      btn.title = "Click to allow browser alerts and announcement sound.";
     }
   }
 
@@ -731,8 +731,13 @@ function updateAudioUI(unlocked) {
   }
 }
 
-/* User gesture unlock for Chrome/Edge/Safari autoplay policy */
+/* User gesture unlock for Chrome/Edge/Safari autoplay policy & desktop notifications */
 async function userUnlockAudio(explicitTest = false) {
+  /* Request desktop notification permission if supported */
+  if ("Notification" in window && Notification.permission === "default" && explicitTest) {
+    try { await Notification.requestPermission(); } catch (_) {}
+  }
+
   const ctx = getWallAudioCtx();
   if (ctx) {
     try {
@@ -1249,6 +1254,18 @@ function showAnnouncement(data){
   box.classList.add("animate");
 
   popup.classList.add("show");
+
+  /* Trigger desktop notification for background tabs/monitors */
+  if ("Notification" in window && Notification.permission === "granted") {
+    try {
+      new Notification("📢 " + (data.label || "SIBAQ Announcement"), {
+        body: data.studentCall
+          ? `${data.studentCall.name} — ${data.studentCall.program} (${data.studentCall.programCode})`
+          : (data.text || ""),
+        tag: "sibaq-live-announcement"
+      });
+    } catch (_) {}
+  }
 
   /* Speak announcement text aloud if Voice option is enabled */
   const voiceOn = document.getElementById("voiceToggle")?.checked;
