@@ -66,5 +66,5 @@ IMPORTANT NOTES
 - Public QR profiles can be viewed by anyone who scans the QR. Do not put private/sensitive information in these fields.
 - Photos in the public `Images` bucket are also publicly accessible. Only upload student photos when you have appropriate permission.
 - Anyone who can sign in to a Supabase account can edit the table under these policies. Keep public sign-ups disabled and only create accounts for trusted administrators.
-- The admin/live-wall localStorage and BroadcastChannel features are browser/device-local. This package adds online syncing specifically for student profiles and QR codes; it does not automatically make every Control Room feature sync between devices.
+- Live Wall announcements are shared across devices through Supabase Realtime. Other admin/live-wall localStorage and BroadcastChannel features remain browser/device-local; online syncing is not automatically provided for every Control Room feature.
 - If your Supabase menu labels differ slightly, use Project Settings → API/Connect for URL/key and Authentication → Users for admin account creation.

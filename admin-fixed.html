@@ -2451,6 +2451,10 @@ body.dark .matrix-summary-pill {
     const channel = "BroadcastChannel" in window
       ? new BroadcastChannel("artsFestChannel")
       : null;
+    const announcementRealtimeTopic = "sibaQ-live-announcements";
+    let announcementRealtimeChannel = null;
+    let announcementRealtimeReady = false;
+    const pendingRealtimeAnnouncements = [];
 
 
     /* =========================================================
@@ -3902,7 +3906,52 @@ body.dark .matrix-summary-pill {
       if (channel) {
         channel.postMessage(data);
       }
+
+      if (data.type === "announcement") {
+        if (!announcementRealtimeReady || !announcementRealtimeChannel) {
+          pendingRealtimeAnnouncements.push(data);
+          return;
+        }
+        sendRealtimeAnnouncement(data);
+      }
     }
+
+    function sendRealtimeAnnouncement(payload) {
+      announcementRealtimeChannel.send({
+        type: "broadcast",
+        event: "announcement",
+        payload
+      }).then(status => {
+        if (status !== "ok") {
+          console.error("Could not send the announcement to other devices.", status);
+        }
+      }).catch(error => {
+        console.error("Could not send the announcement to other devices.", error);
+      });
+    }
+
+    function initializeAnnouncementRealtime() {
+      const db = getDbClient();
+      if (!db) {
+        console.error("Cross-device announcements are unavailable because Supabase is not configured.");
+        return;
+      }
+
+      announcementRealtimeChannel = db.channel(announcementRealtimeTopic);
+      announcementRealtimeChannel.subscribe(status => {
+        if (status === "SUBSCRIBED") {
+          announcementRealtimeReady = true;
+          while (pendingRealtimeAnnouncements.length) {
+            sendRealtimeAnnouncement(pendingRealtimeAnnouncements.shift());
+          }
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          announcementRealtimeReady = false;
+          console.error("Could not connect to Supabase Realtime for cross-device announcements.", status);
+        }
+      });
+    }
+
+    initializeAnnouncementRealtime();
 
 
     /* =========================================================
