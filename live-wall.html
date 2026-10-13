@@ -494,6 +494,14 @@ body.dark .audio-btn.audio-active{
       <span class="audio-icon">🔔</span>
       <span id="audioBtnText">Allow Alerts & Sound</span>
     </button>
+    <script>
+      try {
+        if (localStorage.getItem("wall_audio_unlocked") === "true") {
+          document.getElementById("audioUnlockBtn").className = "audio-btn audio-active";
+          document.getElementById("audioBtnText").textContent = "Alerts & Sound ON • Test 🔔";
+        }
+      } catch (_) {}
+    </script>
     <select id="ringtoneSelect" class="ringtone-picker" onchange="handleRingtoneChange(this.value)" title="Choose announcement ringtone / sound effect">
       <option value="ai_sound">🤖 AI Sound: Notification from SIBAQ</option>
       <option value="fanfare">🎺 Stage Fanfare</option>
@@ -736,9 +744,11 @@ function getWallAudioCtx() {
 }
 
 function updateAudioUI(unlocked) {
-  isAudioUnlocked = !!unlocked;
-  if (isAudioUnlocked) {
+  const isPersisted = localStorage.getItem("wall_audio_unlocked") === "true";
+  isAudioUnlocked = isPersisted || !!unlocked;
+  if (unlocked) {
     localStorage.setItem("wall_audio_unlocked", "true");
+    isAudioUnlocked = true;
   }
   const btn = document.getElementById("audioUnlockBtn");
   const text = document.getElementById("audioBtnText");
@@ -1153,7 +1163,9 @@ function playWavFallbackChime() {
     }).catch(err => {
       console.warn("WAV ringtone fallback autoplay blocked:", err);
       pendingChimePlayback = true;
-      updateAudioUI(false);
+      if (localStorage.getItem("wall_audio_unlocked") !== "true") {
+        updateAudioUI(false);
+      }
     });
   } catch (e) {}
 }
@@ -1773,12 +1785,16 @@ loadLastAnnouncement();
 /* Init Supabase Realtime after all scripts are guaranteed loaded */
 initSupabaseRealtime();
 
-/* Check audio context status at start */
-const _initialCtx = getWallAudioCtx();
-if (_initialCtx && _initialCtx.state === "running") {
+/* Restore alert & audio status at start */
+if (localStorage.getItem("wall_audio_unlocked") === "true") {
   updateAudioUI(true);
 } else {
-  updateAudioUI(false);
+  const _initialCtx = getWallAudioCtx();
+  if (_initialCtx && _initialCtx.state === "running") {
+    updateAudioUI(true);
+  } else {
+    updateAudioUI(false);
+  }
 }
 
 setInterval(update,1000);
