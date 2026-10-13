@@ -799,7 +799,7 @@ async function subscribeWallPush() {
     if (cfg.url && cfg.anonKey) {
       const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')))).replace(/\+/g, '-').replace(/\//g, '_');
       const auth   = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth')))).replace(/\+/g, '-').replace(/\//g, '_');
-      await fetch(cfg.url.replace(/\/$/, '') + '/rest/v1/push_subscriptions', {
+      await fetch(cfg.url.replace(/\/$/, '') + '/rest/v1/push_subscriptions?on_conflict=endpoint', {
         method: 'POST',
         headers: {
           'apikey':        cfg.anonKey,
