@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * SIBAQ Arts Fest — Supabase Edge Function: send-push
  *
@@ -14,24 +15,30 @@
  *   5. Deploy: supabase functions deploy send-push --no-verify-jwt
  */
 
-import { serve }        from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+declare const Deno: any;
 
 /* ── VAPID config ─────────────────────────────────────────────────── */
 const VAPID_PUBLIC_KEY  = "BJOwzWvQe5HXBH-DkTjJNG3HpIXKdYmjTl6G9PlEiMoabg_mvUPILPstkRF-sbLNG8ieNoGOLJ4Qq4AmC3XTjwk";
-const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY") ?? "";
-const VAPID_EMAIL       = Deno.env.get("VAPID_EMAIL") ?? "mailto:admin@sibaq.org";
+const VAPID_PRIVATE_KEY = (typeof Deno !== "undefined" && Deno.env ? Deno.env.get("VAPID_PRIVATE_KEY") : "") ?? "";
+const VAPID_EMAIL       = (typeof Deno !== "undefined" && Deno.env ? Deno.env.get("VAPID_EMAIL") : "mailto:admin@sibaq.org") ?? "mailto:admin@sibaq.org";
 
 /* ── CORS headers ────────────────────────────────────────────────── */
-const CORS = {
+const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin":  "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Authorization, Content-Type, apikey",
 };
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
-function b64url(buf: ArrayBuffer): string {
-  return btoa(String.fromCharCode(...new Uint8Array(buf)))
+function b64url(buf: ArrayBuffer | Uint8Array): string {
+  const u8 = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
+  let binary = "";
+  for (let i = 0; i < u8.length; i++) {
+    binary += String.fromCharCode(u8[i]);
+  }
+  return btoa(binary)
     .replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
@@ -50,8 +57,8 @@ async function importVapidKeys() {
   const y   = rawPub.slice(33, 65);
   const jwk = {
     kty: "EC", crv: "P-256",
-    x: b64url(x.buffer), y: b64url(y.buffer),
-    d: b64url(rawPriv.buffer),
+    x: b64url(x), y: b64url(y),
+    d: b64url(rawPriv),
   };
 
   const privateKey = await crypto.subtle.importKey(
@@ -67,8 +74,8 @@ async function makeVapidAuthHeader(endpoint: string, privateKey: CryptoKey, rawP
   const aud     = `${url.protocol}//${url.host}`;
   const exp     = Math.floor(Date.now() / 1000) + 12 * 3600;
 
-  const header  = b64url(new TextEncoder().encode(JSON.stringify({ typ: "JWT", alg: "ES256" })).buffer);
-  const payload = b64url(new TextEncoder().encode(JSON.stringify({ aud, exp, sub: VAPID_EMAIL })).buffer);
+  const header  = b64url(new TextEncoder().encode(JSON.stringify({ typ: "JWT", alg: "ES256" })));
+  const payload = b64url(new TextEncoder().encode(JSON.stringify({ aud, exp, sub: VAPID_EMAIL })));
   const signed  = `${header}.${payload}`;
 
   const sig = await crypto.subtle.sign(
@@ -112,7 +119,7 @@ async function encryptPayload(
   const salt = crypto.getRandomValues(new Uint8Array(16));
 
   /* HKDF extract + expand (RFC 8291) */
-  async function hkdf(ikm: ArrayBuffer, salt2: ArrayBuffer, info: Uint8Array, length: number): Promise<Uint8Array> {
+  async function hkdf(ikm: BufferSource, salt2: BufferSource, info: Uint8Array, length: number): Promise<Uint8Array> {
     const key  = await crypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveBits"]);
     const bits = await crypto.subtle.deriveBits({ name: "HKDF", hash: "SHA-256", salt: salt2, info }, key, length * 8);
     return new Uint8Array(bits);
@@ -126,7 +133,7 @@ async function encryptPayload(
     0, 65, ...serverPubRaw,
   ]);
 
-  const cek  = await hkdf(prk, salt, new Uint8Array([...enc.encode("Content-Encoding: aesgcm\0"), ...context]), 16);
+  const cek   = await hkdf(prk, salt, new Uint8Array([...enc.encode("Content-Encoding: aesgcm\0"), ...context]), 16);
   const nonce = await hkdf(prk, salt, new Uint8Array([...enc.encode("Content-Encoding: nonce\0"), ...context]), 12);
 
   /* AES-128-GCM encrypt */
@@ -157,8 +164,8 @@ async function sendPush(
         "Authorization":     vapidHeader,
         "Content-Type":      "application/octet-stream",
         "Content-Encoding":  "aesgcm",
-        "Encryption":        `salt=${b64url(salt.buffer)}`,
-        "Crypto-Key":        `dh=${b64url(serverPubRaw.buffer)}`,
+        "Encryption":        `salt=${b64url(salt)}`,
+        "Crypto-Key":        `dh=${b64url(serverPubRaw)}`,
         "TTL":               "86400",
         "Content-Length":    String(ciphertext.byteLength),
       },
@@ -172,7 +179,7 @@ async function sendPush(
 }
 
 /* ── Main handler ────────────────────────────────────────────────── */
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: CORS });
   }
@@ -193,10 +200,9 @@ serve(async (req: Request) => {
   try { body = await req.json(); } catch (_) { /* empty body is fine */ }
 
   /* Supabase client with service role key (set automatically by runtime) */
-  const db = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-  );
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const serviceKey  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const db = createClient(supabaseUrl, serviceKey);
 
   /* Fetch all push subscriptions */
   const { data: subs, error: dbErr } = await db
@@ -237,20 +243,22 @@ serve(async (req: Request) => {
 
   /* Send to all subscribers in parallel */
   const results = await Promise.all(
-    subs.map(sub => sendPush(sub, payloadJson, privateKey, rawPub))
+    subs.map((sub: { endpoint: string; p256dh: string; auth: string }) =>
+      sendPush(sub, payloadJson, privateKey, rawPub)
+    )
   );
 
-  /* Clean up expired subscriptions (410 Gone) */
+  /* Clean up expired subscriptions (410 Gone / 404 Not Found) */
   const expired = subs
-    .filter((_, i) => results[i].status === 410 || results[i].status === 404)
-    .map(s => s.endpoint);
+    .filter((_: any, i: number) => results[i].status === 410 || results[i].status === 404)
+    .map((s: any) => s.endpoint);
 
   if (expired.length > 0) {
     await db.from("push_subscriptions").delete().in("endpoint", expired);
   }
 
-  const sent   = results.filter(r => r.ok).length;
-  const failed = results.filter(r => !r.ok).length;
+  const sent   = results.filter((r: any) => r.ok).length;
+  const failed = results.filter((r: any) => !r.ok).length;
 
   return new Response(
     JSON.stringify({ sent, failed, total: subs.length, expired: expired.length }),

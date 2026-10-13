@@ -363,6 +363,95 @@ h1{
   }
 }
 
+/* Audio Controls */
+.header-audio-controls{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.audio-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 20px;
+  border-radius:999px;
+  font-size:14px;
+  font-weight:800;
+  cursor:pointer;
+  border:2px solid transparent;
+  transition:all .2s ease;
+  user-select:none;
+}
+
+.audio-btn.audio-muted{
+  background:#fef3c7;
+  color:#92400e;
+  border-color:#f59e0b;
+  animation:audioPulse 1.8s infinite ease-in-out;
+}
+
+body.dark .audio-btn.audio-muted{
+  background:#451a03;
+  color:#fde68a;
+  border-color:#b45309;
+}
+
+.audio-btn.audio-active{
+  background:#ecfdf5;
+  color:#065f46;
+  border-color:#10b981;
+}
+
+body.dark .audio-btn.audio-active{
+  background:#064e3b;
+  color:#a7f3d0;
+  border-color:#059669;
+}
+
+@keyframes audioPulse{
+  0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(245,158,11,.4);}
+  50%{transform:scale(1.03);box-shadow:0 0 0 8px rgba(245,158,11,0);}
+}
+
+.voice-toggle{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  padding:8px 14px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:999px;
+  user-select:none;
+}
+
+.voice-toggle input{
+  cursor:pointer;
+}
+
+.popup-sound-banner{
+  margin:18px auto;
+  padding:14px 22px;
+  background:#fef3c7;
+  color:#92400e;
+  border:2px dashed #f59e0b;
+  border-radius:14px;
+  font-size:16px;
+  font-weight:800;
+  cursor:pointer;
+  animation:audioPulse 1.4s infinite ease-in-out;
+}
+
+.popup-box.pending-call .popup-sound-banner{
+  background:rgba(255,255,255,.2);
+  color:#ffffff;
+  border-color:#ffffff;
+}
+
 </style>
 </head>
 
@@ -379,6 +468,18 @@ h1{
       <small>Live Practice Wall</small>
     </div>
 
+  </div>
+
+  <!-- Audio Status & Quick Controls -->
+  <div class="header-audio-controls">
+    <button id="audioUnlockBtn" class="audio-btn audio-muted" onclick="handleAudioButtonClick(event)" title="Click to enable or test announcement sound">
+      <span class="audio-icon">🔔</span>
+      <span id="audioBtnText">Enable Sound</span>
+    </button>
+    <label class="voice-toggle" title="Speak announcement text aloud after chime">
+      <input type="checkbox" id="voiceToggle" checked>
+      <span>🗣️ Voice</span>
+    </label>
   </div>
 
   <div>
@@ -508,6 +609,10 @@ h1{
 
     <div class="popup-time" id="popupTime"></div>
 
+    <div id="popupSoundBanner" class="popup-sound-banner" onclick="handleAudioButtonClick(event)" style="display:none;">
+      🔔 Audio muted by browser — Click here or anywhere to hear sound!
+    </div>
+
     <button class="close" onclick="closePopup()">
       CLOSE
     </button>
@@ -587,57 +692,248 @@ let announcementRealtimeChannel = null;
 
 
 /* =========================================================
-   AUDIO CHIME
+   AUDIO CHIME & ANNOUNCEMENT ENGINE
 ========================================================= */
 
 let wallAudioCtx = null;
+let isAudioUnlocked = false;
+let pendingChimePlayback = false;
 
 function getWallAudioCtx() {
   const Cls = window.AudioContext || window.webkitAudioContext;
   if (!Cls) return null;
-  if (!wallAudioCtx || wallAudioCtx.state === "closed") wallAudioCtx = new Cls();
-  if (wallAudioCtx.state === "suspended") wallAudioCtx.resume().catch(() => {});
+  if (!wallAudioCtx || wallAudioCtx.state === "closed") {
+    wallAudioCtx = new Cls();
+  }
   return wallAudioCtx;
 }
 
-/* Unlock on first touch/click so Chrome autoplay policy is satisfied. */
-function unlockWallAudio() {
-  getWallAudioCtx();
-  document.removeEventListener("click",   unlockWallAudio, true);
-  document.removeEventListener("keydown", unlockWallAudio, true);
-  document.removeEventListener("touchstart", unlockWallAudio, true);
-}
-document.addEventListener("click",      unlockWallAudio, true);
-document.addEventListener("keydown",    unlockWallAudio, true);
-document.addEventListener("touchstart", unlockWallAudio, true);
+function updateAudioUI(unlocked) {
+  isAudioUnlocked = !!unlocked;
+  const btn = document.getElementById("audioUnlockBtn");
+  const text = document.getElementById("audioBtnText");
+  const banner = document.getElementById("popupSoundBanner");
 
-function playWallChime() {
+  if (btn) {
+    if (isAudioUnlocked) {
+      btn.className = "audio-btn audio-active";
+      if (text) text.textContent = "Sound ON • Test Sound 🔔";
+      btn.title = "Audio active. Click to test announcement chime.";
+    } else {
+      btn.className = "audio-btn audio-muted";
+      if (text) text.textContent = "Enable Sound (Muted)";
+      btn.title = "Browser blocked sound autoplay. Click to unmute.";
+    }
+  }
+
+  if (banner) {
+    banner.style.display = isAudioUnlocked ? "none" : "block";
+  }
+}
+
+/* User gesture unlock for Chrome/Edge/Safari autoplay policy */
+async function userUnlockAudio(explicitTest = false) {
   const ctx = getWallAudioCtx();
-  if (!ctx) return;
+  if (ctx) {
+    try {
+      if (ctx.state === "suspended") {
+        await ctx.resume();
+      }
+      /* Play an imperceptible 1-sample buffer node to guarantee hardware pipeline is active */
+      const buf = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      src.start(0);
+    } catch (err) {
+      console.warn("Audio unlock pending gesture:", err);
+    }
+  }
+
+  if (ctx && ctx.state === "running") {
+    updateAudioUI(true);
+    if (pendingChimePlayback || explicitTest) {
+      pendingChimePlayback = false;
+      playWallChime();
+    }
+    return true;
+  }
+  return false;
+}
+
+function handleAudioButtonClick(e) {
+  if (e) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+  userUnlockAudio(true);
+}
+
+/* Listen to ANY user interaction anywhere on the screen to unlock audio */
+["click", "keydown", "touchstart", "pointerdown"].forEach(evtName => {
+  document.addEventListener(evtName, () => {
+    userUnlockAudio(false);
+  }, { capture: true, passive: true });
+});
+
+/* Synthesized 16-bit PCM WAV Chime Fallback (Airport / PA Chime) */
+let cachedWavChimeUrl = null;
+function getChimeWavUrl() {
+  if (cachedWavChimeUrl) return cachedWavChimeUrl;
+  try {
+    const sampleRate = 22050;
+    const duration = 1.35;
+    const numSamples = Math.floor(sampleRate * duration);
+    const buffer = new ArrayBuffer(44 + numSamples * 2);
+    const view = new DataView(buffer);
+
+    const writeStr = (offset, str) => {
+      for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+    };
+    writeStr(0, "RIFF");
+    view.setUint32(4, 36 + numSamples * 2, true);
+    writeStr(8, "WAVE");
+    writeStr(12, "fmt ");
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true); // PCM
+    view.setUint16(22, 1, true); // Mono
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeStr(36, "data");
+    view.setUint32(40, numSamples * 2, true);
+
+    const notes = [
+      { f: 659.25, start: 0.00, end: 0.45 },
+      { f: 783.99, start: 0.16, end: 0.70 },
+      { f: 1046.50, start: 0.32, end: 1.30 }
+    ];
+
+    for (let i = 0; i < numSamples; i++) {
+      const t = i / sampleRate;
+      let sample = 0;
+      for (const n of notes) {
+        if (t >= n.start && t < n.end) {
+          const nt = t - n.start;
+          const dur = n.end - n.start;
+          const env = Math.exp(-4.2 * (nt / dur));
+          sample += 0.5 * Math.sin(2 * Math.PI * n.f * nt) * env;
+          sample += 0.15 * Math.sin(4 * Math.PI * n.f * nt) * env;
+        }
+      }
+      const s = Math.max(-1, Math.min(1, sample));
+      view.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    }
+    const blob = new Blob([buffer], { type: "audio/wav" });
+    cachedWavChimeUrl = URL.createObjectURL(blob);
+    return cachedWavChimeUrl;
+  } catch (e) {
+    return null;
+  }
+}
+
+function playWavFallbackChime() {
+  const url = getChimeWavUrl();
+  if (!url) return;
+  try {
+    const a = new Audio(url);
+    a.volume = 1.0;
+    a.play().then(() => {
+      updateAudioUI(true);
+    }).catch(err => {
+      console.warn("WAV chime fallback autoplay blocked:", err);
+      pendingChimePlayback = true;
+      updateAudioUI(false);
+    });
+  } catch (e) {}
+}
+
+async function playWallChime() {
+  const ctx = getWallAudioCtx();
+  if (ctx) {
+    if (ctx.state === "suspended") {
+      try {
+        await ctx.resume();
+      } catch (e) {
+        console.warn("AudioContext resume rejected:", e);
+      }
+    }
+
+    if (ctx.state === "running") {
+      updateAudioUI(true);
+      doPlayChimeOscillators(ctx);
+      return;
+    }
+  }
+
+  /* If Web Audio blocked or suspended, try HTML5 Audio fallback */
+  playWavFallbackChime();
+}
+
+function doPlayChimeOscillators(ctx) {
   const now = ctx.currentTime;
   const master = ctx.createGain();
   master.gain.setValueAtTime(0.0001, now);
-  master.gain.linearRampToValueAtTime(0.38, now + 0.03);
+  master.gain.linearRampToValueAtTime(0.85, now + 0.03);
   master.connect(ctx.destination);
-  // 3-note ascending PA chime
-  [{f:659.25, t:0, d:.38},{f:783.99, t:.13, d:.58},{f:1046.5, t:.27, d:.82}]
-    .forEach(({f, t, d}) => {
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = f;
-      gain.gain.setValueAtTime(0.0001, now + t);
-      gain.gain.exponentialRampToValueAtTime(0.75, now + t + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + t + d);
-      osc.connect(gain);
-      gain.connect(master);
-      osc.start(now + t);
-      osc.stop(now + t + d + 0.05);
-    });
-  master.gain.setValueAtTime(0.38, now + 0.55);
-  master.gain.exponentialRampToValueAtTime(0.0001, now + 1.3);
+
+  // 3-note ascending PA chime (E5 -> G5 -> C6) with rich harmonics
+  const notes = [
+    { f: 659.25, t: 0.00, d: 0.45 },
+    { f: 783.99, t: 0.16, d: 0.65 },
+    { f: 1046.50, t: 0.32, d: 0.95 }
+  ];
+
+  notes.forEach(({ f, t, d }) => {
+    // Fundamental sine
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(f, now + t);
+
+    // Harmonic overtone
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = "triangle";
+    osc2.frequency.setValueAtTime(f * 2, now + t);
+
+    gain.gain.setValueAtTime(0.0001, now + t);
+    gain.gain.exponentialRampToValueAtTime(0.85, now + t + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + t + d);
+
+    gain2.gain.setValueAtTime(0.0001, now + t);
+    gain2.gain.exponentialRampToValueAtTime(0.25, now + t + 0.03);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + t + d * 0.7);
+
+    osc.connect(gain);
+    gain.connect(master);
+    osc2.connect(gain2);
+    gain2.connect(master);
+
+    osc.start(now + t);
+    osc.stop(now + t + d + 0.05);
+    osc2.start(now + t);
+    osc2.stop(now + t + d + 0.05);
+  });
+
+  master.gain.setValueAtTime(0.85, now + 0.65);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + 1.5);
 }
 
+/* Voice SpeechSynthesis for loud audible alerts */
+function speakAnnouncement(text) {
+  if (!("speechSynthesis" in window)) return;
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    utterance.lang = "en-IN";
+    window.speechSynthesis.speak(utterance);
+  } catch (e) {}
+}
 
 function initSupabaseRealtime() {
   const cfg = window.SIBAQ_SUPABASE_CONFIG || {};
@@ -654,13 +950,14 @@ function initSupabaseRealtime() {
     announcementRealtimeChannel = db.channel(announcementRealtimeTopic);
     announcementRealtimeChannel
       .on("broadcast", { event: "announcement" }, message => {
-        if (message && message.payload && message.payload.type === "announcement") {
-          showAnnouncement(message.payload);
+        const payload = message && (message.payload || message.data || message);
+        if (payload && (payload.type === "announcement" || payload.text || payload.studentCall)) {
+          showAnnouncement(payload);
         }
       })
       .subscribe(status => {
         if (status === "SUBSCRIBED") {
-          console.log("✅ Supabase Realtime connected. Cross-device announcements are live.");
+          console.log("✅ Supabase Realtime connected. Cross-device announcements & sound are active.");
         } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
           console.error("Could not connect to Supabase Realtime for cross-device announcements.", status);
         }
@@ -922,6 +1219,12 @@ function showAnnouncement(data){
   /* Play chime first */
   playWallChime();
 
+  /* If audio is blocked by browser autoplay, ensure the banner is visible */
+  const banner = document.getElementById("popupSoundBanner");
+  if (banner) {
+    banner.style.display = isAudioUnlocked ? "none" : "block";
+  }
+
   document.getElementById("popupLabel")
     .textContent=data.label || "ANNOUNCEMENT";
 
@@ -947,14 +1250,28 @@ function showAnnouncement(data){
 
   popup.classList.add("show");
 
+  /* Speak announcement text aloud if Voice option is enabled */
+  const voiceOn = document.getElementById("voiceToggle")?.checked;
+  if (voiceOn) {
+    clearTimeout(window.voiceSpeechTimer);
+    window.voiceSpeechTimer = setTimeout(() => {
+      const speechText = data.studentCall
+        ? `Attention please. Student called: ${data.studentCall.name}. Program: ${data.studentCall.program}. Please report immediately.`
+        : (data.text || "");
+      if (speechText) speakAnnouncement(speechText);
+    }, 1100);
+  }
+
   clearTimeout(window.popupTimer);
   window.popupTimer=setTimeout(closePopup,18000);
 }
 
 function closePopup(){
-
   document.getElementById("popup")
     .classList.remove("show");
+  if ("speechSynthesis" in window) {
+    try { window.speechSynthesis.cancel(); } catch(e) {}
+  }
 }
 
 
@@ -1122,12 +1439,32 @@ function escapeHtml(value){
    START
 ========================================================= */
 
+/* Cross-tab storage sync fallback */
+window.addEventListener("storage", (e) => {
+  if (e.key === "artsFestLiveAnnouncement" && e.newValue) {
+    try {
+      const data = JSON.parse(e.newValue);
+      if (data && data.time && Date.now() - data.time < 30000) {
+        showAnnouncement(data);
+      }
+    } catch(err) {}
+  }
+});
+
 update();
 
 loadLastAnnouncement();
 
 /* Init Supabase Realtime after all scripts are guaranteed loaded */
 initSupabaseRealtime();
+
+/* Check audio context status at start */
+const _initialCtx = getWallAudioCtx();
+if (_initialCtx && _initialCtx.state === "running") {
+  updateAudioUI(true);
+} else {
+  updateAudioUI(false);
+}
 
 setInterval(update,1000);
 
