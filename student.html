@@ -1427,12 +1427,14 @@
               const payload = msg && (msg.payload || msg.data || msg);
               if (payload) showStudentAnnouncement(payload);
             })
-            .subscribe(status => {
-              if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
-                clearTimeout(window._studentRealtimeRetry);
-                window._studentRealtimeRetry = setTimeout(connectStudentRealtime, 4000);
-                }
-              );
+            // ✅ CORRECTED AND BALANCED BLOCK:
+      .subscribe(status => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          clearTimeout(window._studentRealtimeRetry);
+          window._studentRealtimeRetry = setTimeout(connectStudentRealtime, 4000);
+        }
+      }); // Safely closed with structural integrity
+
 
           // Track live device presence
           try {
