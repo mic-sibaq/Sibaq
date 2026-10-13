@@ -367,29 +367,59 @@
     }
 
     .device-icon-box {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
       background: var(--surface-card);
-      border: 1px solid var(--border);
+      border: 1.5px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
+      font-size: 26px;
       flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     }
+    .device-icon-box.role-student  { border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.08); }
+    .device-icon-box.role-wall     { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.08); }
+    .device-icon-box.role-admin    { border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.08); }
 
-    .device-title {
-      font-size: 15px;
+    .device-name {
+      font-size: 16px;
       font-weight: 800;
       color: var(--text);
-      line-height: 1.2;
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
     }
 
-    .device-meta-sub {
-      font-size: 12px;
+    .device-type-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+      margin-top: 4px;
+      letter-spacing: 0.02em;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
       color: var(--text-muted);
+      width: fit-content;
+    }
+    .device-type-chip.mobile  { color: #818cf8; border-color: rgba(129,140,248,0.35); background: rgba(99,102,241,0.08); }
+    .device-type-chip.wall    { color: #f59e0b; border-color: rgba(245,158,11,0.35);  background: rgba(245,158,11,0.08); }
+    .device-type-chip.admin   { color: #10b981; border-color: rgba(16,185,129,0.35);  background: rgba(16,185,129,0.08); }
+    .device-type-chip.push    { color: #0ea5e9; border-color: rgba(14,165,233,0.35);  background: rgba(14,165,233,0.08); }
+
+    .device-adno {
+      font-size: 11px;
+      color: var(--text-dim);
       margin-top: 3px;
+      font-weight: 500;
     }
 
     /* Status Pills */
@@ -398,12 +428,13 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.04em;
-      padding: 4px 9px;
+      padding: 4px 10px;
       border-radius: 999px;
       display: inline-flex;
       align-items: center;
       gap: 5px;
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .status-pill.online {
@@ -527,6 +558,45 @@
     .log-info { color: #38bdf8; }
     .log-join { color: #10b981; }
     .log-leave { color: #f43f5e; }
+
+    .scan-auth {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .scan-auth input {
+      min-width: 200px;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--surface-card);
+      color: var(--text);
+      font: inherit;
+    }
+
+    .scan-report-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .scan-report-table th,
+    .scan-report-table td {
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .scan-report-table th { color: var(--text-muted); }
+    .scan-report-note { color: var(--text-muted); font-size: 12px; margin-bottom: 10px; }
+
+    @media (max-width: 650px) {
+      .scan-report-table { display: block; overflow-x: auto; white-space: nowrap; }
+    }
 
     /* Toast */
     .toast-popup {
@@ -672,6 +742,25 @@
       </div>
     </section>
 
+    <section class="log-card">
+      <div class="log-header">
+        <span class="log-title">📱 Managed Android App Screening Reports</span>
+      </div>
+      <div class="log-body" style="max-height:none; font-family:var(--font);">
+        <p class="scan-report-note">
+          Reports show only configured app matches and device model/Android version. A match means the package is installed; it does not prove misuse or active screen sharing.
+        </p>
+        <div class="scan-auth">
+          <input id="scanAdminEmail" type="email" autocomplete="username" placeholder="Supabase admin email">
+          <input id="scanAdminPassword" type="password" autocomplete="current-password" placeholder="Password">
+          <button class="btn btn-primary" onclick="signInAndLoadAndroidReports()">Sign in &amp; load reports</button>
+          <button class="btn" onclick="signOutAndroidReports()">Sign out</button>
+          <span id="scanReportStatus" role="status">Sign in with an authorized Supabase admin account to view reports.</span>
+        </div>
+        <div id="androidScanReports"></div>
+      </div>
+    </section>
+
   </div>
 
   <script>
@@ -731,6 +820,104 @@
       t.innerHTML = `<span>${icon}</span> <span>${text}</span>`;
       document.body.appendChild(t);
       setTimeout(() => t.remove(), 4000);
+    }
+
+    async function signInAndLoadAndroidReports() {
+      const status = document.getElementById("scanReportStatus");
+      if (!db) {
+        status.textContent = "Supabase is not configured.";
+        return;
+      }
+      const email = document.getElementById("scanAdminEmail").value.trim();
+      const password = document.getElementById("scanAdminPassword").value;
+      if (!email || !password) {
+        status.textContent = "Enter the authorized admin email and password.";
+        return;
+      }
+
+      status.textContent = "Signing in...";
+      try {
+        const { error: signInError } = await db.auth.signInWithPassword({ email, password });
+        if (signInError) {
+          status.textContent = "Sign-in failed: " + signInError.message;
+          return;
+        }
+      } catch (error) {
+        status.textContent = "Sign-in failed: " + error.message;
+        return;
+      } finally {
+        document.getElementById("scanAdminPassword").value = "";
+      }
+      await loadAndroidScanReports();
+    }
+
+    async function signOutAndroidReports() {
+      if (!db) return;
+      try {
+        const { error } = await db.auth.signOut();
+        document.getElementById("scanReportStatus").textContent =
+          error ? "Sign-out failed: " + error.message : "Signed out.";
+        document.getElementById("androidScanReports").replaceChildren();
+      } catch (error) {
+        document.getElementById("scanReportStatus").textContent = "Sign-out failed: " + error.message;
+      }
+    }
+
+    async function loadAndroidScanReports() {
+      const status = document.getElementById("scanReportStatus");
+      const reports = document.getElementById("androidScanReports");
+      if (!db) {
+        status.textContent = "Supabase is not configured.";
+        return;
+      }
+
+      status.textContent = "Loading latest reports...";
+      let data;
+      let error;
+      try {
+        ({ data, error } = await db
+          .from("android_device_scan_reports")
+          .select("installation_id, device_label, manufacturer, model, android_version, scanned_at, matches")
+          .order("scanned_at", { ascending: false })
+          .limit(100));
+      } catch (requestError) {
+        status.textContent = "Could not load reports: " + requestError.message;
+        reports.replaceChildren();
+        return;
+      }
+      if (error) {
+        status.textContent = "Could not load reports: " + error.message +
+          ". Confirm the screening SQL was applied and this account has the admin app_metadata role.";
+        reports.replaceChildren();
+        return;
+      }
+
+      const rows = data || [];
+      status.textContent = `Loaded ${rows.length} recent screening report(s).`;
+      if (!rows.length) {
+        reports.textContent = "No Android screening reports have been submitted.";
+        return;
+      }
+
+      reports.innerHTML = `
+        <table class="scan-report-table">
+          <thead><tr><th>Device</th><th>Android</th><th>Last scan</th><th>Configured app matches</th></tr></thead>
+          <tbody>${rows.map(report => {
+            const matches = Array.isArray(report.matches) ? report.matches : [];
+            const matchText = matches.length
+              ? matches.map(match => `${escapeHtml(match.app_name)} (${escapeHtml(match.package_name)})`).join("<br>")
+              : "None found";
+            const scannedAt = report.scanned_at
+              ? new Date(report.scanned_at).toLocaleString("en-IN")
+              : "Unknown";
+            return `<tr>
+              <td>${escapeHtml(report.device_label || report.installation_id)}<br><small>${escapeHtml(report.installation_id)}</small></td>
+              <td>${escapeHtml(report.manufacturer)} ${escapeHtml(report.model)}<br>Android ${escapeHtml(report.android_version)}</td>
+              <td>${escapeHtml(scannedAt)}</td>
+              <td>${matchText}</td>
+            </tr>`;
+          }).join("")}</tbody>
+        </table>`;
     }
 
     /* ── Fetch Registered Web Push Subscriptions ── */
@@ -989,22 +1176,29 @@
         return;
       }
 
-      container.innerHTML = filtered.map(d => `
+      container.innerHTML = filtered.map(d => {
+        const chipClass = d.role === 'wall' ? 'wall' : d.role === 'admin' ? 'admin' : d.status === 'push-ready' ? 'push' : 'mobile';
+        const iconClass  = d.role === 'wall' ? 'role-wall' : d.role === 'admin' ? 'role-admin' : 'role-student';
+        return `
         <div class="device-card" id="card-${d.id}">
+
+          <!-- TOP ROW: icon + name/device + status -->
           <div class="device-head">
             <div class="device-identity">
-              <div class="device-icon-box">${d.icon}</div>
-              <div>
-                <div class="device-title">${escapeHtml(d.name)}</div>
-                <div class="device-meta-sub">${d.adNo ? 'Ad.No: ' + escapeHtml(d.adNo) + ' • ' : ''}${escapeHtml(d.displayType)}</div>
+              <div class="device-icon-box ${iconClass}">${d.icon}</div>
+              <div style="min-width:0;">
+                <div class="device-name">${escapeHtml(d.name)}</div>
+                <div class="device-type-chip ${chipClass}">${d.icon} ${escapeHtml(d.displayType)}</div>
+                ${d.adNo ? `<div class="device-adno">Adm: ${escapeHtml(d.adNo)}</div>` : ''}
               </div>
             </div>
             <span class="status-pill ${d.statusClass}">
-              ${d.status === 'online' ? '<span class="live-dot" style="width:6px; height:6px;"></span>' : ''}
+              ${d.status === 'online' ? '<span class="live-dot" style="width:6px;height:6px;"></span>' : ''}
               ${d.statusLabel}
             </span>
           </div>
 
+          <!-- SPECS -->
           <div class="device-specs">
             <div class="spec-row">
               <span class="spec-label">Platform / OS</span>
@@ -1021,23 +1215,24 @@
               </span>
             </div>
             <div class="spec-row">
-              <span class="spec-label">Last Ping</span>
+              <span class="spec-label">Last Seen</span>
               <span class="spec-val">${escapeHtml(d.lastSeenText)}</span>
             </div>
           </div>
 
+          <!-- ACTIONS -->
           <div class="device-actions">
             <button class="btn btn-primary" onclick="pingSingleDevice('${d.id}', '${escapeHtml(d.name)}')">
-              🔔 Ping Alert
+              🔔 Ping
             </button>
             ${d.endpoint ? `
-              <button class="btn btn-danger" onclick="deletePushSubscription('${d.id}')" title="Delete subscription from database">
+              <button class="btn btn-danger" onclick="deletePushSubscription('${d.id}')" title="Remove from database">
                 🗑️ Remove
               </button>
             ` : ''}
           </div>
         </div>
-      `).join("");
+      `}).join("");
     }
 
     function escapeHtml(str) {
@@ -1160,6 +1355,19 @@
     window.addEventListener("DOMContentLoaded", () => {
       initPresence();
       fetchPushSubscriptions().then(renderAllDevices);
+      if (db) {
+        db.auth.getSession()
+          .then(({ data, error }) => {
+            if (error) {
+              document.getElementById("scanReportStatus").textContent = "Could not check sign-in: " + error.message;
+            } else if (data.session) {
+              loadAndroidScanReports();
+            }
+          })
+          .catch(error => {
+            document.getElementById("scanReportStatus").textContent = "Could not check sign-in: " + error.message;
+          });
+      }
     });
   </script>
 </body>
