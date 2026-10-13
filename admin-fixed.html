@@ -3981,9 +3981,14 @@ body.dark .matrix-summary-pill {
         console.log(`📱 Web Push: ${result.sent || 0} sent, ${result.failed || 0} failed, ${result.total || 0} total subscribers.`);
       } catch (err) {
         console.warn("Could not reach send-push Edge Function:", err.message);
+        if (!payload._retry) {
+          payload._retry = true;
+          setTimeout(() => sendPushToPhones(payload), 3000);
+        }
       }
     }
 
+    let adminRealtimeReconnectAttempts = 0;
     function initializeAnnouncementRealtime() {
       const db = getDbClient();
       if (!db) {
@@ -3991,19 +3996,33 @@ body.dark .matrix-summary-pill {
         return;
       }
 
+      if (announcementRealtimeChannel) {
+        try { db.removeChannel(announcementRealtimeChannel); } catch (_) {}
+      }
+
       announcementRealtimeChannel = db.channel(announcementRealtimeTopic);
       announcementRealtimeChannel.subscribe(status => {
         if (status === "SUBSCRIBED") {
           announcementRealtimeReady = true;
+          adminRealtimeReconnectAttempts = 0;
+          console.log("✅ Supabase Realtime connected for announcements.");
           while (pendingRealtimeAnnouncements.length) {
             sendRealtimeAnnouncement(pendingRealtimeAnnouncements.shift());
           }
-        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
           announcementRealtimeReady = false;
-          console.error("Could not connect to Supabase Realtime for cross-device announcements.", status);
+          console.warn("Supabase Realtime disconnected (" + status + "). Reconnecting...");
+          clearTimeout(window._adminRealtimeRetry);
+          const delay = Math.min(10000, 2000 * Math.pow(1.5, adminRealtimeReconnectAttempts++));
+          window._adminRealtimeRetry = setTimeout(initializeAnnouncementRealtime, delay);
         }
       });
     }
+
+    window.addEventListener("online", () => {
+      console.log("🌐 Network came online. Reconnecting Realtime...");
+      initializeAnnouncementRealtime();
+    });
 
     initializeAnnouncementRealtime();
 

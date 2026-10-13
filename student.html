@@ -1093,7 +1093,10 @@
         if (!bar) return;
         bar.hidden = false;
         const perm = Notification.permission;
-        if (perm === 'granted') {
+        const savedSubscribed = localStorage.getItem("sibaq_push_subscribed") === "true";
+        const savedAllowed    = localStorage.getItem("sibaq_alerts_allowed") === "true";
+
+        if (perm === 'granted' || savedSubscribed || savedAllowed) {
           bar.classList.add('granted');
           msg.textContent = '✅ Phone alerts are active! You will receive notifications when the Control Room makes an announcement.';
           btn.textContent = 'Alerts Active ✓';
@@ -1121,6 +1124,8 @@
             });
           }
           if (sub) {
+            localStorage.setItem("sibaq_push_subscribed", "true");
+            localStorage.setItem("sibaq_alerts_allowed", "true");
             const cfg = window.SIBAQ_SUPABASE_CONFIG || {};
             if (cfg.url && cfg.anonKey) {
               const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')))).replace(/\+/g, '-').replace(/\//g, '_');
@@ -1151,7 +1156,7 @@
       }
 
       navigator.serviceWorker.register('sw.js').then(reg => {
-        if (Notification.permission === 'granted') {
+        if (Notification.permission === 'granted' || localStorage.getItem("sibaq_push_subscribed") === "true") {
           syncSubscription(reg);
         }
 
@@ -1165,6 +1170,7 @@
               btn.hidden = true;
               return;
             }
+            localStorage.setItem("sibaq_alerts_allowed", "true");
             await syncSubscription(reg);
           } catch (err) {
             msg.textContent = '⚠️ Could not enable alerts: ' + (err.message || 'Unknown error.');
@@ -1314,19 +1320,34 @@
       }
 
       // 3. Listen to Supabase Realtime announcements while student is practicing with page open
+      let studentRealtimeChannel = null;
+      let studentRealtimeDb = null;
       function connectStudentRealtime() {
         const cfg = window.SIBAQ_SUPABASE_CONFIG || {};
         if (!window.supabase || !cfg.url || !cfg.anonKey) return;
         try {
-          const db = window.supabase.createClient(cfg.url, cfg.anonKey);
-          db.channel("sibaQ-live-announcements")
+          if (!studentRealtimeDb) studentRealtimeDb = window.supabase.createClient(cfg.url, cfg.anonKey);
+          if (studentRealtimeChannel) {
+            try { studentRealtimeDb.removeChannel(studentRealtimeChannel); } catch (_) {}
+          }
+          studentRealtimeChannel = studentRealtimeDb.channel("sibaQ-live-announcements");
+          studentRealtimeChannel
             .on("broadcast", { event: "announcement" }, msg => {
               const payload = msg && (msg.payload || msg.data || msg);
               if (payload) showStudentAnnouncement(payload);
             })
-            .subscribe();
+            .subscribe(status => {
+              if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+                clearTimeout(window._studentRealtimeRetry);
+                window._studentRealtimeRetry = setTimeout(connectStudentRealtime, 4000);
+              }
+            });
         } catch (_) {}
       }
+
+      window.addEventListener("online", () => {
+        connectStudentRealtime();
+      });
 
       // 4. LocalStorage & BroadcastChannel sync
       if ("BroadcastChannel" in window) {

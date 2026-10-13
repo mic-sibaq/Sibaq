@@ -723,7 +723,7 @@ let announcementRealtimeChannel = null;
 ========================================================= */
 
 let wallAudioCtx = null;
-let isAudioUnlocked = false;
+let isAudioUnlocked = localStorage.getItem("wall_audio_unlocked") === "true";
 let pendingChimePlayback = false;
 
 function getWallAudioCtx() {
@@ -737,6 +737,9 @@ function getWallAudioCtx() {
 
 function updateAudioUI(unlocked) {
   isAudioUnlocked = !!unlocked;
+  if (isAudioUnlocked) {
+    localStorage.setItem("wall_audio_unlocked", "true");
+  }
   const btn = document.getElementById("audioUnlockBtn");
   const text = document.getElementById("audioBtnText");
   const banner = document.getElementById("popupSoundBanner");
@@ -795,6 +798,7 @@ async function subscribeWallPush() {
           updated_at: new Date().toISOString()
         })
       });
+      localStorage.setItem('wall_push_subscribed', 'true');
       console.log('✅ Background / lock-screen Web Push alerts registered.');
     }
   } catch (err) {
@@ -880,10 +884,14 @@ function handleRingtoneChange(val) {
   });
 }
 
-// Ensure select element reflects saved or default ringtone
+// Ensure select element reflects saved or default ringtone and restore states from localStorage
 window.addEventListener("DOMContentLoaded", () => {
   const sel = document.getElementById("ringtoneSelect");
   if (sel) sel.value = currentRingtone;
+  if (isAudioUnlocked) updateAudioUI(true);
+  if (localStorage.getItem("wall_push_subscribed") === "true" || ("Notification" in window && Notification.permission === "granted")) {
+    subscribeWallPush();
+  }
 });
 
 /* 0. 🤖 Futuristic AI Notification Sound (Cyber Crystalline Sparkle) */
@@ -1231,7 +1239,9 @@ function initSupabaseRealtime() {
     return;
   }
   try {
-    const db = window.supabase.createClient(cfg.url, cfg.anonKey);
+    if (announcementRealtimeChannel) {
+      try { db.removeChannel(announcementRealtimeChannel); } catch (_) {}
+    }
     announcementRealtimeChannel = db.channel(announcementRealtimeTopic);
     announcementRealtimeChannel
       .on("broadcast", { event: "announcement" }, message => {
@@ -1243,14 +1253,22 @@ function initSupabaseRealtime() {
       .subscribe(status => {
         if (status === "SUBSCRIBED") {
           console.log("✅ Supabase Realtime connected. Cross-device announcements & sound are active.");
-        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-          console.error("Could not connect to Supabase Realtime for cross-device announcements.", status);
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          console.warn("Supabase Realtime disconnected (" + status + "). Reconnecting...", status);
+          clearTimeout(window._liveWallRealtimeRetry);
+          window._liveWallRealtimeRetry = setTimeout(initSupabaseRealtime, 4000);
         }
       });
   } catch (e) {
     console.error("Cross-device announcements failed to initialise.", e);
+    clearTimeout(window._liveWallRealtimeRetry);
+    window._liveWallRealtimeRetry = setTimeout(initSupabaseRealtime, 5000);
   }
 }
+
+window.addEventListener("online", () => {
+  initSupabaseRealtime();
+});
 
 
 /* =========================================================
