@@ -29,34 +29,64 @@ self.addEventListener("push", event => {
   const options = {
     body:               data.body,
     tag:                data.tag || ("sibaq-announcement-" + Date.now()),
-    icon:               data.icon  || "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%234338ca'/><stop offset='1' stop-color='%237c3aed'/></linearGradient></defs><rect width='192' height='192' rx='40' fill='url(%23g)'/><text x='96' y='130' text-anchor='middle' font-family='Arial' font-weight='900' font-size='80' fill='white'>S</text></svg>",
-    badge:              data.badge || "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' rx='20' fill='%234338ca'/><text x='48' y='68' text-anchor='middle' font-family='Arial' font-weight='900' font-size='48' fill='white'>S</text></svg>",
+    icon:               "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAATUlEQVR42u3PMQEAAAgEIPuX1hkefECAJOmbU0BAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBgb2A6+QEdFwR/RwAAAABJRU5ErkJggg==",
+    badge:              "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAATUlEQVR42u3PMQEAAAgEIPuX1hkefECAJOmbU0BAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBgb2A6+QEdFwR/RwAAAABJRU5ErkJggg==",
     vibrate:            [300, 150, 300, 150, 600],  /* 3-pulse vibration for pocket/lock screen */
     requireInteraction: true,                       /* Stays on lock screen until user interacts */
     renotify:           true,                       /* Alert and vibrate for every incoming announcement */
     silent:             false,
     actions: [
-      { action: "open", title: "Open SIBAQ 📢" }
+      { action: "open", title: "View Announcement 📢" }
     ],
     data: {
-      url: data.url || self.registration.scope
+      url:         data.url || "student.html",
+      title:       data.title,
+      body:        data.body,
+      studentCall: data.studentCall || null,
+      time:        Date.now()
     }
   };
 
   event.waitUntil(self.registration.showNotification(data.title, options));
 });
 
-/* ── Notification click: open student page ───────────────────────── */
+/* ── Notification click: open student page and trigger popup on mobile ──────────────── */
 self.addEventListener("notificationclick", event => {
   event.notification.close();
-  const target = event.notification.data?.url || self.registration.scope;
+  const notifData   = event.notification.data || {};
+  const notifBody   = event.notification.body || notifData.body || "";
+  const notifTitle  = event.notification.title || notifData.title || "SIBAQ Announcement";
+  const studentCall = notifData.studentCall || null;
+  const baseUrl     = (notifData.url && !notifData.url.endsWith("/")) ? notifData.url : "student.html";
+
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true })
       .then(clients => {
+        // If a window is already open, post message and focus
         for (const client of clients) {
-          if (client.url === target && "focus" in client) return client.focus();
+          client.postMessage({
+            type:        "sibaq-open-announcement",
+            title:       notifTitle,
+            body:        notifBody,
+            studentCall: studentCall,
+            time:        Date.now()
+          });
+          if ("focus" in client) return client.focus();
         }
-        if (self.clients.openWindow) return self.clients.openWindow(target);
+
+        // If closed (Chrome cleared or screen locked), open student page with announcement query params
+        if (self.clients.openWindow) {
+          const targetUrl = new URL(baseUrl, self.registration.scope);
+          targetUrl.searchParams.set("announcement", notifBody);
+          targetUrl.searchParams.set("announcement_title", notifTitle);
+          if (studentCall) {
+            targetUrl.searchParams.set("student_name", studentCall.name || "");
+            targetUrl.searchParams.set("student_adNo", studentCall.adNo || "");
+            targetUrl.searchParams.set("student_program", studentCall.program || "");
+            targetUrl.searchParams.set("student_code", studentCall.programCode || "");
+          }
+          return self.clients.openWindow(targetUrl.toString());
+        }
       })
   );
 });

@@ -433,6 +433,24 @@ body.dark .audio-btn.audio-active{
   cursor:pointer;
 }
 
+.ringtone-picker{
+  padding:8px 14px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--card);
+  color:var(--text);
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  outline:none;
+  font-family:inherit;
+  transition:border-color .2s;
+}
+
+.ringtone-picker:focus{
+  border-color:var(--primary);
+}
+
 .popup-sound-banner{
   margin:18px auto;
   padding:14px 22px;
@@ -476,6 +494,15 @@ body.dark .audio-btn.audio-active{
       <span class="audio-icon">🔔</span>
       <span id="audioBtnText">Allow Alerts & Sound</span>
     </button>
+    <select id="ringtoneSelect" class="ringtone-picker" onchange="handleRingtoneChange(this.value)" title="Choose announcement ringtone / sound effect">
+      <option value="ai_sound">🤖 AI Sound: Notification from SIBAQ</option>
+      <option value="fanfare">🎺 Stage Fanfare</option>
+      <option value="dingdong">🔔 Two-Tone Bell (Ding-Dong)</option>
+      <option value="marimba">🎶 Marimba Call</option>
+      <option value="digital">🚨 Digital Alert Pulse</option>
+      <option value="gong">🥁 Temple Gong</option>
+      <option value="chime">🛎️ Soft Airport Chime</option>
+    </select>
     <label class="voice-toggle" title="Speak announcement text aloud after chime">
       <input type="checkbox" id="voiceToggle" checked>
       <span>🗣️ Voice</span>
@@ -832,13 +859,234 @@ function handleAudioButtonClick(e) {
   }, { capture: true, passive: true });
 });
 
-/* Synthesized 16-bit PCM WAV Chime Fallback (Airport / PA Chime) */
+/* =========================================================
+   ANNOUNCEMENT RINGTONE ENGINE (MULTI-STYLE)
+========================================================= */
+
+let currentRingtone = localStorage.getItem("wallRingtone") || "ai_sound";
 let cachedWavChimeUrl = null;
+
+function handleRingtoneChange(val) {
+  currentRingtone = val || "ai_sound";
+  localStorage.setItem("wallRingtone", currentRingtone);
+  cachedWavChimeUrl = null; // Invalidate WAV fallback cache
+  userUnlockAudio(false).then(() => {
+    playWallChime(); // Play instant preview so user hears the new sound!
+    if (currentRingtone === "ai_sound") {
+      setTimeout(() => {
+        speakAnnouncement("Notification from SIBAQ");
+      }, 380);
+    }
+  });
+}
+
+// Ensure select element reflects saved or default ringtone
+window.addEventListener("DOMContentLoaded", () => {
+  const sel = document.getElementById("ringtoneSelect");
+  if (sel) sel.value = currentRingtone;
+});
+
+/* 0. 🤖 Futuristic AI Notification Sound (Cyber Crystalline Sparkle) */
+function playAiSound(ctx, now, master) {
+  const notes = [
+    { f: 1046.50, t: 0.00, d: 0.16 }, // C6
+    { f: 1318.51, t: 0.08, d: 0.16 }, // E6
+    { f: 1567.98, t: 0.16, d: 0.18 }, // G6
+    { f: 2093.00, t: 0.24, d: 0.65 }  // C7
+  ];
+
+  notes.forEach(({ f, t, d }) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(f, now + t);
+
+    gain.gain.setValueAtTime(0.0001, now + t);
+    gain.gain.exponentialRampToValueAtTime(0.85, now + t + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + t + d);
+
+    osc.connect(gain);
+    gain.connect(master);
+    osc.start(now + t);
+    osc.stop(now + t + d + 0.05);
+  });
+}
+
+/* 1. 🎺 Grand Stage Fanfare (Ceremonial Brass Triad) */
+function playFanfare(ctx, now, master) {
+  const notes = [
+    { f: 523.25, t: 0.00, d: 0.16 }, // C5
+    { f: 659.25, t: 0.15, d: 0.16 }, // E5
+    { f: 783.99, t: 0.30, d: 0.20 }, // G5
+    { f: 1046.50, t: 0.48, d: 1.15 }, // C6 (lead trumpet)
+    { f: 523.25, t: 0.48, d: 1.15 },  // C5 (harmony root)
+    { f: 783.99, t: 0.48, d: 1.15 }   // G5 (harmony 5th)
+  ];
+
+  notes.forEach(({ f, t, d }) => {
+    const osc = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(2400, now + t);
+    filter.Q.setValueAtTime(1.8, now + t);
+
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(f, now + t);
+
+    osc2.type = "triangle";
+    osc2.frequency.setValueAtTime(f * 2, now + t);
+
+    gain.gain.setValueAtTime(0.0001, now + t);
+    gain.gain.exponentialRampToValueAtTime(0.42, now + t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + t + d);
+
+    osc.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
+    gain.connect(master);
+
+    osc.start(now + t);
+    osc.stop(now + t + d + 0.05);
+    osc2.start(now + t);
+    osc2.stop(now + t + d + 0.05);
+  });
+}
+
+/* 2. 🔔 Two-Tone Bell (Ding-Dong / Westminster Chime) */
+function playDingDong(ctx, now, master) {
+  const strikes = [
+    { f: 698.46, t: 0.00, d: 0.75 }, // Strike 1: Ding (F5)
+    { f: 523.25, t: 0.46, d: 1.35 }  // Strike 2: Dong (C5)
+  ];
+
+  strikes.forEach(({ f, t, d }) => {
+    [1.0, 2.76, 5.4].forEach((mult, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(f * mult, now + t);
+
+      const amp = idx === 0 ? 0.78 : (idx === 1 ? 0.28 : 0.12);
+      gain.gain.setValueAtTime(0.0001, now + t);
+      gain.gain.exponentialRampToValueAtTime(amp, now + t + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + t + (d / (idx + 1)));
+
+      osc.connect(gain);
+      gain.connect(master);
+      osc.start(now + t);
+      osc.stop(now + t + d + 0.05);
+    });
+  });
+}
+
+/* 3. 🎶 Marimba Arpeggio (Bright Acoustic Ripple) */
+function playMarimba(ctx, now, master) {
+  const notes = [
+    { f: 523.25, t: 0.00, d: 0.35 },
+    { f: 659.25, t: 0.09, d: 0.35 },
+    { f: 783.99, t: 0.18, d: 0.35 },
+    { f: 987.77, t: 0.27, d: 0.40 },
+    { f: 1046.50, t: 0.36, d: 0.85 }
+  ];
+
+  notes.forEach(({ f, t, d }) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(f, now + t);
+
+    gain.gain.setValueAtTime(0.0001, now + t);
+    gain.gain.exponentialRampToValueAtTime(0.85, now + t + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + t + d);
+
+    osc.connect(gain);
+    gain.connect(master);
+    osc.start(now + t);
+    osc.stop(now + t + d + 0.05);
+  });
+}
+
+/* 4. 🚨 Digital Alert Pulse (Modern Double High-Urgency Pulse) */
+function playDigitalAlert(ctx, now, master) {
+  const pings = [
+    { f1: 880, f2: 1320, t: 0.00, d: 0.14 },
+    { f1: 880, f2: 1760, t: 0.18, d: 0.28 },
+    { f1: 880, f2: 1760, t: 0.52, d: 0.42 }
+  ];
+
+  pings.forEach(({ f1, f2, t, d }) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(f1, now + t);
+    osc.frequency.exponentialRampToValueAtTime(f2, now + t + (d * 0.5));
+
+    gain.gain.setValueAtTime(0.0001, now + t);
+    gain.gain.exponentialRampToValueAtTime(0.85, now + t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + t + d);
+
+    osc.connect(gain);
+    gain.connect(master);
+    osc.start(now + t);
+    osc.stop(now + t + d + 0.05);
+  });
+}
+
+/* 5. 🥁 Resonant Temple Gong / Intermission Bell */
+function playGong(ctx, now, master) {
+  const freqs = [130.8, 261.6, 394.0, 521.0, 788.0];
+  freqs.forEach((f, idx) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = idx % 2 === 0 ? "sine" : "triangle";
+    osc.frequency.setValueAtTime(f, now);
+
+    const amp = 0.85 / (idx + 1);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(amp, now + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.4 / (idx * 0.4 + 1));
+
+    osc.connect(gain);
+    gain.connect(master);
+    osc.start(now);
+    osc.stop(now + 2.5);
+  });
+}
+
+/* 6. 🛎️ Classic Airport PA Chime */
+function playClassicChime(ctx, now, master) {
+  const notes = [
+    { f: 659.25, t: 0.00, d: 0.45 },
+    { f: 783.99, t: 0.16, d: 0.65 },
+    { f: 1046.50, t: 0.32, d: 0.95 }
+  ];
+
+  notes.forEach(({ f, t, d }) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(f, now + t);
+
+    gain.gain.setValueAtTime(0.0001, now + t);
+    gain.gain.exponentialRampToValueAtTime(0.85, now + t + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + t + d);
+
+    osc.connect(gain);
+    gain.connect(master);
+    osc.start(now + t);
+    osc.stop(now + t + d + 0.05);
+  });
+}
+
+/* Synthesized 16-bit PCM WAV Ringtone Fallback */
 function getChimeWavUrl() {
   if (cachedWavChimeUrl) return cachedWavChimeUrl;
   try {
     const sampleRate = 22050;
-    const duration = 1.35;
+    const duration = 1.4;
     const numSamples = Math.floor(sampleRate * duration);
     const buffer = new ArrayBuffer(44 + numSamples * 2);
     const view = new DataView(buffer);
@@ -860,11 +1108,9 @@ function getChimeWavUrl() {
     writeStr(36, "data");
     view.setUint32(40, numSamples * 2, true);
 
-    const notes = [
-      { f: 659.25, start: 0.00, end: 0.45 },
-      { f: 783.99, start: 0.16, end: 0.70 },
-      { f: 1046.50, start: 0.32, end: 1.30 }
-    ];
+    const notes = currentRingtone === "dingdong"
+      ? [{ f: 698.46, start: 0.00, end: 0.5 }, { f: 523.25, start: 0.45, end: 1.35 }]
+      : [{ f: 523.25, start: 0.00, end: 0.2 }, { f: 659.25, start: 0.15, end: 0.35 }, { f: 783.99, start: 0.30, end: 0.5 }, { f: 1046.50, start: 0.48, end: 1.35 }];
 
     for (let i = 0; i < numSamples; i++) {
       const t = i / sampleRate;
@@ -875,7 +1121,6 @@ function getChimeWavUrl() {
           const dur = n.end - n.start;
           const env = Math.exp(-4.2 * (nt / dur));
           sample += 0.5 * Math.sin(2 * Math.PI * n.f * nt) * env;
-          sample += 0.15 * Math.sin(4 * Math.PI * n.f * nt) * env;
         }
       }
       const s = Math.max(-1, Math.min(1, sample));
@@ -898,7 +1143,7 @@ function playWavFallbackChime() {
     a.play().then(() => {
       updateAudioUI(true);
     }).catch(err => {
-      console.warn("WAV chime fallback autoplay blocked:", err);
+      console.warn("WAV ringtone fallback autoplay blocked:", err);
       pendingChimePlayback = true;
       updateAudioUI(false);
     });
@@ -930,51 +1175,35 @@ async function playWallChime() {
 function doPlayChimeOscillators(ctx) {
   const now = ctx.currentTime;
   const master = ctx.createGain();
-  master.gain.setValueAtTime(0.0001, now);
-  master.gain.linearRampToValueAtTime(0.85, now + 0.03);
+  master.gain.setValueAtTime(0.88, now);
   master.connect(ctx.destination);
 
-  // 3-note ascending PA chime (E5 -> G5 -> C6) with rich harmonics
-  const notes = [
-    { f: 659.25, t: 0.00, d: 0.45 },
-    { f: 783.99, t: 0.16, d: 0.65 },
-    { f: 1046.50, t: 0.32, d: 0.95 }
-  ];
-
-  notes.forEach(({ f, t, d }) => {
-    // Fundamental sine
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(f, now + t);
-
-    // Harmonic overtone
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = "triangle";
-    osc2.frequency.setValueAtTime(f * 2, now + t);
-
-    gain.gain.setValueAtTime(0.0001, now + t);
-    gain.gain.exponentialRampToValueAtTime(0.85, now + t + 0.03);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + t + d);
-
-    gain2.gain.setValueAtTime(0.0001, now + t);
-    gain2.gain.exponentialRampToValueAtTime(0.25, now + t + 0.03);
-    gain2.gain.exponentialRampToValueAtTime(0.0001, now + t + d * 0.7);
-
-    osc.connect(gain);
-    gain.connect(master);
-    osc2.connect(gain2);
-    gain2.connect(master);
-
-    osc.start(now + t);
-    osc.stop(now + t + d + 0.05);
-    osc2.start(now + t);
-    osc2.stop(now + t + d + 0.05);
-  });
-
-  master.gain.setValueAtTime(0.85, now + 0.65);
-  master.gain.exponentialRampToValueAtTime(0.0001, now + 1.5);
+  switch (currentRingtone) {
+    case "ai_sound":
+      playAiSound(ctx, now, master);
+      break;
+    case "dingdong":
+      playDingDong(ctx, now, master);
+      break;
+    case "marimba":
+      playMarimba(ctx, now, master);
+      break;
+    case "digital":
+      playDigitalAlert(ctx, now, master);
+      break;
+    case "gong":
+      playGong(ctx, now, master);
+      break;
+    case "chime":
+      playClassicChime(ctx, now, master);
+      break;
+    case "fanfare":
+      playFanfare(ctx, now, master);
+      break;
+    default:
+      playAiSound(ctx, now, master);
+      break;
+  }
 }
 
 /* Voice SpeechSynthesis for loud audible alerts */

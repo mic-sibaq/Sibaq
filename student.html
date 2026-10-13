@@ -677,6 +677,119 @@
                 text-align: center;
             }
         }
+
+        /* Mobile Floating Announcement Popup Modal */
+        .mobile-announcement-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeInOverlay 0.25s ease-out;
+        }
+
+        .mobile-announcement-box {
+            width: 100%;
+            max-width: 520px;
+            background: #ffffff;
+            border-radius: 26px;
+            padding: 30px 24px;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(99, 102, 241, 0.2);
+            animation: popScaleIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mobile-announcement-box.student-call {
+            background: linear-gradient(180deg, #fff5f5, #ffffff);
+            border: 3px solid #ef4444;
+            box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.2), 0 25px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes popScaleIn {
+            from { opacity: 0; transform: scale(0.85) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .mobile-announcement-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: #eef2ff;
+            color: #4f46e5;
+            margin-bottom: 14px;
+        }
+
+        .mobile-announcement-box.student-call .mobile-announcement-badge {
+            background: #fee2e2;
+            color: #b91c1c;
+            animation: pulseBadge 1.2s infinite ease-in-out;
+        }
+
+        @keyframes pulseBadge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .mobile-announcement-title {
+            font-size: 22px;
+            font-weight: 900;
+            color: #0f172a;
+            margin: 0 0 10px;
+        }
+
+        .mobile-announcement-text {
+            font-size: 17px;
+            line-height: 1.5;
+            color: #334155;
+            margin: 0 0 18px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .mobile-announcement-time {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 22px;
+            font-weight: 600;
+        }
+
+        .mobile-announcement-btn {
+            width: 100%;
+            padding: 14px 24px;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.35);
+            transition: transform 0.15s;
+        }
+
+        .mobile-announcement-box.student-call .mobile-announcement-btn {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.35);
+        }
+
+        .mobile-announcement-btn:active {
+            transform: scale(0.98);
+        }
     </style>
 </head>
 
@@ -781,6 +894,18 @@
             </div>
         </section>
     </div>
+
+    <!-- MOBILE FLOATING ANNOUNCEMENT / STAGE CALL POPUP -->
+    <div id="mobileAnnouncementOverlay" class="mobile-announcement-overlay" style="display:none;" onclick="if(event.target===this)closeStudentAnnouncement()">
+        <div id="mobileAnnouncementBox" class="mobile-announcement-box">
+            <div id="mobileAnnouncementBadge" class="mobile-announcement-badge">📢 SIBAQ Announcement</div>
+            <h2 id="mobileAnnouncementTitle" class="mobile-announcement-title">Attention Candidates</h2>
+            <p id="mobileAnnouncementText" class="mobile-announcement-text"></p>
+            <div id="mobileAnnouncementTime" class="mobile-announcement-time"></div>
+            <button class="mobile-announcement-btn" type="button" onclick="closeStudentAnnouncement()">Got it / Dismiss</button>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script>
@@ -986,22 +1111,16 @@
         }
       }
 
-      navigator.serviceWorker.register('sw.js').then(reg => {
-        btn.addEventListener('click', async () => {
-          btn.disabled = true;
-          btn.textContent = 'Enabling…';
-          try {
-            const permission = await Notification.requestPermission();
-            if (permission !== 'granted') {
-              msg.textContent = '⚠️ Permission denied. Enable notifications in browser settings to receive alerts.';
-              btn.hidden = true;
-              return;
-            }
-            const sub = await reg.pushManager.subscribe({
+      async function syncSubscription(reg) {
+        try {
+          let sub = await reg.pushManager.getSubscription();
+          if (!sub && Notification.permission === 'granted') {
+            sub = await reg.pushManager.subscribe({
               userVisibleOnly: true,
               applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
             });
-            /* Store subscription in Supabase push_subscriptions table */
+          }
+          if (sub) {
             const cfg = window.SIBAQ_SUPABASE_CONFIG || {};
             if (cfg.url && cfg.anonKey) {
               const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')))).replace(/\+/g, '-').replace(/\//g, '_');
@@ -1022,10 +1141,31 @@
                 })
               });
             }
-            bar.classList.add('granted');
-            msg.textContent = '✅ Phone alerts enabled! You will receive notifications from the Control Room.';
-            btn.textContent = 'Subscribed';
-            btn.disabled = true;
+            if (bar) bar.classList.add('granted');
+            if (msg) msg.textContent = '✅ Phone alerts are active! You will receive notifications when the Control Room makes an announcement.';
+            if (btn) { btn.textContent = 'Alerts Active ✓'; btn.disabled = true; }
+          }
+        } catch (err) {
+          console.warn('Subscription sync error:', err);
+        }
+      }
+
+      navigator.serviceWorker.register('sw.js').then(reg => {
+        if (Notification.permission === 'granted') {
+          syncSubscription(reg);
+        }
+
+        btn.addEventListener('click', async () => {
+          btn.disabled = true;
+          btn.textContent = 'Enabling…';
+          try {
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+              msg.textContent = '⚠️ Permission denied. Enable notifications in browser settings to receive alerts.';
+              btn.hidden = true;
+              return;
+            }
+            await syncSubscription(reg);
           } catch (err) {
             msg.textContent = '⚠️ Could not enable alerts: ' + (err.message || 'Unknown error.');
             btn.disabled = false;
@@ -1035,6 +1175,193 @@
       }).catch(err => {
         console.warn('Service worker registration failed:', err);
       });
+    })();
+    </script>
+
+    <!-- Announcement Popup & AI Sound Controller -->
+    <script>
+    (function() {
+      let studentAudioCtx = null;
+
+      function playAiNotificationSound() {
+        try {
+          const Cls = window.AudioContext || window.webkitAudioContext;
+          if (!Cls) return;
+          if (!studentAudioCtx || studentAudioCtx.state === "closed") studentAudioCtx = new Cls();
+          if (studentAudioCtx.state === "suspended") {
+            studentAudioCtx.resume().catch(() => {});
+          }
+          const now = studentAudioCtx.currentTime;
+          const master = studentAudioCtx.createGain();
+          master.gain.setValueAtTime(0.88, now);
+          master.connect(studentAudioCtx.destination);
+
+          // Futuristic AI notification chime (C6 -> E6 -> G6 -> C7 high-tech sparkle)
+          const notes = [
+            { f: 1046.5, t: 0.00, d: 0.16 },
+            { f: 1318.5, t: 0.08, d: 0.16 },
+            { f: 1568.0, t: 0.16, d: 0.18 },
+            { f: 2093.0, t: 0.24, d: 0.60 }
+          ];
+
+          notes.forEach(({ f, t, d }) => {
+            const osc = studentAudioCtx.createOscillator();
+            const gain = studentAudioCtx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(f, now + t);
+            gain.gain.setValueAtTime(0.0001, now + t);
+            gain.gain.exponentialRampToValueAtTime(0.85, now + t + 0.012);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + t + d);
+            osc.connect(gain);
+            gain.connect(master);
+            osc.start(now + t);
+            osc.stop(now + t + d + 0.05);
+          });
+        } catch (_) {}
+      }
+
+      function speakAiNotification(text) {
+        if (!("speechSynthesis" in window)) return;
+        try {
+          window.speechSynthesis.cancel();
+          const cleanText = (text || "").replace(/[\r\n]+/g, ". ");
+          const utterance = new SpeechSynthesisUtterance("Notification from SIBAQ: " + cleanText);
+          utterance.rate = 0.95;
+          utterance.pitch = 1.05;
+          utterance.volume = 1.0;
+          utterance.lang = "en-IN";
+          window.speechSynthesis.speak(utterance);
+        } catch (_) {}
+      }
+
+      window.showStudentAnnouncement = function(data) {
+        if (!data) return;
+        const overlay = document.getElementById("mobileAnnouncementOverlay");
+        const box     = document.getElementById("mobileAnnouncementBox");
+        const badge   = document.getElementById("mobileAnnouncementBadge");
+        const title   = document.getElementById("mobileAnnouncementTitle");
+        const text    = document.getElementById("mobileAnnouncementText");
+        const time    = document.getElementById("mobileAnnouncementTime");
+        if (!overlay) return;
+
+        const isCall = !!data.studentCall;
+        box.classList.toggle("student-call", isCall);
+
+        badge.textContent = isCall ? "🚨 URGENT STAGE CALL" : (data.label || "📢 SIBAQ ANNOUNCEMENT");
+        title.textContent = isCall ? "You are Called to the Stage!" : (data.label || "SIBAQ Announcement");
+        text.textContent  = isCall
+          ? `${data.studentCall.name}\nAdmission No: ${data.studentCall.adNo}\nProgram: ${data.studentCall.program} (${data.studentCall.programCode})\n\nPlease report to the stage immediately!`
+          : (data.text || data.body || "");
+        time.textContent  = "Received: " + new Date().toLocaleTimeString("en-IN");
+
+        overlay.style.display = "flex";
+
+        // Vibrate phone
+        if ("vibrate" in navigator) {
+          try { navigator.vibrate([300, 150, 300, 150, 500]); } catch (_) {}
+        }
+
+        // Play AI sound and voice
+        playAiNotificationSound();
+        setTimeout(() => {
+          const speakText = isCall
+            ? `${data.studentCall.name}, please report to stage for ${data.studentCall.program}`
+            : (data.text || data.body || "");
+          if (speakText) speakAiNotification(speakText);
+        }, 420);
+      };
+
+      window.closeStudentAnnouncement = function() {
+        const overlay = document.getElementById("mobileAnnouncementOverlay");
+        if (overlay) overlay.style.display = "none";
+        if ("speechSynthesis" in window) {
+          try { window.speechSynthesis.cancel(); } catch (_) {}
+        }
+      };
+
+      // 1. Check if opened via push notification URL query params (when user taps notification on locked screen or closed browser)
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const notifBody = params.get("announcement");
+        if (notifBody) {
+          const studentName = params.get("student_name");
+          setTimeout(() => {
+            showStudentAnnouncement({
+              text: decodeURIComponent(notifBody),
+              label: decodeURIComponent(params.get("announcement_title") || "SIBAQ Announcement"),
+              studentCall: studentName ? {
+                name: decodeURIComponent(studentName),
+                adNo: decodeURIComponent(params.get("student_adNo") || ""),
+                program: decodeURIComponent(params.get("student_program") || ""),
+                programCode: decodeURIComponent(params.get("student_code") || "")
+              } : null
+            });
+          }, 350);
+        }
+      } catch (_) {}
+
+      // 2. Listen to postMessage from service worker when student taps notification
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.addEventListener("message", event => {
+          if (event.data && event.data.type === "sibaq-open-announcement") {
+            showStudentAnnouncement({
+              text:        event.data.body,
+              label:       event.data.title,
+              studentCall: event.data.studentCall || null
+            });
+          }
+        });
+      }
+
+      // 3. Listen to Supabase Realtime announcements while student is practicing with page open
+      function connectStudentRealtime() {
+        const cfg = window.SIBAQ_SUPABASE_CONFIG || {};
+        if (!window.supabase || !cfg.url || !cfg.anonKey) return;
+        try {
+          const db = window.supabase.createClient(cfg.url, cfg.anonKey);
+          db.channel("sibaQ-live-announcements")
+            .on("broadcast", { event: "announcement" }, msg => {
+              const payload = msg && (msg.payload || msg.data || msg);
+              if (payload) showStudentAnnouncement(payload);
+            })
+            .subscribe();
+        } catch (_) {}
+      }
+
+      // 4. LocalStorage & BroadcastChannel sync
+      if ("BroadcastChannel" in window) {
+        try {
+          const bc = new BroadcastChannel("artsFestChannel");
+          bc.onmessage = e => {
+            if (e.data && e.data.type === "announcement") showStudentAnnouncement(e.data);
+          };
+        } catch (_) {}
+      }
+
+      window.addEventListener("storage", e => {
+        if (e.key === "artsFestLiveAnnouncement" && e.newValue) {
+          try {
+            const data = JSON.parse(e.newValue);
+            if (data && data.time && Date.now() - data.time < 30000) showStudentAnnouncement(data);
+          } catch (_) {}
+        }
+      });
+
+      // Unlock student audio on first touch
+      ["click", "touchstart", "keydown"].forEach(evt => {
+        document.addEventListener(evt, () => {
+          if (!studentAudioCtx) {
+            const Cls = window.AudioContext || window.webkitAudioContext;
+            if (Cls) studentAudioCtx = new Cls();
+          }
+          if (studentAudioCtx && studentAudioCtx.state === "suspended") {
+            studentAudioCtx.resume().catch(() => {});
+          }
+        }, { capture: true, passive: true });
+      });
+
+      // Start realtime after load
+      window.addEventListener("load", connectStudentRealtime);
     })();
     </script>
 </body>
