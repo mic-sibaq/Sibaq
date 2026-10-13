@@ -6,6 +6,10 @@
 
 <title>National Arts Fest — Live Wall</title>
 
+<!-- Supabase: required for cross-device realtime announcements -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+
 <style>
 
 :root{
@@ -578,30 +582,37 @@ const channel = "BroadcastChannel" in window
   : null;
 
 const announcementRealtimeTopic = "sibaQ-live-announcements";
-const announcementRealtimeChannel = window.supabase &&
-  window.SIBAQ_SUPABASE_CONFIG &&
-  window.SIBAQ_SUPABASE_CONFIG.url &&
-  window.SIBAQ_SUPABASE_CONFIG.anonKey
-  ? window.supabase.createClient(
-      window.SIBAQ_SUPABASE_CONFIG.url,
-      window.SIBAQ_SUPABASE_CONFIG.anonKey
-    ).channel(announcementRealtimeTopic)
-  : null;
+let announcementRealtimeChannel = null;
 
-if (announcementRealtimeChannel) {
-  announcementRealtimeChannel
-    .on("broadcast", { event: "announcement" }, message => {
-      if (message && message.payload && message.payload.type === "announcement") {
-        showAnnouncement(message.payload);
-      }
-    })
-    .subscribe(status => {
-      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-        console.error("Could not connect to Supabase Realtime for cross-device announcements.", status);
-      }
-    });
-} else {
-  console.error("Cross-device announcements are unavailable because Supabase is not configured.");
+function initSupabaseRealtime() {
+  const cfg = window.SIBAQ_SUPABASE_CONFIG || {};
+  if (!window.supabase || !window.supabase.createClient) {
+    console.error("Cross-device announcements unavailable: Supabase library did not load.");
+    return;
+  }
+  if (!cfg.url || !cfg.anonKey || cfg.url.includes("YOUR_")) {
+    console.error("Cross-device announcements unavailable: supabase-config.js is not configured.");
+    return;
+  }
+  try {
+    const db = window.supabase.createClient(cfg.url, cfg.anonKey);
+    announcementRealtimeChannel = db.channel(announcementRealtimeTopic);
+    announcementRealtimeChannel
+      .on("broadcast", { event: "announcement" }, message => {
+        if (message && message.payload && message.payload.type === "announcement") {
+          showAnnouncement(message.payload);
+        }
+      })
+      .subscribe(status => {
+        if (status === "SUBSCRIBED") {
+          console.log("✅ Supabase Realtime connected. Cross-device announcements are live.");
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.error("Could not connect to Supabase Realtime for cross-device announcements.", status);
+        }
+      });
+  } catch (e) {
+    console.error("Cross-device announcements failed to initialise.", e);
+  }
 }
 
 
@@ -1056,6 +1067,9 @@ function escapeHtml(value){
 update();
 
 loadLastAnnouncement();
+
+/* Init Supabase Realtime after all scripts are guaranteed loaded */
+initSupabaseRealtime();
 
 setInterval(update,1000);
 
