@@ -1757,6 +1757,7 @@ body.dark .matrix-summary-pill {
 
     <div class="top-actions">
       <button class="btn secondary" onclick="toggleTheme()">🌙 / ☀️ Theme</button>
+      <a href="devices.html" class="btn secondary" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">📱 Connected Devices</a>
       <button class="btn" onclick="openLiveWall()">📺 Live Wall</button>
     </div>
   </header>
@@ -4006,6 +4007,22 @@ body.dark .matrix-summary-pill {
           announcementRealtimeReady = true;
           adminRealtimeReconnectAttempts = 0;
           console.log("✅ Supabase Realtime connected for announcements.");
+          try {
+            const adminPresence = db.channel("sibaq-device-presence");
+            adminPresence.subscribe(st => {
+              if (st === "SUBSCRIBED") {
+                adminPresence.track({
+                  deviceId: "admin_console_main",
+                  name: "Control Room Admin",
+                  role: "admin",
+                  deviceType: "desktop",
+                  platform: "Desktop / PC",
+                  page: "admin-fixed.html",
+                  onlineAt: new Date().toISOString()
+                });
+              }
+            });
+          } catch (_) {}
           while (pendingRealtimeAnnouncements.length) {
             sendRealtimeAnnouncement(pendingRealtimeAnnouncements.shift());
           }

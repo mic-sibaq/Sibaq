@@ -1270,6 +1270,22 @@ function initSupabaseRealtime() {
       .subscribe(status => {
         if (status === "SUBSCRIBED") {
           console.log("✅ Supabase Realtime connected. Cross-device announcements & sound are active.");
+          try {
+            const wallPresence = db.channel("sibaq-device-presence");
+            wallPresence.subscribe(st => {
+              if (st === "SUBSCRIBED") {
+                wallPresence.track({
+                  deviceId: "wall_main",
+                  name: "Live Wall Display",
+                  role: "wall",
+                  deviceType: "wall",
+                  platform: "Display Wall",
+                  page: "live-wall.html",
+                  onlineAt: new Date().toISOString()
+                });
+              }
+            });
+          } catch (_) {}
         } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
           console.warn("Supabase Realtime disconnected (" + status + "). Reconnecting...", status);
           clearTimeout(window._liveWallRealtimeRetry);

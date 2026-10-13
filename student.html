@@ -1431,8 +1431,39 @@
               if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
                 clearTimeout(window._studentRealtimeRetry);
                 window._studentRealtimeRetry = setTimeout(connectStudentRealtime, 4000);
+                }
+              );
+
+          // Track live device presence
+          try {
+            let devId = localStorage.getItem("sibaq_device_id");
+            if (!devId) {
+              devId = "phone_" + Math.random().toString(36).substring(2, 9);
+              localStorage.setItem("sibaq_device_id", devId);
+            }
+            const sName = document.getElementById("studentName")?.textContent || "Candidate Mobile";
+            const sAdNo = document.getElementById("admissionValue")?.textContent || "";
+            const isMob = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+            const pForm = isMob ? (/Android/i.test(navigator.userAgent) ? "Android" : "iOS") : "Desktop";
+
+            const presenceChan = studentRealtimeDb.channel("sibaq-device-presence");
+            presenceChan.subscribe(st => {
+              if (st === "SUBSCRIBED") {
+                presenceChan.track({
+                  deviceId: devId,
+                  name: sName !== "Student Profile" ? sName : "Candidate Mobile",
+                  adNo: sAdNo,
+                  role: "student",
+                  deviceType: isMob ? "mobile" : "desktop",
+                  platform: pForm,
+                  userAgent: navigator.userAgent,
+                  page: "student.html",
+                  pushSubscribed: localStorage.getItem("sibaq_push_subscribed") === "true",
+                  onlineAt: new Date().toISOString()
+                });
               }
             });
+          } catch (_) {}
         } catch (_) {}
       }
 

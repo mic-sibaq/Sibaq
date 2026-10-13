@@ -1,0 +1,1166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Device Monitor | SIBAQ National Arts Fest</title>
+  <link rel="icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+
+  <style>
+    :root {
+      --bg: #0b1120;
+      --surface: #131d31;
+      --surface-card: #18243c;
+      --surface-hover: #1e2e4c;
+      --border: #223455;
+      --border-subtle: #192742;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-glow: rgba(99, 102, 241, 0.25);
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.12);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.12);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.12);
+      --info: #0284c7;
+      --info-bg: rgba(2, 132, 199, 0.12);
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body.light {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-card: #f1f5f9;
+      --surface-hover: #e2e8f0;
+      --border: #cbd5e1;
+      --border-subtle: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --text-dim: #94a3b8;
+      --surface-card: #ffffff;
+      --border: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+      padding: clamp(12px, 2.5vw, 28px);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── HEADER ──────────────────────────────────────────────── */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 16px 22px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-badge {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4338ca, #7c3aed);
+      color: #fff;
+      font-weight: 900;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .live-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--success);
+      display: inline-block;
+      box-shadow: 0 0 10px var(--success);
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--surface-card);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: var(--surface-hover);
+      border-color: var(--primary);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
+    .btn-danger {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* ── STATS CARDS ─────────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--primary);
+    }
+
+    .stat-card.online::before { background: var(--success); }
+    .stat-card.push::before { background: var(--info); }
+    .stat-card.offline::before { background: var(--danger); }
+    .stat-card.total::before { background: var(--warning); }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* ── FILTER & SEARCH TOOLBAR ────────────────────────────── */
+    .toolbar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 260px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 14px 9px 38px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      background: var(--surface-card);
+    }
+
+    .tab-btn.active {
+      background: var(--surface-card);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .tab-count {
+      font-size: 11px;
+      background: var(--surface-hover);
+      padding: 1px 6px;
+      border-radius: 999px;
+    }
+
+    /* ── DEVICE CARDS GRID ──────────────────────────────────── */
+    .device-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .device-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .device-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--primary);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    }
+
+    .device-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .device-identity {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .device-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .device-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .device-meta-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    /* Status Pills */
+    .status-pill {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 4px 9px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .status-pill.online {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-pill.push-ready {
+      background: var(--info-bg);
+      color: var(--info);
+      border: 1px solid rgba(2, 132, 199, 0.3);
+    }
+
+    .status-pill.offline {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .device-specs {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+
+    .spec-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .spec-label {
+      color: var(--text-dim);
+    }
+
+    .spec-val {
+      color: var(--text);
+      font-weight: 600;
+      text-align: right;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .device-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .device-actions .btn {
+      flex: 1;
+      justify-content: center;
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+
+    /* ── EMPTY STATE ────────────────────────────────────────── */
+    .empty-box {
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: 18px;
+      padding: 48px 24px;
+      text-align: center;
+      grid-column: 1 / -1;
+    }
+
+    .empty-icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .empty-desc { font-size: 13px; color: var(--text-muted); max-width: 440px; margin: 0 auto; }
+
+    /* ── LOG CONSOLE DRAWER ─────────────────────────────────── */
+    .log-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px 20px;
+    }
+
+    .log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .log-title {
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .log-body {
+      margin-top: 12px;
+      background: #070d19;
+      border: 1px solid #142036;
+      border-radius: 10px;
+      padding: 12px 14px;
+      max-height: 180px;
+      overflow-y: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      color: #94a3b8;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .log-entry { display: flex; gap: 8px; }
+    .log-time { color: #475569; flex-shrink: 0; }
+    .log-info { color: #38bdf8; }
+    .log-join { color: #10b981; }
+    .log-leave { color: #f43f5e; }
+
+    /* Toast */
+    .toast-popup {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e293b;
+      color: #fff;
+      border: 1px solid #334155;
+      padding: 12px 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: toastIn 0.25s cubic-bezier(0.16,1,0.3,1);
+    }
+
+    @keyframes toastIn {
+      from { transform: translateY(12px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <!-- 1. HEADER -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo-badge">AF</div>
+        <div>
+          <h1 class="brand-title">Connected Devices & Fleet Monitor</h1>
+          <div class="brand-subtitle">
+            <span class="live-dot" id="realtimeStatusDot"></span>
+            <span id="realtimeStatusText">Connecting to Supabase Realtime…</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button class="btn" onclick="toggleTheme()" title="Switch Light/Dark Theme">🌓 Theme</button>
+        <button class="btn" onclick="fetchLiveState()" title="Refresh connection states">🔄 Refresh</button>
+        <button class="btn btn-primary" onclick="pingAllOnline()" title="Send ping chime to all active connected screens">🔔 Ping Online Devices</button>
+        <button class="btn" onclick="testPushBroadcast()" title="Send Web Push to phones even if closed">📱 Test Web Push</button>
+        <a href="admin-fixed.html" class="btn">⚙️ Control Room</a>
+        <a href="live-wall.html" class="btn" target="_blank">📺 Live Wall</a>
+      </div>
+    </header>
+
+    <!-- 2. METRICS DASHBOARD -->
+    <section class="stats-grid">
+      <div class="stat-card online">
+        <div class="stat-label">
+          <span>Live Online</span>
+          <span>🟢</span>
+        </div>
+        <div class="stat-value" id="countOnline">0</div>
+        <div class="stat-desc">Browsers currently open & connected (0ms latency)</div>
+      </div>
+
+      <div class="stat-card push">
+        <div class="stat-label">
+          <span>Push Subscribed</span>
+          <span>📱</span>
+        </div>
+        <div class="stat-value" id="countPushReady">0</div>
+        <div class="stat-desc">Phones reachable even when Chrome is closed / screen locked</div>
+      </div>
+
+      <div class="stat-card total">
+        <div class="stat-label">
+          <span>Total Registered</span>
+          <span>📋</span>
+        </div>
+        <div class="stat-value" id="countTotal">0</div>
+        <div class="stat-desc">Candidate phones, displays & admin devices registered</div>
+      </div>
+
+      <div class="stat-card offline">
+        <div class="stat-label">
+          <span>Disconnected / Idle</span>
+          <span>🔴</span>
+        </div>
+        <div class="stat-value" id="countOffline">0</div>
+        <div class="stat-desc">Devices inactive or closed without push alerts</div>
+      </div>
+    </section>
+
+    <!-- 3. SEARCH & FILTER TOOLBAR -->
+    <section class="toolbar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by student name, admission number, OS, browser, or device..." oninput="handleSearch(this.value)">
+      </div>
+
+      <div class="filter-tabs">
+        <button class="tab-btn active" data-filter="all" onclick="setFilter('all')">
+          All Devices <span class="tab-count" id="badgeAll">0</span>
+        </button>
+        <button class="tab-btn" data-filter="online" onclick="setFilter('online')">
+          🟢 Live Online <span class="tab-count" id="badgeOnline">0</span>
+        </button>
+        <button class="tab-btn" data-filter="push" onclick="setFilter('push')">
+          📱 Push Ready <span class="tab-count" id="badgePush">0</span>
+        </button>
+        <button class="tab-btn" data-filter="mobile" onclick="setFilter('mobile')">
+          📱 Mobiles <span class="tab-count" id="badgeMobile">0</span>
+        </button>
+        <button class="tab-btn" data-filter="wall" onclick="setFilter('wall')">
+          📺 Live Walls <span class="tab-count" id="badgeWall">0</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 4. DEVICE CARDS GRID -->
+    <main class="device-grid" id="deviceContainer">
+      <div class="empty-box">
+        <div class="empty-icon">⏳</div>
+        <div class="empty-title">Connecting to devices...</div>
+        <div class="empty-desc">Discovering live candidate phones, live walls, and registered push subscribers.</div>
+      </div>
+    </main>
+
+    <!-- 5. REALTIME AUDIT LOG -->
+    <section class="log-card">
+      <div class="log-header" onclick="toggleLog()">
+        <span class="log-title">
+          <span>📡 Live Realtime Activity Stream</span>
+          <span style="font-size:11px; color:var(--text-dim);">(Click to toggle)</span>
+        </span>
+        <span id="logToggleArrow">▼</span>
+      </div>
+      <div class="log-body" id="logConsole">
+        <div class="log-entry">
+          <span class="log-time">[System]</span>
+          <span class="log-info">Device presence monitor initialized. Listening for active devices...</span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    /* =========================================================
+       DEVICE MONITOR STATE & LOGIC
+    ========================================================= */
+    const cfg = window.SIBAQ_SUPABASE_CONFIG || {};
+    let db = null;
+    let presenceChannel = null;
+    let livePresenceMap = new Map(); // clientId -> presenceData
+    let pushSubscriptionsList = [];  // Array from push_subscriptions table
+    let activeFilter = 'all';
+    let searchQuery = '';
+
+    // Initialize Supabase Client
+    if (window.supabase && cfg.url && cfg.anonKey) {
+      db = window.supabase.createClient(cfg.url, cfg.anonKey);
+    }
+
+    /* ── Theme Support ── */
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle("light");
+      localStorage.setItem("sibaq_theme", isLight ? "light" : "dark");
+    }
+    if (localStorage.getItem("sibaq_theme") === "light") {
+      document.body.classList.add("light");
+    }
+
+    /* ── Realtime Activity Logger ── */
+    function addLog(msg, type = "info") {
+      const consoleEl = document.getElementById("logConsole");
+      if (!consoleEl) return;
+      const row = document.createElement("div");
+      row.className = "log-entry";
+      const time = new Date().toLocaleTimeString("en-IN");
+      row.innerHTML = `<span class="log-time">[${time}]</span> <span class="log-${type}">${msg}</span>`;
+      consoleEl.prepend(row);
+    }
+
+    function toggleLog() {
+      const el = document.getElementById("logConsole");
+      const arrow = document.getElementById("logToggleArrow");
+      if (el.style.display === "none") {
+        el.style.display = "flex";
+        arrow.textContent = "▼";
+      } else {
+        el.style.display = "none";
+        arrow.textContent = "▲";
+      }
+    }
+
+    function showToast(text, icon = "✅") {
+      const prev = document.querySelector(".toast-popup");
+      if (prev) prev.remove();
+      const t = document.createElement("div");
+      t.className = "toast-popup";
+      t.innerHTML = `<span>${icon}</span> <span>${text}</span>`;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 4000);
+    }
+
+    /* ── Fetch Registered Web Push Subscriptions ── */
+    async function fetchPushSubscriptions() {
+      if (!db) return [];
+      try {
+        const { data, error } = await db
+          .from("push_subscriptions")
+          .select("id, endpoint, updated_at")
+          .order("updated_at", { ascending: false });
+
+        if (error) throw error;
+        pushSubscriptionsList = data || [];
+        return pushSubscriptionsList;
+      } catch (err) {
+        console.warn("Could not query push_subscriptions:", err);
+        return [];
+      }
+    }
+
+    /* ── Connect to Supabase Realtime Presence ── */
+    function initPresence() {
+      if (!db) {
+        document.getElementById("realtimeStatusText").textContent = "Supabase configuration missing";
+        return;
+      }
+
+      document.getElementById("realtimeStatusText").textContent = "Connecting to Realtime Channel…";
+
+      // Self-presence for this monitor dashboard
+      const monitorDeviceId = "admin_monitor_" + Math.random().toString(36).substring(2, 8);
+
+      presenceChannel = db.channel("sibaq-device-presence");
+
+      presenceChannel
+        .on("presence", { event: "sync" }, () => {
+          const state = presenceChannel.presenceState();
+          livePresenceMap.clear();
+
+          for (const key in state) {
+            const presences = state[key] || [];
+            presences.forEach(p => {
+              if (p && p.deviceId) {
+                livePresenceMap.set(p.deviceId, { ...p, presenceKey: key });
+              }
+            });
+          }
+          renderAllDevices();
+        })
+        .on("presence", { event: "join" }, ({ key, newPresences }) => {
+          newPresences.forEach(p => {
+            addLog(`Device connected: ${p.name || p.deviceId} (${p.platform || "Web"})`, "join");
+          });
+        })
+        .on("presence", { event: "leave" }, ({ key, leftPresences }) => {
+          leftPresences.forEach(p => {
+            addLog(`Device disconnected: ${p.name || p.deviceId}`, "leave");
+          });
+        })
+        .subscribe(async status => {
+          const dot = document.getElementById("realtimeStatusDot");
+          const text = document.getElementById("realtimeStatusText");
+
+          if (status === "SUBSCRIBED") {
+            dot.style.background = "#10b981";
+            text.textContent = "Realtime Live • Watching all devices";
+            addLog("Connected to Supabase Realtime Presence engine.", "join");
+
+            // Track this monitor
+            await presenceChannel.track({
+              deviceId: monitorDeviceId,
+              role: "admin",
+              deviceType: "desktop",
+              name: "Control Room Monitor",
+              platform: getPlatformName(),
+              userAgent: navigator.userAgent,
+              onlineAt: new Date().toISOString(),
+              page: "devices.html"
+            });
+
+            fetchLiveState();
+          } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            dot.style.background = "#ef4444";
+            text.textContent = "Disconnected • Reconnecting in 4s…";
+            addLog("Connection dropped. Re-establishing channel…", "leave");
+            setTimeout(initPresence, 4000);
+          }
+        });
+    }
+
+    /* ── Helper: Human-Readable Platform ── */
+    function getPlatformName() {
+      const ua = navigator.userAgent;
+      if (/Android/i.test(ua)) return "Android";
+      if (/iPhone|iPad|iPod/i.test(ua)) return "iOS";
+      if (/Windows/i.test(ua)) return "Windows";
+      if (/Macintosh/i.test(ua)) return "macOS";
+      if (/Linux/i.test(ua)) return "Linux";
+      return "Web Browser";
+    }
+
+    function parseEndpointProvider(endpoint) {
+      if (!endpoint) return "Unknown Provider";
+      if (endpoint.includes("fcm.googleapis.com")) return "Google FCM (Android / Chrome)";
+      if (endpoint.includes("mozilla.com")) return "Mozilla Push (Firefox)";
+      if (endpoint.includes("apple.com")) return "Apple Web Push (Safari / iOS)";
+      if (endpoint.includes("windows.com") || endpoint.includes("microsoft.com")) return "Microsoft WNS (Windows)";
+      return "Web Push Provider";
+    }
+
+    /* ── Unified Device Aggregator ── */
+    function compileDeviceList() {
+      const unified = [];
+      const claimedEndpoints = new Set();
+
+      // 1. Process all LIVE PRESENCE devices
+      livePresenceMap.forEach((p, devId) => {
+        let isOnline = true;
+        let icon = "📱";
+        let displayType = "Mobile Phone";
+
+        if (p.deviceType === "wall" || p.role === "wall") {
+          icon = "📺";
+          displayType = "Live Wall Display";
+        } else if (p.deviceType === "desktop" || p.role === "admin") {
+          icon = p.role === "admin" ? "⚙️" : "💻";
+          displayType = p.role === "admin" ? "Admin Console" : "Desktop Computer";
+        } else if (p.platform === "Android") {
+          icon = "📱";
+          displayType = "Android Mobile";
+        } else if (p.platform === "iOS") {
+          icon = "🍏";
+          displayType = "Apple iPhone / iPad";
+        }
+
+        unified.push({
+          id: devId,
+          name: p.name || (p.role === "wall" ? "Live Wall Display" : (p.role === "admin" ? "Admin Console" : "Candidate Mobile")),
+          adNo: p.adNo || "",
+          program: p.program || "",
+          role: p.role || "student",
+          deviceType: p.deviceType || "mobile",
+          platform: p.platform || "Web",
+          status: "online", // 🟢 Live Online
+          statusLabel: "Live Online",
+          statusClass: "online",
+          icon: icon,
+          displayType: displayType,
+          onlineAt: p.onlineAt || p.lastSeen,
+          lastSeenText: "Active right now (0ms)",
+          pushSubscribed: !!p.pushSubscribed,
+          userAgent: p.userAgent || "Unknown Browser",
+          endpoint: p.endpoint || null,
+          page: p.page || "student.html"
+        });
+
+        if (p.endpoint) claimedEndpoints.add(p.endpoint);
+      });
+
+      // 2. Process PUSH SUBSCRIPTIONS from database that are currently NOT in live presence
+      pushSubscriptionsList.forEach((sub, idx) => {
+        if (claimedEndpoints.has(sub.endpoint)) return; // Already rendered as Live Online
+
+        const provider = parseEndpointProvider(sub.endpoint);
+        const isFCM = sub.endpoint.includes("fcm.googleapis.com");
+        const icon = isFCM ? "📱" : "💻";
+        const isRecent = sub.updated_at && (Date.now() - new Date(sub.updated_at).getTime() < 86400000 * 2);
+
+        unified.push({
+          id: sub.id,
+          name: `Candidate Phone #${idx + 1}`,
+          adNo: "",
+          program: "",
+          role: "student",
+          deviceType: isFCM ? "mobile" : "desktop",
+          platform: isFCM ? "Android" : "Web",
+          status: isRecent ? "push-ready" : "offline",
+          statusLabel: isRecent ? "Background Push Ready" : "Disconnected",
+          statusClass: isRecent ? "push-ready" : "offline",
+          icon: icon,
+          displayType: provider,
+          onlineAt: sub.updated_at,
+          lastSeenText: formatRelativeTime(sub.updated_at),
+          pushSubscribed: true,
+          userAgent: provider,
+          endpoint: sub.endpoint,
+          page: "Closed / Lock Screen"
+        });
+      });
+
+      return unified;
+    }
+
+    function formatRelativeTime(dateStr) {
+      if (!dateStr) return "Unknown";
+      const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+      if (diff < 60) return "Just now";
+      if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+      return `${Math.floor(diff / 86400)}d ago (${new Date(dateStr).toLocaleDateString("en-IN")})`;
+    }
+
+    /* ── Render Devices Grid ── */
+    function renderAllDevices() {
+      const all = compileDeviceList();
+
+      // Counts
+      const onlineCount = all.filter(d => d.status === "online").length;
+      const pushCount   = all.filter(d => d.status === "push-ready").length;
+      const offlineCount= all.filter(d => d.status === "offline").length;
+      const mobileCount = all.filter(d => d.deviceType === "mobile").length;
+      const wallCount   = all.filter(d => d.role === "wall").length;
+
+      document.getElementById("countOnline").textContent    = onlineCount;
+      document.getElementById("countPushReady").textContent = pushCount;
+      document.getElementById("countOffline").textContent   = offlineCount;
+      document.getElementById("countTotal").textContent     = all.length;
+
+      document.getElementById("badgeAll").textContent    = all.length;
+      document.getElementById("badgeOnline").textContent = onlineCount;
+      document.getElementById("badgePush").textContent   = pushCount;
+      document.getElementById("badgeMobile").textContent = mobileCount;
+      document.getElementById("badgeWall").textContent   = wallCount;
+
+      // Filter & Search
+      let filtered = all.filter(d => {
+        if (activeFilter === "online") return d.status === "online";
+        if (activeFilter === "push")   return d.status === "push-ready";
+        if (activeFilter === "mobile") return d.deviceType === "mobile";
+        if (activeFilter === "wall")   return d.role === "wall";
+        return true;
+      });
+
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(d =>
+          d.name.toLowerCase().includes(q) ||
+          d.adNo.toLowerCase().includes(q) ||
+          d.platform.toLowerCase().includes(q) ||
+          d.displayType.toLowerCase().includes(q) ||
+          d.id.toLowerCase().includes(q)
+        );
+      }
+
+      const container = document.getElementById("deviceContainer");
+      if (!container) return;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="empty-box">
+            <div class="empty-icon">🔍</div>
+            <div class="empty-title">No devices found</div>
+            <div class="empty-desc">No devices match your current search or filter criteria.</div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(d => `
+        <div class="device-card" id="card-${d.id}">
+          <div class="device-head">
+            <div class="device-identity">
+              <div class="device-icon-box">${d.icon}</div>
+              <div>
+                <div class="device-title">${escapeHtml(d.name)}</div>
+                <div class="device-meta-sub">${d.adNo ? 'Ad.No: ' + escapeHtml(d.adNo) + ' • ' : ''}${escapeHtml(d.displayType)}</div>
+              </div>
+            </div>
+            <span class="status-pill ${d.statusClass}">
+              ${d.status === 'online' ? '<span class="live-dot" style="width:6px; height:6px;"></span>' : ''}
+              ${d.statusLabel}
+            </span>
+          </div>
+
+          <div class="device-specs">
+            <div class="spec-row">
+              <span class="spec-label">Platform / OS</span>
+              <span class="spec-val">${escapeHtml(d.platform)}</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Current Page</span>
+              <span class="spec-val">${escapeHtml(d.page)}</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Background Alerts</span>
+              <span class="spec-val" style="color:${d.pushSubscribed ? 'var(--success)' : 'var(--text-dim)'}">
+                ${d.pushSubscribed ? '✅ Active' : '✕ Not Subscribed'}
+              </span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Last Ping</span>
+              <span class="spec-val">${escapeHtml(d.lastSeenText)}</span>
+            </div>
+          </div>
+
+          <div class="device-actions">
+            <button class="btn btn-primary" onclick="pingSingleDevice('${d.id}', '${escapeHtml(d.name)}')">
+              🔔 Ping Alert
+            </button>
+            ${d.endpoint ? `
+              <button class="btn btn-danger" onclick="deletePushSubscription('${d.id}')" title="Delete subscription from database">
+                🗑️ Remove
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    /* ── Actions: Search & Filter ── */
+    function setFilter(filter) {
+      activeFilter = filter;
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-filter") === filter);
+      });
+      renderAllDevices();
+    }
+
+    function handleSearch(val) {
+      searchQuery = val || "";
+      renderAllDevices();
+    }
+
+    async function fetchLiveState() {
+      await fetchPushSubscriptions();
+      renderAllDevices();
+      showToast("Device list updated", "🔄");
+    }
+
+    /* ── Action: Ping Online Devices ── */
+    function pingAllOnline() {
+      if (!db) return;
+      const channel = db.channel("sibaQ-live-announcements");
+      channel.send({
+        type: "broadcast",
+        event: "announcement",
+        payload: {
+          label: "🔔 SYSTEM CONNECTION TEST",
+          text: "Attention everyone: Control Room has sent a live device connection ping. Alerts and chime are functioning.",
+          time: Date.now()
+        }
+      }).then(() => {
+        showToast("Ping broadcast sent to all live devices!", "📡");
+        addLog("Broadcasted live ping alert to all connected devices.", "info");
+      });
+    }
+
+    /* ── Action: Ping Single Device ── */
+    function pingSingleDevice(devId, devName) {
+      if (!db) return;
+      const channel = db.channel("sibaQ-live-announcements");
+      channel.send({
+        type: "broadcast",
+        event: "announcement",
+        payload: {
+          targetDeviceId: devId,
+          label: `🔔 PING: ${devName}`,
+          text: `Direct ping from Control Room to ${devName}. Connection verified.`,
+          time: Date.now()
+        }
+      }).then(() => {
+        showToast(`Ping alert sent to ${devName}`, "🔔");
+        addLog(`Sent direct ping alert to: ${devName} (${devId})`, "info");
+      });
+    }
+
+    /* ── Action: Test Web Push Broadcast ── */
+    async function testPushBroadcast() {
+      if (!cfg.url || !cfg.anonKey) return;
+      showToast("Sending Web Push to subscribed devices...", "📱");
+      try {
+        const res = await fetch(cfg.url.replace(/\/$/, "") + "/functions/v1/send-push", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + cfg.anonKey,
+            "apikey": cfg.anonKey,
+          },
+          body: JSON.stringify({
+            label: "SIBAQ CONNECTION TEST",
+            text: "Direct Web Push alert test. Your phone is successfully receiving background alerts from SIBAQ Control Room."
+          })
+        });
+        const data = await res.json();
+        showToast(`Push sent: ${data.sent || 0} received, ${data.failed || 0} failed (${data.total || 0} total phones)`, "✅");
+        addLog(`Web Push test executed: ${data.sent || 0}/${data.total || 0} phones reached.`, "join");
+        fetchLiveState();
+      } catch (err) {
+        showToast("Push test failed: " + err.message, "⚠️");
+      }
+    }
+
+    /* ── Action: Delete Stale Subscription ── */
+    async function deletePushSubscription(subId) {
+      if (!confirm("Remove this device subscription from the database?")) return;
+      if (!db) return;
+      try {
+        const { error } = await db.from("push_subscriptions").delete().eq("id", subId);
+        if (error) throw error;
+        showToast("Device subscription removed", "🗑️");
+        addLog(`Removed push subscription ${subId} from database.`, "leave");
+        fetchLiveState();
+      } catch (err) {
+        showToast("Could not remove: " + err.message, "⚠️");
+      }
+    }
+
+    // Auto-refresh periodically & handle network online event
+    window.addEventListener("online", () => {
+      addLog("Network online. Refreshing fleet status...", "info");
+      initPresence();
+    });
+
+    setInterval(renderAllDevices, 15000); // Re-calculate relative timestamps every 15s
+
+    // Start on load
+    window.addEventListener("DOMContentLoaded", () => {
+      initPresence();
+      fetchPushSubscriptions().then(renderAllDevices);
+    });
+  </script>
+</body>
+</html>
