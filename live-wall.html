@@ -750,14 +750,24 @@ async function subscribeWallPush() {
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
     });
     const cfg = window.SIBAQ_SUPABASE_CONFIG || {};
-    if (window.supabase && cfg.url && cfg.anonKey) {
-      const db = window.supabase.createClient(cfg.url, cfg.anonKey);
-      await db.from('push_subscriptions').upsert({
-        endpoint:   sub.endpoint,
-        p256dh:     btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')))).replace(/\+/g,'-').replace(/\//g,'_'),
-        auth:       btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth')))).replace(/\+/g,'-').replace(/\//g,'_'),
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'endpoint' });
+    if (cfg.url && cfg.anonKey) {
+      const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')))).replace(/\+/g, '-').replace(/\//g, '_');
+      const auth   = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth')))).replace(/\+/g, '-').replace(/\//g, '_');
+      await fetch(cfg.url.replace(/\/$/, '') + '/rest/v1/push_subscriptions', {
+        method: 'POST',
+        headers: {
+          'apikey':        cfg.anonKey,
+          'Authorization': 'Bearer ' + cfg.anonKey,
+          'Content-Type':  'application/json',
+          'Prefer':        'resolution=merge-duplicates,return=minimal'
+        },
+        body: JSON.stringify({
+          endpoint:   sub.endpoint,
+          p256dh:     p256dh,
+          auth:       auth,
+          updated_at: new Date().toISOString()
+        })
+      });
       console.log('✅ Background / lock-screen Web Push alerts registered.');
     }
   } catch (err) {

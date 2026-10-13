@@ -9,20 +9,25 @@ create table if not exists public.push_subscriptions (
   updated_at timestamptz default now()
 );
 
--- Allow the anon role to insert/upsert their own subscription
 alter table public.push_subscriptions enable row level security;
 
-create policy "Anyone can subscribe"
+-- Drop previous policies to avoid duplication errors
+drop policy if exists "Anyone can subscribe" on public.push_subscriptions;
+drop policy if exists "Anyone can update their own subscription" on public.push_subscriptions;
+drop policy if exists "Service role can read all subscriptions" on public.push_subscriptions;
+drop policy if exists "Anyone can read subscriptions" on public.push_subscriptions;
+
+create policy "Anyone can insert subscriptions"
   on public.push_subscriptions
   for insert
   with check (true);
 
-create policy "Anyone can update their own subscription"
+create policy "Anyone can update subscriptions"
   on public.push_subscriptions
   for update
   using (true);
 
-create policy "Service role can read all subscriptions"
+create policy "Anyone can select subscriptions"
   on public.push_subscriptions
   for select
-  using (auth.role() = 'service_role');
+  using (true);
