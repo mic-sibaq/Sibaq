@@ -2384,7 +2384,7 @@ body.dark .matrix-summary-pill {
 
   <div class="toast" id="toast"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="supabase-config.js"></script>
   <script>
     /* =========================================================
@@ -3178,7 +3178,9 @@ body.dark .matrix-summary-pill {
           const AudioContextClass = window.AudioContext || window.webkitAudioContext;
           if (!AudioContextClass) {resolve(); return;}
 
-          const ctx = new AudioContextClass();
+          const ctx = announcementAudioContext && announcementAudioContext.state !== "closed"
+            ? announcementAudioContext
+            : new AudioContextClass();
           announcementAudioContext = ctx;
           const volume = getAnnouncementVolume();
           if (ctx.state === "suspended") ctx.resume().catch(() => { });
