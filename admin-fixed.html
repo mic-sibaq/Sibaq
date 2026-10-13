@@ -3952,6 +3952,36 @@ body.dark .matrix-summary-pill {
       }).catch(error => {
         console.error("Could not send the announcement to other devices.", error);
       });
+
+      /* Also send Web Push to subscribed phones (even when browser is closed) */
+      sendPushToPhones(payload).catch(err =>
+        console.warn("Web Push delivery failed (non-critical):", err)
+      );
+    }
+
+    async function sendPushToPhones(payload) {
+      const cfg = window.SIBAQ_SUPABASE_CONFIG || {};
+      if (!cfg.url || !cfg.anonKey) return;
+      const edgeFnUrl = cfg.url.replace(/\/$/, "") + "/functions/v1/send-push";
+      try {
+        const res = await fetch(edgeFnUrl, {
+          method:  "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + cfg.anonKey,
+            "apikey": cfg.anonKey,
+          },
+          body: JSON.stringify({
+            text:        payload.text        || "",
+            label:       payload.label       || "Announcement",
+            studentCall: payload.studentCall || null,
+          }),
+        });
+        const result = await res.json();
+        console.log(`📱 Web Push: ${result.sent || 0} sent, ${result.failed || 0} failed, ${result.total || 0} total subscribers.`);
+      } catch (err) {
+        console.warn("Could not reach send-push Edge Function:", err.message);
+      }
     }
 
     function initializeAnnouncementRealtime() {
