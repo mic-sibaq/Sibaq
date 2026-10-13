@@ -729,6 +729,7 @@ const channel = "BroadcastChannel" in window
 
 const announcementRealtimeTopic = "sibaQ-live-announcements";
 let announcementRealtimeChannel = null;
+let wallDb = null; // Supabase client for live-wall
 
 
 /* =========================================================
@@ -1256,10 +1257,11 @@ function initSupabaseRealtime() {
     return;
   }
   try {
+    if (!wallDb) wallDb = window.supabase.createClient(cfg.url, cfg.anonKey);
     if (announcementRealtimeChannel) {
-      try { db.removeChannel(announcementRealtimeChannel); } catch (_) {}
+      try { wallDb.removeChannel(announcementRealtimeChannel); } catch (_) {}
     }
-    announcementRealtimeChannel = db.channel(announcementRealtimeTopic);
+    announcementRealtimeChannel = wallDb.channel(announcementRealtimeTopic);
     announcementRealtimeChannel
       .on("broadcast", { event: "announcement" }, message => {
         const payload = message && (message.payload || message.data || message);
@@ -1271,7 +1273,7 @@ function initSupabaseRealtime() {
         if (status === "SUBSCRIBED") {
           console.log("✅ Supabase Realtime connected. Cross-device announcements & sound are active.");
           try {
-            const wallPresence = db.channel("sibaq-device-presence");
+            const wallPresence = wallDb.channel("sibaq-device-presence");
             wallPresence.subscribe(st => {
               if (st === "SUBSCRIBED") {
                 wallPresence.track({
