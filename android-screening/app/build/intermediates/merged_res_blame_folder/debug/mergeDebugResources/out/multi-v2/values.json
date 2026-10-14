@@ -6,6 +6,28 @@
                 {
                     "source": "C:\\Users\\user\\OneDrive\\Documents\\SIBAQ WEB\\android-screening\\app\\src\\main\\res\\values\\strings.xml",
                     "from": {
+                        "startLines": "1,-1",
+                        "startColumns": "4,-1",
+                        "startOffsets": "17,-1",
+                        "endColumns": "46,-1",
+                        "endOffsets": "59,-1"
+                    },
+                    "to": {
+                        "startLines": "2,3",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,102",
+                        "endColumns": "46,176",
+                        "endOffsets": "97,274"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "C:\\Users\\user\\.gradle\\daemon\\9.6.0\\org.sibaq.screening.app-mergeDebugResources-2:\\values\\values.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\user\\OneDrive\\Documents\\SIBAQ WEB\\android-screening\\app\\src\\main\\res\\values\\strings.xml",
+                    "from": {
                         "startLines": "1,2",
                         "startColumns": "4,4",
                         "startOffsets": "17,78",

@@ -936,7 +936,7 @@
             const fail = text => { message.hidden = false; message.textContent = text; };
             const cfg = window.SIBAQ_SUPABASE_CONFIG || {};
             if (!window.supabase || !cfg.url || !cfg.anonKey || cfg.url.includes('YOUR_')) { fail('The student database is not configured yet. Please contact the SIBAQ Control Room.'); return; }
-            const admissionNo = new URLSearchParams(location.search).get('id');
+            const admissionNo = (new URLSearchParams(location.search).get('id') || '').trim();
             if (!admissionNo) { fail('This QR link has no admission number. Please scan the student QR code or contact the Control Room.'); return; }
             const db = window.supabase.createClient(cfg.url, cfg.anonKey);
             let profile = null, sessionRole = '', signedInMentor = '', signedInPasskey = '', selectedProgramCode = '';
@@ -1037,8 +1037,15 @@
                 event.preventDefault(); const passkey = $('mentorPasskey').value; const selected = getPrograms().find(p => p.code === selectedProgramCode); const mentorName = String(getMentorForProgram(selected) || '').trim(); const button = $('mentorLoginButton'); button.disabled = true; $('mentorLoginMessage').textContent = 'Verifying passkey…';
                 try {
                     if (!mentorName) throw new Error('No mentor is assigned to this program. Please contact the Control Room.');
-                    const { data, error } = await db.rpc('mentor_passkey_valid', { p_admission_no: admissionNo, p_program_code: selectedProgramCode, p_mentor_name: mentorName, p_passkey: passkey }); if (error) throw error; if (data !== true) throw new Error('Incorrect passkey or mentor assignment for this program.');
-                    sessionRole = 'mentor'; signedInMentor = mentorName; signedInPasskey = passkey; closeModal('mentorModal'); showProgression('Mentor access: ' + mentorName + ' · ' + (selected?.name || selectedProgramCode) + '. You can update this program’s daily checklist.');
+                    const { data, error } = await db.rpc('mentor_passkey_valid', { p_admission_no: admissionNo, p_program_code: selectedProgramCode, p_mentor_name: mentorName, p_passkey: passkey.trim() });
+                    if (error) {
+                        const msg = error.message || '';
+                        if (msg.includes('no passkey set') || msg.includes('does not have a passkey')) { throw new Error('No passkey has been set for this mentor yet. Ask the Control Room to add one in Supabase.'); }
+                        else if (msg.includes('does not exist') || msg.includes('PGRST')) { throw new Error('The progression system is not set up yet. The Control Room must run progression-setup.sql in Supabase.'); }
+                        throw new Error(msg || 'Mentor login failed. Check database setup.');
+                    }
+                    if (data !== true) throw new Error('Incorrect passkey. Please try again or contact the Control Room.');
+                    sessionRole = 'mentor'; signedInMentor = mentorName; signedInPasskey = passkey.trim(); closeModal('mentorModal'); showProgression('Mentor access: ' + mentorName + ' · ' + (selected?.name || selectedProgramCode) + '. You can update this program’s daily checklist.');
                 } catch (error) { $('mentorLoginMessage').textContent = error.message || 'Mentor login failed. Check database setup.'; } finally { button.disabled = false; }
             });
 

@@ -24,6 +24,7 @@ import android.os.IBinder
 import android.util.DisplayMetrics
 import android.view.WindowManager
 import java.io.ByteArrayOutputStream
+import java.util.concurrent.atomic.AtomicBoolean
 
 class ScreenCaptureService : Service() {
 
@@ -40,10 +41,12 @@ class ScreenCaptureService : Service() {
     @Volatile var isStreaming = false
         private set
 
-    var scaleFactor: Float = 0.6f
-    var targetFps: Int = 20
-    var jpegQuality: Int = 65
+    var customDeviceName: String = ""
+    var scaleFactor: Float = 0.5f
+    var targetFps: Int = 30
+    var jpegQuality: Int = 60
 
+    private val isProcessingFrame = AtomicBoolean(false)
     private var frameCount = 0
     private var lastFpsResetTime = System.currentTimeMillis()
     private var currentCalculatedFps = 0
@@ -76,9 +79,10 @@ class ScreenCaptureService : Service() {
             intent?.getParcelableExtra(EXTRA_RESULT_DATA)
         }
 
-        scaleFactor = intent?.getFloatExtra(EXTRA_SCALE_FACTOR, 0.6f) ?: 0.6f
-        targetFps = intent?.getIntExtra(EXTRA_FPS, 20) ?: 20
-        jpegQuality = intent?.getIntExtra(EXTRA_QUALITY, 65) ?: 65
+        customDeviceName = intent?.getStringExtra(EXTRA_CUSTOM_NAME) ?: ""
+        scaleFactor = intent?.getFloatExtra(EXTRA_SCALE_FACTOR, 0.5f) ?: 0.5f
+        targetFps = intent?.getIntExtra(EXTRA_FPS, 30) ?: 30
+        jpegQuality = intent?.getIntExtra(EXTRA_QUALITY, 60) ?: 60
 
         if (resultCode != 0 && resultData != null) {
             val notification = createNotification()
@@ -122,12 +126,13 @@ class ScreenCaptureService : Service() {
 
         val origWidth = metrics.widthPixels
         val origHeight = metrics.heightPixels
-        val scaledWidth = (origWidth * scaleFactor).toInt().coerceAtLeast(100)
-        val scaledHeight = (origHeight * scaleFactor).toInt().coerceAtLeast(100)
+        val scaledWidth = (origWidth * scaleFactor).toInt().coerceAtLeast(120)
+        val scaledHeight = (origHeight * scaleFactor).toInt().coerceAtLeast(120)
 
-        imageReader = ImageReader.newInstance(scaledWidth, scaledHeight, PixelFormat.RGBA_8888, 2)
+        // Use 3 buffers for smooth non-blocking pipeline
+        imageReader = ImageReader.newInstance(scaledWidth, scaledHeight, PixelFormat.RGBA_8888, 3)
         imageReader?.setOnImageAvailableListener({ reader ->
-            handleNewImage(reader, scaledWidth, scaledHeight)
+            processLatestImage(reader, scaledWidth, scaledHeight)
         }, backgroundHandler)
 
         virtualDisplay = mediaProjection?.createVirtualDisplay(
@@ -147,6 +152,7 @@ class ScreenCaptureService : Service() {
             port = 8080,
             frameProvider = { latestJpegFrame }
         ).apply {
+            customDeviceName = this@ScreenCaptureService.customDeviceName
             frameWidth = scaledWidth
             frameHeight = scaledHeight
             start()
@@ -155,11 +161,21 @@ class ScreenCaptureService : Service() {
         isStreaming = true
     }
 
-    private fun handleNewImage(reader: ImageReader, width: Int, height: Int) {
+    private fun processLatestImage(reader: ImageReader, width: Int, height: Int) {
+        // If background worker is busy, drop frame immediately to maintain ultra-low latency & 30 FPS
+        if (!isProcessingFrame.compareAndSet(false, true)) {
+            val img = reader.acquireLatestImage()
+            img?.close()
+            return
+        }
+
         var image: Image? = null
         try {
             image = reader.acquireLatestImage()
-            if (image == null) return
+            if (image == null) {
+                isProcessingFrame.set(false)
+                return
+            }
 
             val planes = image.planes
             val buffer = planes[0].buffer
@@ -180,13 +196,14 @@ class ScreenCaptureService : Service() {
                 bitmap = cropped
             }
 
-            val baos = ByteArrayOutputStream()
+            val baos = ByteArrayOutputStream(1024 * 64)
             bitmap.compress(Bitmap.CompressFormat.JPEG, jpegQuality, baos)
             bitmap.recycle()
 
             latestJpegFrame = baos.toByteArray()
+            server?.notifyNewFrameAvailable()
 
-            // Update FPS calculation
+            // Update FPS stats
             frameCount++
             val now = System.currentTimeMillis()
             if (now - lastFpsResetTime >= 1000) {
@@ -199,6 +216,7 @@ class ScreenCaptureService : Service() {
             e.printStackTrace()
         } finally {
             image?.close()
+            isProcessingFrame.set(false)
         }
     }
 
@@ -207,6 +225,11 @@ class ScreenCaptureService : Service() {
     fun getConnectedClientCount(): Int = server?.getConnectedClientCount() ?: 0
 
     fun getCurrentFps(): Int = currentCalculatedFps
+
+    fun updateCustomDeviceName(name: String) {
+        customDeviceName = name
+        server?.customDeviceName = name
+    }
 
     private fun stopStreaming() {
         isStreaming = false
@@ -270,6 +293,12 @@ class ScreenCaptureService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val title = if (customDeviceName.isNotBlank()) {
+            "$customDeviceName's Screen Active"
+        } else {
+            "SIBAQ Lab Screen Stream Active"
+        }
+
         val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(this, CHANNEL_ID)
         } else {
@@ -278,7 +307,7 @@ class ScreenCaptureService : Service() {
         }
 
         return builder
-            .setContentTitle("SIBAQ Lab Screen Stream Active")
+            .setContentTitle(title)
             .setContentText("Screen is live-streaming to Computer Lab Admin")
             .setSmallIcon(android.R.drawable.ic_menu_camera)
             .setContentIntent(activityPendingIntent)
@@ -294,6 +323,7 @@ class ScreenCaptureService : Service() {
 
         const val EXTRA_RESULT_CODE = "extra_result_code"
         const val EXTRA_RESULT_DATA = "extra_result_data"
+        const val EXTRA_CUSTOM_NAME = "extra_custom_name"
         const val EXTRA_SCALE_FACTOR = "extra_scale_factor"
         const val EXTRA_FPS = "extra_fps"
         const val EXTRA_QUALITY = "extra_quality"

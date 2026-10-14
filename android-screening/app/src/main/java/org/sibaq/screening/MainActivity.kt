@@ -18,10 +18,13 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -58,8 +61,12 @@ class MainActivity : Activity() {
     private val executor = Executors.newSingleThreadExecutor()
     private val mainHandler = Handler(Looper.getMainLooper())
 
+    private lateinit var deviceNameInput: EditText
+    private lateinit var autoStartCheckBox: CheckBox
+
     private lateinit var statusText: TextView
     private lateinit var urlText: TextView
+    private lateinit var hubUrlText: TextView
     private lateinit var liveStatsText: TextView
     private lateinit var toggleStreamButton: Button
     private lateinit var copyUrlButton: Button
@@ -79,15 +86,17 @@ class MainActivity : Activity() {
     private var captureService: ScreenCaptureService? = null
     private var isServiceBound = false
 
-    private var selectedScaleFactor = 0.6f
-    private var selectedFps = 20
-    private var selectedQuality = 65
+    private var customDeviceName: String = ""
+    private var selectedScaleFactor = 0.5f
+    private var selectedFps = 30
+    private var selectedQuality = 60
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val binder = service as? ScreenCaptureService.LocalBinder
             captureService = binder?.getService()
             isServiceBound = true
+            captureService?.updateCustomDeviceName(customDeviceName)
             updateStreamUiState()
         }
 
@@ -101,12 +110,13 @@ class MainActivity : Activity() {
     private val statusRunnable = object : Runnable {
         override fun run() {
             updateStreamUiState()
-            mainHandler.postDelayed(this, 1500)
+            mainHandler.postDelayed(this, 1200)
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        loadSettings()
         renderScreen()
         checkNotificationPermission()
     }
@@ -132,6 +142,20 @@ class MainActivity : Activity() {
         super.onDestroy()
     }
 
+    private fun loadSettings() {
+        val prefs = getSharedPreferences("sibaq_settings", Context.MODE_PRIVATE)
+        customDeviceName = prefs.getString("custom_device_name", "") ?: ""
+    }
+
+    private fun saveCustomDeviceName(name: String) {
+        customDeviceName = name
+        getSharedPreferences("sibaq_settings", Context.MODE_PRIVATE)
+            .edit()
+            .putString("custom_device_name", name)
+            .apply()
+        captureService?.updateCustomDeviceName(name)
+    }
+
     private fun renderScreen() {
         val root = ScrollView(this).apply {
             setBackgroundColor(Color.parseColor("#0F172A"))
@@ -147,25 +171,65 @@ class MainActivity : Activity() {
         // Title Header
         content.addView(textView("SIBAQ Lab Screen Monitor", 24f, true, "#38BDF8"))
         content.addView(textView(
-            "Live screen sharing and monitoring system for Android devices in Computer Labs / Cyber Cafes.",
+            "Real-time ~30 FPS screen sharing & multi-device computer lab management system.",
             14f, false, "#94A3B8"
         ))
 
-        addSpacer(content, 16)
+        addSpacer(content, 14)
+
+        // Custom Device Naming Card
+        val nameCard = createCardLayout()
+        nameCard.addView(textView("Device / Student Name", 16f, true, "#F8FAFC"))
+        nameCard.addView(textView("Type a name or desk number to identify this device:", 13f, false, "#94A3B8"))
+
+        deviceNameInput = createEditText("Type your Name or Device Label (e.g. Alex, Lab Desk 05)").apply {
+            setText(customDeviceName)
+            addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    saveCustomDeviceName(s?.toString()?.trim() ?: "")
+                }
+                override fun afterTextChanged(s: Editable?) {}
+            })
+        }
+        nameCard.addView(deviceNameInput)
+
+        val prefs = getSharedPreferences("sibaq_settings", Context.MODE_PRIVATE)
+        autoStartCheckBox = CheckBox(this).apply {
+            text = "Auto-start screen monitor when device turns on (Boot)"
+            setTextColor(Color.parseColor("#CBD5E1"))
+            isChecked = prefs.getBoolean("auto_start_on_boot", true)
+            setOnCheckedChangeListener { _, isChecked ->
+                prefs.edit().putBoolean("auto_start_on_boot", isChecked).apply()
+            }
+        }
+        nameCard.addView(autoStartCheckBox)
+
+        content.addView(nameCard)
+
+        addSpacer(content, 14)
 
         // Stream Control Card
         val streamCard = createCardLayout()
         streamCard.addView(textView("Computer Admin Web Link", 18f, true, "#F8FAFC"))
-        streamCard.addView(textView("Open this URL in any web browser on your Admin PC:", 13f, false, "#94A3B8"))
+        streamCard.addView(textView("Open this URL on your Admin PC to view this device:", 13f, false, "#94A3B8"))
 
         val ipAddress = getLocalIpAddress()
         val adminUrl = "http://$ipAddress:8080"
+        val hubUrl = "http://$ipAddress:8080/hub"
 
         urlText = textView(adminUrl, 20f, true, "#38BDF8").apply {
-            setPadding(0, 12.dp(), 0, 12.dp())
+            setPadding(0, 8.dp(), 0, 4.dp())
             gravity = Gravity.CENTER_HORIZONTAL
         }
         streamCard.addView(urlText)
+
+        hubUrlText = textView("Central Lab Grid: $hubUrl", 13f, true, "#22C55E").apply {
+            gravity = Gravity.CENTER_HORIZONTAL
+        }
+        streamCard.addView(hubUrlText)
+
+        addSpacer(streamCard, 8)
 
         val btnRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -175,15 +239,15 @@ class MainActivity : Activity() {
         toggleStreamButton = createButton("Start Screen Sharing", "#0284C7") {
             toggleScreenStreaming()
         }
-        copyUrlButton = createButton("Copy Link", "#334155") {
-            copyToClipboard(adminUrl)
+        copyUrlButton = createButton("Copy Hub Link", "#334155") {
+            copyToClipboard(hubUrl)
         }
 
         btnRow.addView(toggleStreamButton)
         btnRow.addView(copyUrlButton)
         streamCard.addView(btnRow)
 
-        addSpacer(streamCard, 12)
+        addSpacer(streamCard, 10)
 
         statusText = textView("Status: Stopped", 14f, true, "#EF4444")
         liveStatsText = textView("Connect your Admin PC browser to view live stream.", 13f, false, "#94A3B8")
@@ -192,18 +256,18 @@ class MainActivity : Activity() {
 
         content.addView(streamCard)
 
-        addSpacer(content, 16)
+        addSpacer(content, 14)
 
         // Settings Card
         val settingsCard = createCardLayout()
-        settingsCard.addView(textView("Stream Quality Settings", 16f, true, "#F8FAFC"))
+        settingsCard.addView(textView("Stream Speed & Quality Controls", 16f, true, "#F8FAFC"))
 
         // Resolution Scale
-        scaleValText = textView("Resolution Scale: 60%", 13f, false, "#94A3B8")
+        scaleValText = textView("Resolution Scale: 50% (Recommended for 30 FPS)", 13f, false, "#94A3B8")
         settingsCard.addView(scaleValText)
         scaleSeekBar = SeekBar(this).apply {
             max = 100
-            progress = 60
+            progress = 50
             setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                     val p = progress.coerceAtLeast(30)
@@ -219,14 +283,14 @@ class MainActivity : Activity() {
         addSpacer(settingsCard, 8)
 
         // Frame Rate
-        fpsValText = textView("Target Frame Rate: 20 FPS", 13f, false, "#94A3B8")
+        fpsValText = textView("Target Frame Rate: 30 FPS (Ultra Smooth)", 13f, false, "#94A3B8")
         settingsCard.addView(fpsValText)
         fpsSeekBar = SeekBar(this).apply {
             max = 30
-            progress = 20
+            progress = 30
             setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                    val p = progress.coerceAtLeast(5)
+                    val p = progress.coerceAtLeast(10)
                     selectedFps = p
                     fpsValText.text = "Target Frame Rate: $p FPS"
                 }
@@ -238,7 +302,7 @@ class MainActivity : Activity() {
 
         content.addView(settingsCard)
 
-        addSpacer(content, 20)
+        addSpacer(content, 18)
 
         // Legacy App Screening Section
         val scanCard = createCardLayout()
@@ -256,7 +320,7 @@ class MainActivity : Activity() {
         resultsText = textView("No scan run yet.", 13f, false, "#94A3B8")
         scanCard.addView(resultsText)
 
-        addSpacer(scanCard, 12)
+        addSpacer(scanCard, 10)
         scanCard.addView(textView("Submit Scan to SIBAQ Supabase", 15f, true, "#F8FAFC"))
 
         emailInput = createEditText("Supabase Email")
@@ -302,6 +366,7 @@ class MainActivity : Activity() {
                 val startIntent = Intent(this, ScreenCaptureService::class.java).apply {
                     putExtra(ScreenCaptureService.EXTRA_RESULT_CODE, resultCode)
                     putExtra(ScreenCaptureService.EXTRA_RESULT_DATA, data)
+                    putExtra(ScreenCaptureService.EXTRA_CUSTOM_NAME, customDeviceName)
                     putExtra(ScreenCaptureService.EXTRA_SCALE_FACTOR, selectedScaleFactor)
                     putExtra(ScreenCaptureService.EXTRA_FPS, selectedFps)
                     putExtra(ScreenCaptureService.EXTRA_QUALITY, selectedQuality)
@@ -325,17 +390,20 @@ class MainActivity : Activity() {
         val service = captureService
         val ipAddress = getLocalIpAddress()
         val url = "http://$ipAddress:8080"
+        val hubUrl = "http://$ipAddress:8080/hub"
         urlText.text = url
+        hubUrlText.text = "Central Lab Grid: $hubUrl"
 
         if (service != null && service.isStreaming) {
-            statusText.text = "Status: LIVE STREAMING"
+            statusText.text = "Status: LIVE STREAMING (~30 FPS)"
             statusText.setTextColor(Color.parseColor("#22C55E"))
             toggleStreamButton.text = "Stop Screen Sharing"
             toggleStreamButton.background = createRoundedDrawable("#DC2626")
 
             val clients = service.getConnectedClientCount()
             val fps = service.getCurrentFps()
-            liveStatsText.text = "Active Viewers: $clients | Speed: $fps FPS"
+            val devLabel = service.customDeviceName.ifBlank { "Unassigned Name" }
+            liveStatsText.text = "Device Name: $devLabel | Viewers: $clients | Speed: $fps FPS"
         } else {
             statusText.text = "Status: STOPPED"
             statusText.setTextColor(Color.parseColor("#EF4444"))
@@ -372,9 +440,9 @@ class MainActivity : Activity() {
 
     private fun copyToClipboard(text: String) {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-        val clip = android.content.ClipData.newPlainText("Admin URL", text)
+        val clip = android.content.ClipData.newPlainText("Lab Hub URL", text)
         clipboard.setPrimaryClip(clip)
-        Toast.makeText(this, "Copied Admin Link to Clipboard!", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Copied Central Lab Hub Link!", Toast.LENGTH_SHORT).show()
     }
 
     private fun updateEnrollmentStatus() {
@@ -388,25 +456,20 @@ class MainActivity : Activity() {
     }
 
     private fun scanInstalledApps() {
-        val manager = getSystemService(DEVICE_POLICY_SERVICE) as DevicePolicyManager
         appScanStatusText.text = "Scanning installed package names..."
         submitButton.isEnabled = false
         executor.execute {
             try {
-                val admin = ComponentName(this, SibaqDeviceAdminReceiver::class.java)
-                val installed = try {
-                    manager.getInstalledPackages(admin).toHashSet()
-                } catch (_: Exception) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        packageManager.getInstalledPackages(PackageManager.PackageInfoFlags.of(0L)).map { it.packageName }.toHashSet()
-                    } else {
-                        @Suppress("DEPRECATION")
-                        packageManager.getInstalledPackages(0).map { it.packageName }.toHashSet()
-                    }
+                val installedPackages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    packageManager.getInstalledPackages(PackageManager.PackageInfoFlags.of(0L))
+                } else {
+                    @Suppress("DEPRECATION")
+                    packageManager.getInstalledPackages(0)
                 }
+                val installedNames = installedPackages.map { it.packageName }.toHashSet()
 
                 val matches = SCREENING_TARGETS
-                    .filter { it.packageName in installed }
+                    .filter { it.packageName in installedNames }
                     .map { ScreeningMatch(it.packageName, it.appName) }
                 val report = ScanReport(Instant.now().toString(), matches)
 
@@ -490,7 +553,7 @@ class MainActivity : Activity() {
             ?: UUID.randomUUID().toString().also {
                 preferences.edit().putString("installation_id", it).apply()
             }
-        val deviceLabel = "${Build.MANUFACTURER} ${Build.MODEL}".trim()
+        val deviceLabel = if (customDeviceName.isNotBlank()) customDeviceName else "${Build.MANUFACTURER} ${Build.MODEL}".trim()
         val payload = JSONObject()
             .put("installation_id", installationId)
             .put("device_label", deviceLabel)
