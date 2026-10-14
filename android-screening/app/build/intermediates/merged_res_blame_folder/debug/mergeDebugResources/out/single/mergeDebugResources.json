@@ -1,0 +1,6 @@
+[
+    {
+        "merged": "org.sibaq.screening.app-debug-4:/xml_device_admin.xml.flat",
+        "source": "org.sibaq.screening.app-main-6:/xml/device_admin.xml"
+    }
+]

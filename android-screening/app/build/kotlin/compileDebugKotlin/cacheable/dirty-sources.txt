@@ -1,0 +1,4 @@
+C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\java\org\sibaq\screening\LabStreamServer.kt
+C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\java\org\sibaq\screening\MainActivity.kt
+C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\java\org\sibaq\screening\ScreenCaptureService.kt
+C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\java\org\sibaq\screening\SibaqDeviceAdminReceiver.kt

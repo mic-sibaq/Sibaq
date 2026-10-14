@@ -2047,7 +2047,7 @@ body.dark .matrix-summary-pill {
       <div class="popup-box" style="text-align:left;max-width:1100px;max-height:88vh;overflow:auto">
         <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
           <h2 style="margin:0">📋 Student Response Details</h2>
-          <button class="btn secondary" onclick="closeRatingStudentView()">✕ Close</button>
+          <div class="btn-row rating-review-actions"><button class="btn green" onclick="printRatingStudentView()">🖨️ Print</button><button class="btn secondary" onclick="closeRatingStudentView()">✕ Close</button></div>
         </div>
         <p id="ratingReviewModalSubtitle" class="muted"></p>
         <div style="overflow:auto">
@@ -6410,6 +6410,19 @@ function openRatingStudentView(filter = "all", rating = "") {
   }
   document.getElementById("ratingReviewModal").classList.add("show");
 }
+function printRatingStudentView() {
+  const modal = document.getElementById("ratingReviewModal");
+  if (!modal || !modal.classList.contains("show")) {
+    alert("Open a student list using View before printing.");
+    return;
+  }
+  document.body.classList.add("rating-review-print-mode");
+  const cleanup = () => document.body.classList.remove("rating-review-print-mode");
+  window.addEventListener("afterprint", cleanup, { once: true });
+  window.print();
+  // Fallback cleanup for browsers that do not fire afterprint promptly.
+  setTimeout(cleanup, 1500);
+}
 function closeRatingStudentView() { document.getElementById("ratingReviewModal").classList.remove("show"); }
 function exportMissingResponsesPDF() {
   if (!ratingEnsureDataLoaded()) return;
@@ -6420,7 +6433,49 @@ function exportMissingResponsesPDF() {
   if (!w) { alert("Please allow pop-ups to export the PDF report."); return; }
   const rows = missing.sort((a,b)=>a.name.localeCompare(b.name)||a.program.localeCompare(b.program))
     .map((r,i)=>`<tr><td>${i+1}</td><td>${ratingEsc(r.program)}</td><td>${ratingEsc(r.mentor)}</td><td>${ratingEsc(r.admission)}</td><td>${ratingEsc(r.name)}</td></tr>`).join("");
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Missing Responses ${ratingEsc(date)}</title><style>body{font:12px Arial,sans-serif;color:#111;padding:24px}h1{font-size:20px;margin:0 0 6px}p{margin:0 0 18px;color:#444}table{width:100%;border-collapse:collapse}th,td{border:1px solid #888;padding:8px;text-align:left}th{background:#eee}@page{size:A4 landscape;margin:12mm}</style></head><body><h1>SIBAQ — Missing Student Responses</h1><p>Date: ${ratingEsc(date)} | Not-submitted programme records: ${missing.length}</p><table><thead><tr><th>No.</th><th>Not Done Programme</th><th>Mentor</th><th>Admission No.</th><th>Student Name</th></tr></thead><tbody>${rows}</tbody></table><script>window.onload=()=>{window.focus();window.print();};<\/script></body></html>`);
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Missing Responses ${ratingEsc(date)}</title><style>body{font:12px Arial,sans-serif;color:#111;padding:24px}h1{font-size:20px;margin:0 0 6px}p{margin:0 0 18px;color:#444}table{width:100%;border-collapse:collapse}th,td{border:1px solid #888;padding:8px;text-align:left}th{background:#eee}@page{size:A4 landscape;margin:12mm}
+    /* Print only the currently opened rating/student list */
+    @media print {
+      body.rating-review-print-mode * { visibility: hidden !important; }
+      body.rating-review-print-mode #ratingReviewModal,
+      body.rating-review-print-mode #ratingReviewModal * { visibility: visible !important; }
+      body.rating-review-print-mode #ratingReviewModal {
+        display: block !important;
+        position: absolute !important;
+        inset: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: #fff !important;
+        overflow: visible !important;
+      }
+      body.rating-review-print-mode #ratingReviewModal .popup-box {
+        width: 100% !important;
+        max-width: none !important;
+        max-height: none !important;
+        overflow: visible !important;
+        padding: 12px !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        background: #fff !important;
+        color: #000 !important;
+      }
+      body.rating-review-print-mode #ratingReviewModal .rating-review-actions {
+        display: none !important;
+      }
+      body.rating-review-print-mode #ratingReviewModal .student-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+      }
+      body.rating-review-print-mode #ratingReviewModal .student-table th,
+      body.rating-review-print-mode #ratingReviewModal .student-table td {
+        color: #000 !important;
+        border: 1px solid #777 !important;
+        padding: 7px !important;
+        font-size: 10pt !important;
+      }
+      body.rating-review-print-mode #ratingReviewModal .muted { color: #333 !important; }
+    }
+</style></head><body><h1>SIBAQ — Missing Student Responses</h1><p>Date: ${ratingEsc(date)} | Not-submitted programme records: ${missing.length}</p><table><thead><tr><th>No.</th><th>Not Done Programme</th><th>Mentor</th><th>Admission No.</th><th>Student Name</th></tr></thead><tbody>${rows}</tbody></table><script>window.onload=()=>{window.focus();window.print();};<\/script></body></html>`);
   w.document.close();
 }
 function viewSelectedDateGraph() {

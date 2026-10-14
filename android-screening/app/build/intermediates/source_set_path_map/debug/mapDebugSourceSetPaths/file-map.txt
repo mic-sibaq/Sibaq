@@ -1,0 +1,7 @@
+org.sibaq.screening.app-pngs-0 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\build\generated\res\pngs\debug
+org.sibaq.screening.app-resValues-1 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\build\generated\res\resValues\debug
+org.sibaq.screening.app-packageDebugResources-2 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+org.sibaq.screening.app-packageDebugResources-3 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+org.sibaq.screening.app-debug-4 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\build\intermediates\merged_res\debug\mergeDebugResources
+org.sibaq.screening.app-debug-5 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\debug\res
+org.sibaq.screening.app-main-6 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\res

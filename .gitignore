@@ -1,3 +1,4 @@
 .temp/
 supabase/.temp/
 .DS_Store
+android-screening/local.properties

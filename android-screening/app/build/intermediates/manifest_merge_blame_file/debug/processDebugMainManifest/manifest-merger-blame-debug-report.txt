@@ -1,0 +1,100 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="org.sibaq.screening"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="26"
+9        android:targetSdkVersion="35" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:2:5-67
+11-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:2:22-64
+12    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+12-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:3:5-79
+12-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:3:22-76
+13    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+13-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:4:5-76
+13-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:4:22-73
+14    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+14-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:5:5-77
+14-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:5:22-74
+15    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+15-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:6:5-94
+15-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:6:22-91
+16    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+16-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:7:5-77
+16-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:7:22-74
+17    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+17-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:8:5-77
+17-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:8:22-74
+18
+19    <application
+19-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:10:5-43:19
+20        android:allowBackup="false"
+20-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:11:9-36
+21        android:debuggable="true"
+22        android:extractNativeLibs="false"
+23        android:label="SIBAQ Lab Screen Monitor"
+23-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:12:9-49
+24        android:theme="@android:style/Theme.Material.Light.NoActionBar" >
+24-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:13:9-72
+25        <service
+25-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:15:9-19:63
+26            android:name="org.sibaq.screening.ScreenCaptureService"
+26-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:16:13-49
+27            android:enabled="true"
+27-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:17:13-35
+28            android:exported="false"
+28-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:18:13-37
+29            android:foregroundServiceType="mediaProjection" />
+29-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:19:13-60
+30
+31        <receiver
+31-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:21:9-33:20
+32            android:name="org.sibaq.screening.SibaqDeviceAdminReceiver"
+32-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:22:13-53
+33            android:description="@string/device_admin_description"
+33-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:23:13-67
+34            android:exported="true"
+34-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:24:13-36
+35            android:label="SIBAQ Device Screening"
+35-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:25:13-51
+36            android:permission="android.permission.BIND_DEVICE_ADMIN" >
+36-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:26:13-70
+37            <meta-data
+37-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:27:13-29:56
+38                android:name="android.app.device_admin"
+38-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:28:17-56
+39                android:resource="@xml/device_admin" />
+39-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:29:17-53
+40
+41            <intent-filter>
+41-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:30:13-32:29
+42                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+42-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:31:17-82
+42-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:31:25-79
+43            </intent-filter>
+44        </receiver>
+45
+46        <activity
+46-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:35:9-42:20
+47            android:name="org.sibaq.screening.MainActivity"
+47-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:36:13-41
+48            android:exported="true" >
+48-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:37:13-36
+49            <intent-filter>
+49-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:38:13-41:29
+50                <action android:name="android.intent.action.MAIN" />
+50-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:39:17-69
+50-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:39:25-66
+51
+52                <category android:name="android.intent.category.LAUNCHER" />
+52-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:40:17-77
+52-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:40:27-74
+53            </intent-filter>
+54        </activity>
+55    </application>
+56
+57</manifest>

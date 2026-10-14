@@ -1,0 +1,3 @@
+org.sibaq.screening:xml/device_admin = 0x7f020000
+org.sibaq.screening:string/device_admin_description = 0x7f010001
+org.sibaq.screening:string/app_name = 0x7f010000

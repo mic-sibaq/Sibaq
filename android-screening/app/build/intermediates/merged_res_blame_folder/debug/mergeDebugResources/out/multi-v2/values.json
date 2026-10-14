@@ -1,0 +1,26 @@
+{
+    "logs": [
+        {
+            "outputFile": "org.sibaq.screening.app-mergeDebugResources-2:/values/values.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\user\\OneDrive\\Documents\\SIBAQ WEB\\android-screening\\app\\src\\main\\res\\values\\strings.xml",
+                    "from": {
+                        "startLines": "1,2",
+                        "startColumns": "4,4",
+                        "startOffsets": "17,78",
+                        "endColumns": "59,176",
+                        "endOffsets": "72,250"
+                    },
+                    "to": {
+                        "startLines": "2,3",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,115",
+                        "endColumns": "59,176",
+                        "endOffsets": "110,287"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SIBAQ Device Screening</string>
+    <string name="device_admin_description">Allows SIBAQ to verify that this organization-managed device is enrolled as a device owner before screening installed apps.</string>
+</resources>
