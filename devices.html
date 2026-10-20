@@ -662,6 +662,15 @@
         <div class="stat-desc">Browsers currently open & connected (0ms latency)</div>
       </div>
 
+      <div class="stat-card online" style="border-color: rgba(56, 189, 248, 0.4);">
+        <div class="stat-label">
+          <span>Android Screening</span>
+          <span>⚡</span>
+        </div>
+        <div class="stat-value" id="countScreening" style="color: #38bdf8;">0</div>
+        <div class="stat-desc">Live screening streams active on Wi-Fi or Cellular network</div>
+      </div>
+
       <div class="stat-card push">
         <div class="stat-label">
           <span>Push Subscribed</span>
@@ -700,6 +709,9 @@
       <div class="filter-tabs">
         <button class="tab-btn active" data-filter="all" onclick="setFilter('all')">
           All Devices <span class="tab-count" id="badgeAll">0</span>
+        </button>
+        <button class="tab-btn" data-filter="screening" onclick="setFilter('screening')" style="border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
+          📱 Android Screening <span class="tab-count" id="badgeScreening" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8;">0</span>
         </button>
         <button class="tab-btn" data-filter="online" onclick="setFilter('online')">
           🟢 Live Online <span class="tab-count" id="badgeOnline">0</span>
@@ -772,6 +784,7 @@
     let presenceChannel = null;
     let livePresenceMap = new Map(); // clientId -> presenceData
     let pushSubscriptionsList = [];  // Array from push_subscriptions table
+    let activeScreeningDevicesList = []; // Array from active_devices table (Android Screening)
     let activeFilter = 'all';
     let searchQuery = '';
 
@@ -918,6 +931,24 @@
             </tr>`;
           }).join("")}</tbody>
         </table>`;
+    }
+
+    /* ── Fetch Active Android Screening Devices (from any network) ── */
+    async function fetchActiveScreeningDevices() {
+      if (!db) return [];
+      try {
+        const { data, error } = await db
+          .from("active_devices")
+          .select("*")
+          .order("last_seen_at", { ascending: false });
+
+        if (error) throw error;
+        activeScreeningDevicesList = data || [];
+        return activeScreeningDevicesList;
+      } catch (err) {
+        console.warn("Could not query active_devices:", err);
+        return [];
+      }
     }
 
     /* ── Fetch Registered Web Push Subscriptions ── */
@@ -1077,7 +1108,58 @@
         if (p.endpoint) claimedEndpoints.add(p.endpoint);
       });
 
-      // 2. Process PUSH SUBSCRIPTIONS from database that are currently NOT in live presence
+      // 2. Process ANDROID ACTIVE SCREENING DEVICES from active_devices table (Available across ANY network)
+      activeScreeningDevicesList.forEach((dev) => {
+        const lastSeenMs = new Date(dev.last_seen_at || 0).getTime();
+        const diffMs = Date.now() - lastSeenMs;
+        // Seen within 60s is live right now; within 5m is active/online on mobile network
+        const isLiveNow = dev.is_online && (diffMs < 60000);
+        const isRecentlyActive = dev.is_online && (diffMs < 300000);
+        const isOnline = isLiveNow || isRecentlyActive;
+        const ip = dev.ip_address || "127.0.0.1";
+        const isCellular = ip.startsWith("10.") || ip.startsWith("100.") || ip.startsWith("172.");
+        const netType = isCellular ? "Cellular (4G/5G)" : (ip.startsWith("192.168.") ? "Wi-Fi LAN" : "Mobile / Remote Network");
+
+        let statusLabel = "Screening Offline";
+        let statusClass = "offline";
+        if (isLiveNow) {
+          statusLabel = `🟢 Screening Live (${netType})`;
+          statusClass = "online";
+        } else if (isRecentlyActive) {
+          statusLabel = `🟡 Screening Active (${netType})`;
+          statusClass = "online";
+        }
+
+        unified.push({
+          id: dev.device_id,
+          name: dev.custom_name ? `${dev.custom_name} (${dev.device_label || 'Android'})` : (dev.device_label || 'Android Device'),
+          adNo: "",
+          program: `⚡ Screening • ${dev.fps || 0} FPS • Battery ${dev.battery_level >= 0 ? dev.battery_level + '%' : 'N/A'}`,
+          role: "screening",
+          deviceType: "screening",
+          platform: "Android",
+          status: isOnline ? "online" : "offline",
+          statusLabel: statusLabel,
+          statusClass: statusClass,
+          icon: "📱",
+          displayType: `Android Screening App • ${netType}`,
+          onlineAt: dev.last_seen_at,
+          lastSeenText: isLiveNow ? `Live Right Now (${netType})` : formatRelativeTime(dev.last_seen_at),
+          pushSubscribed: false,
+          userAgent: `IP: ${ip}:${dev.port || 8080} • Battery: ${dev.battery_level}% 🔋`,
+          endpoint: null,
+          page: `http://${ip}:${dev.port || 8080}/device`,
+          ipAddress: ip,
+          port: dev.port || 8080,
+          batteryLevel: dev.battery_level,
+          fps: dev.fps,
+          isScreeningDevice: true,
+          isCellular: isCellular,
+          netType: netType
+        });
+      });
+
+      // 3. Process PUSH SUBSCRIPTIONS from database that are currently NOT in live presence
       pushSubscriptionsList.forEach((sub, idx) => {
         if (claimedEndpoints.has(sub.endpoint)) return; // Already rendered as Live Online
 
@@ -1124,19 +1206,34 @@
     function renderAllDevices() {
       const all = compileDeviceList();
 
+      // Prioritize active screening and online devices to top of grid
+      all.sort((a, b) => {
+        const getPriority = (d) => {
+          if (d.role === 'screening' && d.status === 'online') return 4;
+          if (d.role === 'screening') return 3;
+          if (d.status === 'online') return 2;
+          if (d.status === 'push-ready') return 1;
+          return 0;
+        };
+        return getPriority(b) - getPriority(a);
+      });
+
       // Counts
       const onlineCount = all.filter(d => d.status === "online").length;
+      const screeningCount = all.filter(d => d.role === "screening").length;
       const pushCount   = all.filter(d => d.status === "push-ready").length;
       const offlineCount= all.filter(d => d.status === "offline").length;
-      const mobileCount = all.filter(d => d.deviceType === "mobile").length;
+      const mobileCount = all.filter(d => d.deviceType === "mobile" || d.deviceType === "screening").length;
       const wallCount   = all.filter(d => d.role === "wall").length;
 
       document.getElementById("countOnline").textContent    = onlineCount;
+      document.getElementById("countScreening").textContent = screeningCount;
       document.getElementById("countPushReady").textContent = pushCount;
       document.getElementById("countOffline").textContent   = offlineCount;
       document.getElementById("countTotal").textContent     = all.length;
 
       document.getElementById("badgeAll").textContent    = all.length;
+      document.getElementById("badgeScreening").textContent = screeningCount;
       document.getElementById("badgeOnline").textContent = onlineCount;
       document.getElementById("badgePush").textContent   = pushCount;
       document.getElementById("badgeMobile").textContent = mobileCount;
@@ -1144,9 +1241,10 @@
 
       // Filter & Search
       let filtered = all.filter(d => {
+        if (activeFilter === "screening") return d.role === "screening";
         if (activeFilter === "online") return d.status === "online";
         if (activeFilter === "push")   return d.status === "push-ready";
-        if (activeFilter === "mobile") return d.deviceType === "mobile";
+        if (activeFilter === "mobile") return d.deviceType === "mobile" || d.deviceType === "screening";
         if (activeFilter === "wall")   return d.role === "wall";
         return true;
       });
@@ -1177,6 +1275,81 @@
       }
 
       container.innerHTML = filtered.map(d => {
+        if (d.isScreeningDevice) {
+          return `
+          <div class="device-card" id="card-${d.id}" style="border-color: rgba(56, 189, 248, 0.45); background: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)); box-shadow: 0 4px 20px rgba(0,0,0,0.35);">
+            <div class="device-head">
+              <div class="device-identity">
+                <div class="device-icon-box role-student" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 20px;">📱</div>
+                <div style="min-width:0;">
+                  <div class="device-name" style="color:#f8fafc; font-weight:700; font-size:15px;">${escapeHtml(d.name)}</div>
+                  <div class="device-type-chip" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-weight:600; margin-top:3px;">⚡ ${escapeHtml(d.displayType)}</div>
+                </div>
+              </div>
+              <span class="status-pill ${d.statusClass}">
+                ${d.status === 'online' ? '<span class="live-dot" style="width:7px;height:7px;"></span>' : ''}
+                ${d.statusLabel}
+              </span>
+            </div>
+
+            ${d.status === 'online' ? `
+              <div style="background:#090d16; border-radius:10px; margin:12px 0; overflow:hidden; position:relative; min-height:160px; display:flex; flex-direction:column; align-items:center; justify-content:center; border: 1px solid rgba(56, 189, 248, 0.25); padding:12px;">
+                ${!d.isCellular ? `
+                  <img src="http://${d.ipAddress}:${d.port}/stream" alt="${escapeHtml(d.name)}" style="width:100%; max-height:220px; object-fit:contain; border-radius:6px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                  <div style="display:none; text-align:center; padding:12px; color:var(--text-muted);">
+                    <span style="font-size:26px; display:block; margin-bottom:6px;">📶</span>
+                    <strong style="color:var(--text); font-size:13px;">Local Stream Unreachable</strong><br>
+                    <span style="font-size:11px;">Direct stream requires same Wi-Fi subnet (${d.ipAddress}:${d.port})</span>
+                  </div>
+                ` : `
+                  <div style="text-align:center; padding:10px; width:100%;">
+                    <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(56, 189, 248, 0.12); padding:6px 14px; border-radius:20px; border:1px solid rgba(56, 189, 248, 0.3); margin-bottom:10px;">
+                      <span style="font-size:18px;">📶</span>
+                      <span style="color:#38bdf8; font-weight:700; font-size:12px;">Active Across Cellular 4G/5G Network</span>
+                    </div>
+                    <div style="font-size:12px; color:#cbd5e1; margin-bottom:6px;">
+                      Device heartbeating to Supabase Cloud • Speed: <strong style="color:#fff;">${d.fps || 0} FPS</strong> • Battery: <strong style="color:#4ade80;">${d.batteryLevel >= 0 ? d.batteryLevel + '%' : 'N/A'} 🔋</strong>
+                    </div>
+                    <div style="font-size:11px; color:#94a3b8;">
+                      Carrier IP: <code style="background:rgba(0,0,0,0.4); padding:2px 6px; border-radius:4px; color:#e2e8f0;">${d.ipAddress}:${d.port}</code>
+                    </div>
+                  </div>
+                `}
+              </div>
+            ` : `
+              <div style="background:rgba(15, 23, 42, 0.6); border-radius:8px; padding:14px; margin:10px 0; text-align:center; border: 1px dashed var(--border); color:var(--text-muted); font-size:12px;">
+                💤 Screening device is currently offline or sleeping.<br>
+                <span style="font-size:11px;">Last seen: ${escapeHtml(d.lastSeenText)}</span>
+              </div>
+            `}
+
+            <div class="device-specs">
+              <div class="spec-row">
+                <span class="spec-label">Network &amp; IP</span>
+                <span class="spec-val" style="color: #38bdf8; font-weight:600;">${escapeHtml(d.netType)} • ${escapeHtml(d.ipAddress)}:${d.port}</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">Battery &amp; Speed</span>
+                <span class="spec-val">${d.batteryLevel >= 0 ? d.batteryLevel + '% 🔋' : 'N/A'} • ${d.fps || 0} FPS</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">Last Seen</span>
+                <span class="spec-val">${escapeHtml(d.lastSeenText)}</span>
+              </div>
+            </div>
+
+            <div class="device-actions">
+              <a href="http://${d.ipAddress}:${d.port}/device" target="_blank" class="btn btn-primary" style="text-decoration:none; text-align:center; font-size:12px; padding:7px 12px;">
+                📺 Open Stream &amp; Remote
+              </a>
+              <button class="btn" onclick="navigator.clipboard.writeText('http://${d.ipAddress}:${d.port}'); showToast('Copied Device Stream URL!', '📋');" style="font-size:12px; padding:7px 10px;">
+                📋 Copy IP
+              </button>
+            </div>
+          </div>
+          `;
+        }
+
         const chipClass = d.role === 'wall' ? 'wall' : d.role === 'admin' ? 'admin' : d.status === 'push-ready' ? 'push' : 'mobile';
         const iconClass  = d.role === 'wall' ? 'role-wall' : d.role === 'admin' ? 'role-admin' : 'role-student';
         return `
@@ -1260,9 +1433,11 @@
     }
 
     async function fetchLiveState() {
-      await fetchPushSubscriptions();
+      await Promise.all([
+        fetchPushSubscriptions(),
+        fetchActiveScreeningDevices()
+      ]);
       renderAllDevices();
-      showToast("Device list updated", "🔄");
     }
 
     /* ── Action: Ping Online Devices ── */
@@ -1347,6 +1522,7 @@
     window.addEventListener("online", () => {
       addLog("Network online. Refreshing fleet status...", "info");
       initPresence();
+      fetchLiveState();
     });
 
     setInterval(renderAllDevices, 15000); // Re-calculate relative timestamps every 15s
@@ -1354,8 +1530,17 @@
     // Start on load
     window.addEventListener("DOMContentLoaded", () => {
       initPresence();
-      fetchPushSubscriptions().then(renderAllDevices);
+      fetchLiveState();
+      setInterval(fetchLiveState, 4000); // Live poll every 4s so devices on any network show immediately
+
       if (db) {
+        // Realtime change listener on active_devices table
+        db.channel("active_devices_presence")
+          .on("postgres_changes", { event: "*", schema: "public", table: "active_devices" }, () => {
+            fetchActiveScreeningDevices().then(renderAllDevices);
+          })
+          .subscribe();
+
         db.auth.getSession()
           .then(({ data, error }) => {
             if (error) {

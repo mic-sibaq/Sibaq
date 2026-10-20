@@ -1,7 +1,14 @@
-org.sibaq.screening.app-pngs-0 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\build\generated\res\pngs\debug
-org.sibaq.screening.app-resValues-1 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\build\generated\res\resValues\debug
-org.sibaq.screening.app-packageDebugResources-2 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
-org.sibaq.screening.app-packageDebugResources-3 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
-org.sibaq.screening.app-debug-4 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\build\intermediates\merged_res\debug\mergeDebugResources
-org.sibaq.screening.app-debug-5 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\debug\res
-org.sibaq.screening.app-main-6 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\res
+org.sibaq.screening.app-lifecycle-runtime-2.6.2-0 C:\Users\user\.gradle\caches\8.11.1\transforms\1a830e8ab5728f08ebbcc00c33453a72\transformed\lifecycle-runtime-2.6.2\res
+org.sibaq.screening.app-core-ktx-1.13.1-1 C:\Users\user\.gradle\caches\8.11.1\transforms\a78ca528da8c7542e445cd11159ba5ce\transformed\core-ktx-1.13.1\res
+org.sibaq.screening.app-profileinstaller-1.3.0-2 C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\res
+org.sibaq.screening.app-annotation-experimental-1.4.0-3 C:\Users\user\.gradle\caches\8.11.1\transforms\b640a038fd9b98acf42b7742dd5900aa\transformed\annotation-experimental-1.4.0\res
+org.sibaq.screening.app-core-runtime-2.2.0-4 C:\Users\user\.gradle\caches\8.11.1\transforms\ca03eaac6673326ec3293bfc131a7f75\transformed\core-runtime-2.2.0\res
+org.sibaq.screening.app-core-1.13.1-5 C:\Users\user\.gradle\caches\8.11.1\transforms\f41c25ac1351c0ce1ae7226d642834ef\transformed\core-1.13.1\res
+org.sibaq.screening.app-startup-runtime-1.1.1-6 C:\Users\user\.gradle\caches\8.11.1\transforms\fdc630a2650b0356eeea6572f2724c67\transformed\startup-runtime-1.1.1\res
+org.sibaq.screening.app-pngs-7 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\build\generated\res\pngs\debug
+org.sibaq.screening.app-resValues-8 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\build\generated\res\resValues\debug
+org.sibaq.screening.app-packageDebugResources-9 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+org.sibaq.screening.app-packageDebugResources-10 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+org.sibaq.screening.app-debug-11 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\build\intermediates\merged_res\debug\mergeDebugResources
+org.sibaq.screening.app-debug-12 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\debug\res
+org.sibaq.screening.app-main-13 C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\res

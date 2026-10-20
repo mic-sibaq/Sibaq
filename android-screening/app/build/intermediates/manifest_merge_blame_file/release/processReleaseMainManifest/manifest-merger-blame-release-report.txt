@@ -1,0 +1,264 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="org.sibaq.screening"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="26"
+9        android:targetSdkVersion="35" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:2:5-67
+11-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:2:22-64
+12    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+12-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:3:5-79
+12-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:3:22-76
+13    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+13-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:4:5-76
+13-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:4:22-73
+14    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+14-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:5:5-77
+14-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:5:22-74
+15    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+15-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:6:5-94
+15-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:6:22-91
+16    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+16-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:7:5-77
+16-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:7:22-74
+17    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+17-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:8:5-81
+17-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:8:22-78
+18    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+18-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:9:5-83
+18-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:9:22-80
+19
+20    <!-- Specific package queries instead of high-risk QUERY_ALL_PACKAGES -->
+21    <queries>
+21-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:12:5-22:15
+22        <package android:name="com.anydesk.anydeskandroid" />
+22-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:13:9-62
+22-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:13:18-59
+23        <package android:name="com.teamviewer.quicksupport.market" />
+23-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:14:9-70
+23-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:14:18-67
+24        <package android:name="com.teamviewer.host.market" />
+24-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:15:9-62
+24-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:15:18-59
+25        <package android:name="com.teamviewer.teamviewer.market.mobile" />
+25-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:16:9-75
+25-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:16:18-72
+26        <package android:name="com.carriez.flutter_hbb" />
+26-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:17:9-59
+26-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:17:18-56
+27        <package android:name="com.sand.airdroid" />
+27-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:18:9-53
+27-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:18:18-50
+28        <package android:name="com.sand.airmirror" />
+28-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:19:9-54
+28-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:19:18-51
+29        <package android:name="com.splashtop.sos" />
+29-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:20:9-53
+29-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:20:18-50
+30        <package android:name="com.koushikdutta.vysor" />
+30-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:21:9-58
+30-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:21:18-55
+31    </queries>
+32
+33    <permission
+33-->[androidx.core:core:1.13.1] C:\Users\user\.gradle\caches\8.11.1\transforms\f41c25ac1351c0ce1ae7226d642834ef\transformed\core-1.13.1\AndroidManifest.xml:22:5-24:47
+34        android:name="org.sibaq.screening.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+34-->[androidx.core:core:1.13.1] C:\Users\user\.gradle\caches\8.11.1\transforms\f41c25ac1351c0ce1ae7226d642834ef\transformed\core-1.13.1\AndroidManifest.xml:23:9-81
+35        android:protectionLevel="signature" />
+35-->[androidx.core:core:1.13.1] C:\Users\user\.gradle\caches\8.11.1\transforms\f41c25ac1351c0ce1ae7226d642834ef\transformed\core-1.13.1\AndroidManifest.xml:24:9-44
+36
+37    <uses-permission android:name="org.sibaq.screening.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+37-->[androidx.core:core:1.13.1] C:\Users\user\.gradle\caches\8.11.1\transforms\f41c25ac1351c0ce1ae7226d642834ef\transformed\core-1.13.1\AndroidManifest.xml:26:5-97
+37-->[androidx.core:core:1.13.1] C:\Users\user\.gradle\caches\8.11.1\transforms\f41c25ac1351c0ce1ae7226d642834ef\transformed\core-1.13.1\AndroidManifest.xml:26:22-94
+38
+39    <application
+39-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:24:5-92:19
+40        android:allowBackup="false"
+40-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:25:9-36
+41        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+41-->[androidx.core:core:1.13.1] C:\Users\user\.gradle\caches\8.11.1\transforms\f41c25ac1351c0ce1ae7226d642834ef\transformed\core-1.13.1\AndroidManifest.xml:28:18-86
+42        android:extractNativeLibs="false"
+43        android:label="SIBAQ Lab Screen Monitor"
+43-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:26:9-49
+44        android:theme="@android:style/Theme.Material.Light.NoActionBar"
+44-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:28:9-72
+45        android:usesCleartextTraffic="true" >
+45-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:27:9-44
+46        <provider
+47            android:name="androidx.core.content.FileProvider"
+47-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:31:13-62
+48            android:authorities="org.sibaq.screening.provider"
+48-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:32:13-60
+49            android:exported="false"
+49-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:33:13-37
+50            android:grantUriPermissions="true" >
+50-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:34:13-47
+51            <meta-data
+51-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:35:13-37:54
+52                android:name="android.support.FILE_PROVIDER_PATHS"
+52-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:36:17-67
+53                android:resource="@xml/file_paths" />
+53-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:37:17-51
+54        </provider>
+55
+56        <service
+56-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:40:9-44:63
+57            android:name="org.sibaq.screening.ScreenCaptureService"
+57-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:41:13-49
+58            android:enabled="true"
+58-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:42:13-35
+59            android:exported="false"
+59-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:43:13-37
+60            android:foregroundServiceType="mediaProjection" />
+60-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:44:13-60
+61        <service
+61-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:46:9-58:19
+62            android:name="org.sibaq.screening.LabAccessibilityService"
+62-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:47:13-52
+63            android:enabled="true"
+63-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:48:13-35
+64            android:exported="true"
+64-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:49:13-36
+65            android:label="SIBAQ Remote Control Helper"
+65-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:50:13-56
+66            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" >
+66-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:51:13-79
+67            <intent-filter>
+67-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:52:13-54:29
+68                <action android:name="android.accessibilityservice.AccessibilityService" />
+68-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:53:17-92
+68-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:53:25-89
+69            </intent-filter>
+70
+71            <meta-data
+71-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:55:13-57:72
+72                android:name="android.accessibilityservice"
+72-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:56:17-60
+73                android:resource="@xml/accessibility_service_config" />
+73-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:57:17-69
+74        </service>
+75
+76        <receiver
+76-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:60:9-68:20
+77            android:name="org.sibaq.screening.BootReceiver"
+77-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:61:13-41
+78            android:enabled="true"
+78-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:62:13-35
+79            android:exported="true" >
+79-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:63:13-36
+80            <intent-filter>
+80-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:64:13-67:29
+81                <action android:name="android.intent.action.BOOT_COMPLETED" />
+81-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:65:17-79
+81-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:65:25-76
+82                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+82-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:66:17-82
+82-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:66:25-79
+83            </intent-filter>
+84        </receiver>
+85        <receiver
+85-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:70:9-82:20
+86            android:name="org.sibaq.screening.SibaqDeviceAdminReceiver"
+86-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:71:13-53
+87            android:description="@string/device_admin_description"
+87-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:72:13-67
+88            android:exported="true"
+88-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:73:13-36
+89            android:label="SIBAQ Device Screening"
+89-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:74:13-51
+90            android:permission="android.permission.BIND_DEVICE_ADMIN" >
+90-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:75:13-70
+91            <meta-data
+91-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:76:13-78:56
+92                android:name="android.app.device_admin"
+92-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:77:17-56
+93                android:resource="@xml/device_admin" />
+93-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:78:17-53
+94
+95            <intent-filter>
+95-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:79:13-81:29
+96                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+96-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:80:17-82
+96-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:80:25-79
+97            </intent-filter>
+98        </receiver>
+99
+100        <activity
+100-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:84:9-91:20
+101            android:name="org.sibaq.screening.MainActivity"
+101-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:85:13-41
+102            android:exported="true" >
+102-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:86:13-36
+103            <intent-filter>
+103-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:87:13-90:29
+104                <action android:name="android.intent.action.MAIN" />
+104-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:88:17-69
+104-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:88:25-66
+105
+106                <category android:name="android.intent.category.LAUNCHER" />
+106-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:89:17-77
+106-->C:\Users\user\OneDrive\Documents\SIBAQ WEB\android-screening\app\src\main\AndroidManifest.xml:89:27-74
+107            </intent-filter>
+108        </activity>
+109
+110        <provider
+110-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:24:9-32:20
+111            android:name="androidx.startup.InitializationProvider"
+111-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:25:13-67
+112            android:authorities="org.sibaq.screening.androidx-startup"
+112-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:26:13-68
+113            android:exported="false" >
+113-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:27:13-37
+114            <meta-data
+114-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:29:13-31:52
+115                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+115-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:30:17-85
+116                android:value="androidx.startup" />
+116-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:31:17-49
+117        </provider>
+118
+119        <receiver
+119-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:34:9-52:20
+120            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+120-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:35:13-76
+121            android:directBootAware="false"
+121-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:36:13-44
+122            android:enabled="true"
+122-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:37:13-35
+123            android:exported="true"
+123-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:38:13-36
+124            android:permission="android.permission.DUMP" >
+124-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:39:13-57
+125            <intent-filter>
+125-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:40:13-42:29
+126                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+126-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:41:17-91
+126-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:41:25-88
+127            </intent-filter>
+128            <intent-filter>
+128-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:43:13-45:29
+129                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+129-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:44:17-85
+129-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:44:25-82
+130            </intent-filter>
+131            <intent-filter>
+131-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:46:13-48:29
+132                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+132-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:47:17-88
+132-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:47:25-85
+133            </intent-filter>
+134            <intent-filter>
+134-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:49:13-51:29
+135                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+135-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:50:17-95
+135-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\user\.gradle\caches\8.11.1\transforms\aaccb5779d26c16e6f45e9fe1661be9f\transformed\profileinstaller-1.3.0\AndroidManifest.xml:50:25-92
+136            </intent-filter>
+137        </receiver>
+138    </application>
+139
+140</manifest>

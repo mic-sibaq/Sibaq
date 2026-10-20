@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123f36">
+  <title>Mentor Progress | SIBAQ</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23176b5b'/><text x='16' y='22' text-anchor='middle' font-family='Arial' font-weight='900' font-size='14' fill='white'>S</text></svg>">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3f6f4;
+      --surface: #fff;
+      --text: #172522;
+      --muted: #687773;
+      --border: #e1e9e5;
+      --primary: #176b5b;
+      --primary-dark: #123f36;
+      --success: #16805e;
+      --warning: #a9781d;
+      --shadow: 0 12px 34px rgba(25, 51, 43, .07);
+      font-family: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      font-synthesis: none;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      background:
+        radial-gradient(ellipse at 90% 0%, rgba(36, 139, 112, .08), transparent 34rem),
+        var(--bg);
+    }
+
+    button, input { font: inherit; }
+    button, a, input { -webkit-tap-highlight-color: transparent; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 3px solid rgba(36, 139, 112, .38); outline-offset: 2px; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px clamp(18px, 4vw, 48px);
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,.9);
+      backdrop-filter: blur(14px);
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      flex: 0 0 auto;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(145deg, #1c7763, #10483d);
+      color: #fff;
+      font-weight: 900;
+      box-shadow: 0 7px 16px rgba(23, 107, 91, .2);
+    }
+
+    .brand-title { margin: 0; font-size: 16px; font-weight: 780; letter-spacing: -.03em; }
+    .brand-subtitle { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }
+    .top-link { color: var(--primary); font-size: 13px; font-weight: 700; text-decoration: none; }
+    .top-link:hover { text-decoration: underline; }
+
+    .shell { width: min(100%, 1180px); margin: 0 auto; padding: clamp(20px, 4vw, 44px); }
+    .hero {
+      position: relative;
+      isolation: isolate;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      min-height: 176px;
+      overflow: hidden;
+      padding: clamp(24px, 5vw, 44px);
+      border-radius: 23px;
+      background: linear-gradient(118deg, #123f36, #176b5b 66%, #27866b);
+      color: #fff;
+      box-shadow: 0 18px 42px rgba(18, 63, 54, .17);
+    }
+
+    .hero::after {
+      position: absolute;
+      z-index: -1;
+      top: -125px;
+      right: -55px;
+      width: 360px;
+      height: 360px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 50%;
+      box-shadow: 0 0 0 38px rgba(255,255,255,.035), 0 0 0 78px rgba(255,255,255,.025);
+      content: "";
+    }
+
+    .eyebrow { margin: 0 0 8px; color: #c5e4d8; font-size: 11px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    .hero h1 { margin: 0; font-size: clamp(27px, 5vw, 40px); letter-spacing: -.045em; }
+    .hero p { max-width: 600px; margin: 10px 0 0; color: #e0f0e9; font-size: 14px; line-height: 1.55; }
+    .hero-date { width: min(210px, 34%); }
+    .hero-date label { display: block; margin-bottom: 7px; color: #e0f0e9; font-size: 12px; font-weight: 700; }
+    .hero-date input {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 10px;
+      background: rgba(255,255,255,.12);
+      color: #fff;
+    }
+    .hero-date input::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+
+    .panel {
+      margin-top: 22px;
+      padding: clamp(18px, 3vw, 27px);
+      border: 1px solid var(--border);
+      border-radius: 19px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+    .panel-head h2 { margin: 0; font-size: 18px; letter-spacing: -.025em; }
+    .panel-head p { margin: 5px 0 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 9px 14px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary), #248b70);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 750;
+      text-decoration: none;
+      transition: transform .18s, box-shadow .18s, filter .18s;
+    }
+    .button:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(23,107,91,.18); filter: brightness(1.04); }
+    .button.secondary { border-color: var(--border); background: var(--surface); color: var(--text); box-shadow: none; }
+    .button:disabled { cursor: wait; opacity: .65; transform: none; }
+
+    .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .summary-card { padding: 16px 18px; border: 1px solid var(--border); border-radius: 14px; background: linear-gradient(145deg, #fff, #f5f8f6); }
+    .summary-number { display: block; color: var(--primary); font-size: 29px; font-weight: 850; letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+    .summary-label { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; font-weight: 700; }
+
+    .student-list { display: grid; gap: 13px; }
+    .student-card { overflow: hidden; border: 1px solid var(--border); border-radius: 15px; background: var(--surface); }
+    .student-head { display: flex; align-items: center; gap: 13px; padding: 15px 17px; background: #f7f9f8; }
+    .student-avatar {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      flex: 0 0 auto;
+      place-items: center;
+      border-radius: 13px;
+      background: #e5f2ec;
+      color: var(--primary);
+      font-size: 15px;
+      font-weight: 850;
+    }
+    .student-name { min-width: 0; margin: 0; font-size: 15px; font-weight: 780; overflow-wrap: anywhere; }
+    .student-meta { margin-top: 4px; color: var(--muted); font-size: 12px; }
+    .student-progress { margin-left: auto; flex: 0 0 auto; color: var(--primary); font-size: 12px; font-weight: 750; }
+    .program-list { display: grid; }
+    .program-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 14px 17px; border-top: 1px solid #edf1ef; }
+    .program-title { margin: 0; font-size: 13px; font-weight: 720; }
+    .program-code { margin-top: 4px; color: var(--muted); font-size: 11px; }
+    .status { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid transparent; border-radius: 99px; font-size: 11px; font-weight: 760; white-space: nowrap; }
+    .status.done { border-color: #b8e5d0; background: #eaf7f0; color: #176b4c; }
+    .status.pending { border-color: #f0dfb8; background: #fff8e8; color: #8a6419; }
+    .status.rating { border-color: #d9e6e0; background: #f3f7f5; color: #53635d; }
+
+    .message { padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .message.error { border-color: #f0c7c2; background: #fff6f4; color: #9b3b32; }
+    .login-layout { display: grid; grid-template-columns: 1fr minmax(260px, .8fr); gap: 22px; align-items: center; }
+    .login-copy h2 { margin: 0; font-size: 20px; letter-spacing: -.03em; }
+    .login-copy p { max-width: 490px; margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .login-form { display: grid; gap: 11px; }
+    .field label { display: block; margin-bottom: 6px; color: #40504a; font-size: 12px; font-weight: 740; }
+    .field input { width: 100%; min-height: 43px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: #fbfcfb; color: var(--text); }
+    .login-form .button { width: 100%; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    [hidden] { display: none !important; }
+
+    @media (max-width: 700px) {
+      .shell { padding: 18px 14px 28px; }
+      .hero { align-items: flex-start; flex-direction: column; gap: 20px; min-height: 0; }
+      .hero-date { width: min(100%, 290px); }
+      .summary { grid-template-columns: 1fr; }
+      .summary-card { padding: 13px 16px; }
+      .summary-number { font-size: 25px; }
+      .login-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 430px) {
+      .topbar { padding: 12px 14px; }
+      .brand-mark { width: 40px; height: 40px; }
+      .top-link { font-size: 12px; }
+      .panel-head { flex-direction: column; }
+      .panel-head .button { width: 100%; }
+      .student-head { padding: 13px; }
+      .program-row { grid-template-columns: 1fr; gap: 8px; padding: 13px; }
+      .program-row .status { justify-self: start; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">S</div>
+      <div><p class="brand-title">SIBAQ Mentor Portal</p><span class="brand-subtitle">Student progress, one day at a time</span></div>
+    </div>
+    <a class="top-link" href="admin-fixed.html">← Control room</a>
+  </header>
+
+  <main class="shell">
+    <section class="hero" aria-labelledby="pageTitle">
+      <div>
+        <p class="eyebrow">Mentor workspace</p>
+        <h1 id="pageTitle">Your students, at a glance.</h1>
+        <p>Review each assigned student's daily programme completion and performance. Choose a date to see that day's progress.</p>
+      </div>
+      <div class="hero-date" id="dateControl" hidden>
+        <label for="progressDate">Progress date</label>
+        <input id="progressDate" type="date">
+      </div>
+    </section>
+
+    <section class="panel" id="loginPanel">
+      <div class="login-layout">
+        <div class="login-copy">
+          <h2>Sign in to your mentor workspace</h2>
+          <p>Use the mentor name assigned to your students and your existing mentor passkey. Your roster is returned only after the passkey and student assignments are verified.</p>
+        </div>
+        <form class="login-form" id="loginForm">
+          <div class="field"><label for="mentorName">Mentor name</label><input id="mentorName" name="mentorName" autocomplete="username" required placeholder="Enter your assigned mentor name"></div>
+          <div class="field"><label for="mentorPasskey">Mentor passkey</label><input id="mentorPasskey" name="mentorPasskey" type="password" autocomplete="current-password" required placeholder="Enter your mentor passkey"></div>
+          <button class="button" id="loginButton" type="submit">Open my students</button>
+        </form>
+      </div>
+      <p class="message" id="loginMessage" role="status" aria-live="polite" style="margin:16px 0 0" hidden></p>
+    </section>
+
+    <section id="dashboard" hidden>
+      <div class="panel">
+        <div class="panel-head">
+          <div><h2 id="welcomeTitle">Daily overview</h2><p id="overviewSubtitle">Progress for the selected date.</p></div>
+          <div class="toolbar">
+            <button class="button secondary" id="refreshButton" type="button">Refresh day</button>
+            <button class="button secondary" id="signOutButton" type="button">Sign out</button>
+          </div>
+        </div>
+        <div class="summary" aria-live="polite">
+          <div class="summary-card"><span class="summary-number" id="studentCount">0</span><span class="summary-label">Assigned students</span></div>
+          <div class="summary-card"><span class="summary-number" id="completedCount">0</span><span class="summary-label">Programmes completed</span></div>
+          <div class="summary-card"><span class="summary-number" id="pendingCount">0</span><span class="summary-label">Still to complete</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div><h2>Student progress</h2><p>Programme status and mentor evaluation for each assigned student.</p></div>
+        </div>
+        <div id="statusMessage" class="message" role="status" aria-live="polite" hidden></div>
+        <div id="studentList" class="student-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script>
+    (() => {
+      const byId = id => document.getElementById(id);
+      const config = window.SIBAQ_SUPABASE_CONFIG || {};
+      const today = new Date();
+      const isoToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      const dateInput = byId("progressDate");
+      const loginMessage = byId("loginMessage");
+      const statusMessage = byId("statusMessage");
+      const studentList = byId("studentList");
+      const loginForm = byId("loginForm");
+      const loginButton = byId("loginButton");
+      const dashboard = byId("dashboard");
+      let db = null;
+      let mentorName = "";
+      let passkey = "";
+      let assignedPrograms = [];
+      let requestId = 0;
+
+      dateInput.value = isoToday;
+
+      const setMessage = (element, message, isError = false) => {
+        element.textContent = message;
+        element.classList.toggle("error", isError);
+        element.hidden = !message;
+      };
+
+      const formatDate = iso => new Date(iso + "T00:00:00Z").toLocaleDateString("en-IN", {
+        weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC"
+      });
+
+      const groupByStudent = rows => {
+        const grouped = new Map();
+        rows.forEach(row => {
+          const key = String(row.admission_no);
+          if (!grouped.has(key)) {
+            grouped.set(key, {
+              admissionNo: key,
+              name: row.student_name || "Student",
+              programs: []
+            });
+          }
+          grouped.get(key).programs.push({
+            code: row.program_code || "",
+            name: row.program_name || row.program_code || "Programme",
+            mentorName: row.mentor_name || ""
+          });
+        });
+        return Array.from(grouped.values()).sort((a, b) =>
+          a.name.localeCompare(b.name) || a.admissionNo.localeCompare(b.admissionNo)
+        );
+      };
+
+      const runBatches = async (items, size, callback) => {
+        const results = [];
+        for (let index = 0; index < items.length; index += size) {
+          results.push(...await Promise.all(items.slice(index, index + size).map(callback)));
+        }
+        return results;
+      };
+
+      async function loadRoster(name, key) {
+        const { data, error } = await db.rpc("mentor_list_assigned_programs", {
+          p_mentor_name: name,
+          p_passkey: key
+        });
+        if (error) {
+          if (error.message && (error.message.includes("mentor_list_assigned_programs") || error.message.includes("does not exist") || error.message.includes("PGRST202"))) {
+            throw new Error("The mentor portal database setup is not installed. Ask the Control Room to apply mentor-portal-setup.sql after the existing progression setup.");
+          }
+          throw new Error(error.message || "Could not verify mentor access.");
+        }
+        if (!Array.isArray(data) || data.length === 0) {
+          throw new Error("No matching students were found. Check your mentor name and passkey, or ask the Control Room to verify your programme assignments.");
+        }
+        return data;
+      }
+
+      function makeStatusBadge(label, kind) {
+        const badge = document.createElement("span");
+        badge.className = "status " + kind;
+        badge.textContent = label;
+        return badge;
+      }
+
+      function renderStudents(students, statusByProgram) {
+        const fragment = document.createDocumentFragment();
+        let completed = 0;
+        let total = 0;
+
+        students.forEach(student => {
+          const card = document.createElement("article");
+          card.className = "student-card";
+          const header = document.createElement("header");
+          header.className = "student-head";
+          const avatar = document.createElement("div");
+          avatar.className = "student-avatar";
+          avatar.setAttribute("aria-hidden", "true");
+          avatar.textContent = student.name.trim().slice(0, 1).toLocaleUpperCase() || "S";
+          const identity = document.createElement("div");
+          const name = document.createElement("h3");
+          name.className = "student-name";
+          name.textContent = student.name;
+          const meta = document.createElement("div");
+          meta.className = "student-meta";
+          meta.textContent = "Admission no. " + student.admissionNo;
+          identity.append(name, meta);
+          const progress = document.createElement("span");
+          progress.className = "student-progress";
+          const studentCompleted = student.programs.filter(program =>
+            statusByProgram.get(student.admissionNo + "|" + program.code)?.completed === true
+          ).length;
+          progress.textContent = studentCompleted + " / " + student.programs.length + " complete";
+          header.append(avatar, identity, progress);
+
+          const programList = document.createElement("div");
+          programList.className = "program-list";
+          student.programs.forEach(program => {
+            total++;
+            const row = document.createElement("div");
+            row.className = "program-row";
+            const details = document.createElement("div");
+            const title = document.createElement("p");
+            title.className = "program-title";
+            title.textContent = program.name;
+            const code = document.createElement("div");
+            code.className = "program-code";
+            code.textContent = program.code;
+            details.append(title, code);
+            const result = statusByProgram.get(student.admissionNo + "|" + program.code);
+            const state = result && result.completed === true ? "Completed" : "Not completed";
+            const status = makeStatusBadge(state, result && result.completed === true ? "done" : "pending");
+            row.append(details, status);
+            if (result && result.rating) {
+              row.append(makeStatusBadge("Rating · " + result.rating, "rating"));
+            }
+            if (!result) row.append(makeStatusBadge("No update yet", "rating"));
+            programList.appendChild(row);
+          });
+
+          completed += studentCompleted;
+          card.append(header, programList);
+          fragment.appendChild(card);
+        });
+
+        studentList.replaceChildren(fragment);
+        byId("studentCount").textContent = String(students.length);
+        byId("completedCount").textContent = String(completed);
+        byId("pendingCount").textContent = String(total - completed);
+      }
+
+      async function loadSelectedDate() {
+        if (!assignedPrograms.length || !dateInput.value) return;
+        const currentRequest = ++requestId;
+        const selectedDate = dateInput.value;
+        const students = groupByStudent(assignedPrograms);
+        byId("overviewSubtitle").textContent = "Progress for " + formatDate(selectedDate) + ".";
+        byId("refreshButton").disabled = true;
+        setMessage(statusMessage, "Loading daily progress…");
+        studentList.replaceChildren();
+
+        try {
+          const statuses = await runBatches(assignedPrograms, 8, async program => {
+            const { data, error } = await db.rpc("mentor_get_program_status", {
+              p_admission_no: program.admission_no,
+              p_program_code: program.program_code,
+              p_mentor_name: program.mentor_name || mentorName,
+              p_passkey: passkey,
+              p_start_date: selectedDate,
+              p_end_date: selectedDate
+            });
+            if (error) throw new Error(error.message || "Progress request failed.");
+            return { program, rows: Array.isArray(data) ? data : [] };
+          });
+          if (currentRequest !== requestId) return;
+
+          const statusByProgram = new Map();
+          statuses.forEach(({ program, rows }) => {
+            const record = rows.find(item =>
+              String(item.progress_date || "").slice(0, 10) === selectedDate
+              && String(item.program_code || "") === String(program.program_code)
+            );
+            if (record) statusByProgram.set(program.admission_no + "|" + program.program_code, record);
+          });
+
+          renderStudents(students, statusByProgram);
+          setMessage(statusMessage, students.length
+            ? "Showing " + assignedPrograms.length + " assigned programme" + (assignedPrograms.length === 1 ? "" : "s") + " for " + formatDate(selectedDate) + "."
+            : "No assigned students are available.");
+          if (!students.length) {
+            setMessage(statusMessage, "No assigned students were returned for this mentor.", true);
+          }
+        } catch (error) {
+          if (currentRequest !== requestId) return;
+          setMessage(statusMessage, "Could not load progress: " + (error.message || "Unknown error. Check the database connection and mentor setup."), true);
+        } finally {
+          if (currentRequest === requestId) byId("refreshButton").disabled = false;
+        }
+      }
+
+      loginForm.addEventListener("submit", async event => {
+        event.preventDefault();
+        if (!window.supabase || !config.url || !config.anonKey || config.url.includes("YOUR_")) {
+          setMessage(loginMessage, "The mentor portal database is not configured. Contact the SIBAQ Control Room.", true);
+          return;
+        }
+        db = db || window.supabase.createClient(config.url, config.anonKey);
+        const submittedName = byId("mentorName").value.trim();
+        const submittedPasskey = byId("mentorPasskey").value.trim();
+        loginButton.disabled = true;
+        setMessage(loginMessage, "Verifying your mentor access…");
+        try {
+          const roster = await loadRoster(submittedName, submittedPasskey);
+          mentorName = submittedName;
+          passkey = submittedPasskey;
+          assignedPrograms = roster;
+          byId("welcomeTitle").textContent = "Welcome, " + mentorName;
+          byId("loginPanel").hidden = true;
+          byId("dateControl").hidden = false;
+          dashboard.hidden = false;
+          byId("mentorPasskey").value = "";
+          setMessage(loginMessage, "");
+          await loadSelectedDate();
+        } catch (error) {
+          setMessage(loginMessage, error.message || "Mentor sign in failed.", true);
+        } finally {
+          loginButton.disabled = false;
+        }
+      });
+
+      dateInput.addEventListener("change", loadSelectedDate);
+      byId("refreshButton").addEventListener("click", loadSelectedDate);
+      byId("signOutButton").addEventListener("click", () => {
+        requestId++;
+        mentorName = "";
+        passkey = "";
+        assignedPrograms = [];
+        dashboard.hidden = true;
+        byId("dateControl").hidden = true;
+        byId("loginPanel").hidden = false;
+        studentList.replaceChildren();
+        setMessage(statusMessage, "");
+        setMessage(loginMessage, "");
+        byId("mentorName").value = "";
+        byId("mentorPasskey").value = "";
+      });
+    })();
+  </script>
+</body>
+</html>

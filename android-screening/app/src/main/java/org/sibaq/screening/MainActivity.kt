@@ -2,6 +2,7 @@ package org.sibaq.screening
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
@@ -18,7 +19,10 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.PowerManager
+import android.provider.Settings
 import android.text.Editable
+import android.text.InputType
 import android.text.TextWatcher
 import android.view.Gravity
 import android.view.View
@@ -33,6 +37,7 @@ import android.widget.TextView
 import android.widget.Toast
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
 import java.net.HttpURLConnection
 import java.net.Inet4Address
 import java.net.NetworkInterface
@@ -60,16 +65,28 @@ class MainActivity : Activity() {
 
     private val executor = Executors.newSingleThreadExecutor()
     private val mainHandler = Handler(Looper.getMainLooper())
+    private lateinit var appUpdater: AppUpdater
 
     private lateinit var deviceNameInput: EditText
+    private lateinit var masterIpInput: EditText
+    private lateinit var supabaseUrlInputEditText: EditText
+    private lateinit var supabaseAnonKeyInputEditText: EditText
     private lateinit var autoStartCheckBox: CheckBox
 
     private lateinit var statusText: TextView
     private lateinit var urlText: TextView
     private lateinit var hubUrlText: TextView
     private lateinit var liveStatsText: TextView
+    private lateinit var cloudStatusText: TextView
+    private lateinit var persistentStatusText: TextView
     private lateinit var toggleStreamButton: Button
     private lateinit var copyUrlButton: Button
+    private lateinit var updateCheckButton: Button
+    private lateinit var scanQrBtn: Button
+    private lateinit var accessibilityBtn: Button
+    private lateinit var uninstallProtectBtn: Button
+    private lateinit var appLockBtn: Button
+    private lateinit var batteryOptBtn: Button
 
     private lateinit var scaleSeekBar: SeekBar
     private lateinit var scaleValText: TextView
@@ -85,11 +102,17 @@ class MainActivity : Activity() {
 
     private var captureService: ScreenCaptureService? = null
     private var isServiceBound = false
+    private var isAppUnlocked = false
+    private var isRequestingCapture = false
 
     private var customDeviceName: String = ""
-    private var selectedScaleFactor = 0.5f
+    private var masterServerIp: String = ""
+    private var supabaseUrlSetting: String = ""
+    private var supabaseAnonKeySetting: String = ""
+    private var adminPin: String = ""
+    private var selectedScaleFactor = 0.4f
     private var selectedFps = 30
-    private var selectedQuality = 60
+    private var selectedQuality = 50
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -97,6 +120,7 @@ class MainActivity : Activity() {
             captureService = binder?.getService()
             isServiceBound = true
             captureService?.updateCustomDeviceName(customDeviceName)
+            captureService?.updateMasterServerIp(masterServerIp)
             updateStreamUiState()
         }
 
@@ -116,9 +140,41 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        appUpdater = AppUpdater(this)
         loadSettings()
         renderScreen()
         checkNotificationPermission()
+        handleIncomingIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIncomingIntent(intent)
+    }
+
+    private fun handleIncomingIntent(intent: Intent?) {
+        if (intent == null) return
+        val isPromptStop = intent.action == ScreenCaptureService.ACTION_REQUEST_STOP ||
+                intent.getBooleanExtra(ScreenCaptureService.EXTRA_PROMPT_STOP, false) ||
+                intent.action == "org.sibaq.screening.action.REQUEST_STOP"
+
+        if (isPromptStop) {
+            mainHandler.postDelayed({
+                promptStopStreaming()
+            }, 300)
+            return
+        }
+
+        val isAutoResume = intent.getBooleanExtra("auto_resume_stream", false) ||
+                intent.getBooleanExtra("auto_started_on_boot", false) ||
+                intent.getBooleanExtra(ScreenCaptureService.EXTRA_AUTO_RESUME, false)
+
+        if (isAutoResume) {
+            mainHandler.postDelayed({
+                checkAndAutoResumeStream()
+            }, 500)
+        }
     }
 
     override fun onStart() {
@@ -126,6 +182,17 @@ class MainActivity : Activity() {
         val intent = Intent(this, ScreenCaptureService::class.java)
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
         mainHandler.post(statusRunnable)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        checkAppLockGate()
+        updatePermissionsUiState()
+        if (isStreamShouldRun() && (captureService == null || !captureService!!.isStreaming)) {
+            mainHandler.postDelayed({
+                checkAndAutoResumeStream()
+            }, 600)
+        }
     }
 
     override fun onStop() {
@@ -145,6 +212,10 @@ class MainActivity : Activity() {
     private fun loadSettings() {
         val prefs = getSharedPreferences("sibaq_settings", Context.MODE_PRIVATE)
         customDeviceName = prefs.getString("custom_device_name", "") ?: ""
+        masterServerIp = prefs.getString("master_server_ip", "") ?: ""
+        supabaseUrlSetting = prefs.getString("supabase_url", null) ?: BuildConfig.SUPABASE_URL.ifBlank { LabStreamServer.DEFAULT_SUPABASE_URL }
+        supabaseAnonKeySetting = prefs.getString("supabase_anon_key", null) ?: BuildConfig.SUPABASE_ANON_KEY.ifBlank { LabStreamServer.DEFAULT_SUPABASE_ANON_KEY }
+        adminPin = prefs.getString("admin_pin", "") ?: ""
     }
 
     private fun saveCustomDeviceName(name: String) {
@@ -154,6 +225,152 @@ class MainActivity : Activity() {
             .putString("custom_device_name", name)
             .apply()
         captureService?.updateCustomDeviceName(name)
+    }
+
+    private fun saveMasterServerIp(ip: String) {
+        masterServerIp = ip
+        getSharedPreferences("sibaq_settings", Context.MODE_PRIVATE)
+            .edit()
+            .putString("master_server_ip", ip)
+            .apply()
+        captureService?.updateMasterServerIp(ip)
+    }
+
+    private fun saveSupabaseUrl(url: String) {
+        supabaseUrlSetting = url
+        getSharedPreferences("sibaq_settings", Context.MODE_PRIVATE)
+            .edit()
+            .putString("supabase_url", url)
+            .apply()
+    }
+
+    private fun saveSupabaseAnonKey(key: String) {
+        supabaseAnonKeySetting = key
+        getSharedPreferences("sibaq_settings", Context.MODE_PRIVATE)
+            .edit()
+            .putString("supabase_anon_key", key)
+            .apply()
+    }
+
+    private fun saveAdminPin(pin: String) {
+        adminPin = pin
+        getSharedPreferences("sibaq_settings", Context.MODE_PRIVATE)
+            .edit()
+            .putString("admin_pin", pin)
+            .apply()
+    }
+
+    private fun scanQrCodeSetup() {
+        try {
+            val intent = Intent("com.google.zxing.client.android.SCAN").apply {
+                putExtra("SCAN_MODE", "QR_CODE_MODE")
+            }
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivityForResult(intent, REQUEST_CODE_QR_SCAN)
+            } else {
+                showManualQrInputDialog()
+            }
+        } catch (_: Exception) {
+            showManualQrInputDialog()
+        }
+    }
+
+    private fun processQrCodePayload(payload: String) {
+        try {
+            var url = ""
+            var key = ""
+            var master = ""
+
+            if (payload.trim().startsWith("{")) {
+                val json = JSONObject(payload)
+                url = json.optString("supabaseUrl", json.optString("url", ""))
+                key = json.optString("supabaseAnonKey", json.optString("key", ""))
+                master = json.optString("masterIp", json.optString("master", ""))
+            } else if (payload.contains("url=") || payload.contains("key=")) {
+                val clean = payload.removePrefix("SIBAQ:")
+                clean.split("&", ";").forEach { pair ->
+                    val parts = pair.split("=")
+                    if (parts.size >= 2) {
+                        when (parts[0].trim().lowercase()) {
+                            "url", "supabaseurl" -> url = parts[1].trim()
+                            "key", "anonkey", "supabasekey" -> key = parts[1].trim()
+                            "master", "masterip" -> master = parts[1].trim()
+                        }
+                    }
+                }
+            } else if (payload.startsWith("http://") || payload.startsWith("https://")) {
+                url = payload.trim()
+            }
+
+            var updatedCount = 0
+            if (url.isNotBlank()) {
+                saveSupabaseUrl(url)
+                supabaseUrlInputEditText.setText(url)
+                updatedCount++
+            }
+            if (key.isNotBlank()) {
+                saveSupabaseAnonKey(key)
+                supabaseAnonKeyInputEditText.setText(key)
+                updatedCount++
+            }
+            if (master.isNotBlank()) {
+                saveMasterServerIp(master)
+                masterIpInput.setText(master)
+                updatedCount++
+            }
+
+            if (updatedCount > 0) {
+                Toast.makeText(this, "✅ Applied Supabase URL & Credentials from QR Code!", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(this, "QR Code did not contain recognized Supabase credentials", Toast.LENGTH_LONG).show()
+            }
+        } catch (_: Exception) {
+            Toast.makeText(this, "Invalid QR Code payload format", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showManualQrInputDialog() {
+        val input = EditText(this).apply {
+            hint = "Paste QR Code text, JSON, or URL"
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Scan / Paste Setup Credentials")
+            .setMessage("Paste the Supabase Setup QR Code payload (JSON or url=...&key=...):")
+            .setView(input)
+            .setPositiveButton("Apply") { _, _ ->
+                processQrCodePayload(input.text.toString())
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun checkAppLockGate() {
+        if (adminPin.isNotBlank() && !isAppUnlocked) {
+            val input = EditText(this).apply {
+                hint = "Enter 4-digit Admin PIN"
+                inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+            }
+            AlertDialog.Builder(this)
+                .setTitle("🔒 AppLock Active")
+                .setMessage("SIBAQ Lab Screen Monitor is locked. Enter secret Admin PIN to unlock settings:")
+                .setView(input)
+                .setCancelable(false)
+                .setPositiveButton("Unlock") { dialog, _ ->
+                    if (input.text.toString().trim() == adminPin) {
+                        isAppUnlocked = true
+                        Toast.makeText(this, "AppUnlocked successfully!", Toast.LENGTH_SHORT).show()
+                        dialog.dismiss()
+                    } else {
+                        Toast.makeText(this, "Incorrect Admin PIN!", Toast.LENGTH_LONG).show()
+                        finish() // Exit app if incorrect
+                    }
+                }
+                .setNegativeButton("Exit") { _, _ ->
+                    finish()
+                }
+                .show()
+        }
     }
 
     private fun renderScreen() {
@@ -171,16 +388,27 @@ class MainActivity : Activity() {
         // Title Header
         content.addView(textView("SIBAQ Lab Screen Monitor", 24f, true, "#38BDF8"))
         content.addView(textView(
-            "Real-time ~30 FPS screen sharing & multi-device computer lab management system.",
+            "Real-time ~30 FPS screen sharing, cloud auto-sync, AppLock & uninstall protection.",
             14f, false, "#94A3B8"
         ))
 
+        addSpacer(content, 12)
+
+        // PROMINENT IN-APP OTA UPDATER BUTTON (LARGE FULL-WIDTH GREEN CARD)
+        updateCheckButton = createButton("🔄 Check for Software Updates", "#10B981") {
+            runInAppUpdater()
+        }.apply {
+            textSize = 15f
+            setPadding(0, 14.dp(), 0, 14.dp())
+        }
+        content.addView(updateCheckButton)
+
         addSpacer(content, 14)
 
-        // Custom Device Naming Card
+        // Custom Device Naming & Security Settings Card
         val nameCard = createCardLayout()
-        nameCard.addView(textView("Device / Student Name", 16f, true, "#F8FAFC"))
-        nameCard.addView(textView("Type a name or desk number to identify this device:", 13f, false, "#94A3B8"))
+        nameCard.addView(textView("Device Name & Security Settings", 16f, true, "#F8FAFC"))
+        nameCard.addView(textView("Type a name to identify this device in the lab:", 13f, false, "#94A3B8"))
 
         deviceNameInput = createEditText("Type your Name or Device Label (e.g. Alex, Lab Desk 05)").apply {
             setText(customDeviceName)
@@ -193,6 +421,111 @@ class MainActivity : Activity() {
             })
         }
         nameCard.addView(deviceNameInput)
+
+        addSpacer(nameCard, 6)
+        nameCard.addView(textView("Central Master Server IP (For Local Network Setup):", 13f, false, "#94A3B8"))
+
+        masterIpInput = createEditText("Master Admin Server IP (e.g. 192.168.1.100)").apply {
+            setText(masterServerIp)
+            addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    saveMasterServerIp(s?.toString()?.trim() ?: "")
+                }
+                override fun afterTextChanged(s: Editable?) {}
+            })
+        }
+        nameCard.addView(masterIpInput)
+
+        addSpacer(nameCard, 6)
+
+        val supabaseHeaderRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        supabaseHeaderRow.addView(textView("☁️ Supabase Cloud Auto-Sync:", 13f, true, "#38BDF8").apply {
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+        })
+
+        scanQrBtn = createButton("📷 Scan Setup QR", "#10B981") {
+            scanQrCodeSetup()
+        }.apply {
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            textSize = 12f
+            setPadding(12.dp(), 6.dp(), 12.dp(), 6.dp())
+        }
+        supabaseHeaderRow.addView(scanQrBtn)
+        nameCard.addView(supabaseHeaderRow)
+
+        supabaseUrlInputEditText = createEditText("Supabase URL (e.g. https://xyz.supabase.co)").apply {
+            setText(supabaseUrlSetting)
+            addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    saveSupabaseUrl(s?.toString()?.trim() ?: "")
+                }
+                override fun afterTextChanged(s: Editable?) {}
+            })
+        }
+        nameCard.addView(supabaseUrlInputEditText)
+
+        supabaseAnonKeyInputEditText = createEditText("Supabase Anon Key").apply {
+            setText(supabaseAnonKeySetting)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    saveSupabaseAnonKey(s?.toString()?.trim() ?: "")
+                }
+                override fun afterTextChanged(s: Editable?) {}
+            })
+        }
+        nameCard.addView(supabaseAnonKeyInputEditText)
+
+        addSpacer(nameCard, 8)
+
+        val btnRowSettings = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+
+        accessibilityBtn = createButton("Remote Control Actions", "#0284C7") {
+            try {
+                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            } catch (_: Exception) {
+                Toast.makeText(this, "Open Settings -> Accessibility -> Enable SIBAQ Remote Control Helper", Toast.LENGTH_LONG).show()
+            }
+        }
+
+        uninstallProtectBtn = createButton("Enable Uninstall Protection (Device Admin)", "#D97706") {
+            toggleUninstallProtection()
+        }
+
+        appLockBtn = createButton(if (adminPin.isNotBlank()) "🔒 Change AppLock PIN (Active)" else "🔒 Set Admin AppLock PIN", "#3B82F6") {
+            showSetAdminPinDialog()
+        }
+
+        btnRowSettings.addView(accessibilityBtn)
+        btnRowSettings.addView(uninstallProtectBtn)
+        btnRowSettings.addView(appLockBtn)
+
+        batteryOptBtn = createButton("🔋 Disable Battery Restrictions (Run Forever)", "#059669") {
+            requestIgnoreBatteryOptimizations()
+        }
+        btnRowSettings.addView(batteryOptBtn)
+        nameCard.addView(btnRowSettings)
+
+        addSpacer(nameCard, 6)
+
+        val restrictedBtn = createButton("Allow Restricted Settings", "#D97706") {
+            try {
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.parse("package:$packageName")
+                }
+                startActivity(intent)
+                Toast.makeText(this, "Tap the 3 dots (⋮) in top-right corner -> Tap 'Allow restricted settings'", Toast.LENGTH_LONG).show()
+            } catch (_: Exception) {}
+        }
+        nameCard.addView(restrictedBtn)
 
         val prefs = getSharedPreferences("sibaq_settings", Context.MODE_PRIVATE)
         autoStartCheckBox = CheckBox(this).apply {
@@ -216,7 +549,7 @@ class MainActivity : Activity() {
 
         val ipAddress = getLocalIpAddress()
         val adminUrl = "http://$ipAddress:8080"
-        val hubUrl = "http://$ipAddress:8080/hub"
+        val hubUrl = "http://$ipAddress:8080"
 
         urlText = textView(adminUrl, 20f, true, "#38BDF8").apply {
             setPadding(0, 8.dp(), 0, 4.dp())
@@ -224,10 +557,25 @@ class MainActivity : Activity() {
         }
         streamCard.addView(urlText)
 
-        hubUrlText = textView("Central Lab Grid: $hubUrl", 13f, true, "#22C55E").apply {
+        hubUrlText = textView("Central Lab Hub: $hubUrl", 13f, true, "#22C55E").apply {
             gravity = Gravity.CENTER_HORIZONTAL
         }
         streamCard.addView(hubUrlText)
+
+        cloudStatusText = textView("☁️ Supabase Cloud Auto-Sync: Active", 12f, true, "#38BDF8").apply {
+            gravity = Gravity.CENTER_HORIZONTAL
+        }
+        streamCard.addView(cloudStatusText)
+
+        persistentStatusText = textView(
+            if (isStreamShouldRun()) "⚡ Persistent Mode ACTIVE: Auto-runs across reboots until stopped"
+            else "Continuous Mode: Click Start to keep screening active until explicitly stopped",
+            12f, true, "#38BDF8"
+        ).apply {
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(0, 2.dp(), 0, 4.dp())
+        }
+        streamCard.addView(persistentStatusText)
 
         addSpacer(streamCard, 8)
 
@@ -263,14 +611,14 @@ class MainActivity : Activity() {
         settingsCard.addView(textView("Stream Speed & Quality Controls", 16f, true, "#F8FAFC"))
 
         // Resolution Scale
-        scaleValText = textView("Resolution Scale: 50% (Recommended for 30 FPS)", 13f, false, "#94A3B8")
+        scaleValText = textView("Resolution Scale: 40% (Recommended for 30 FPS Fast Performance)", 13f, false, "#94A3B8")
         settingsCard.addView(scaleValText)
         scaleSeekBar = SeekBar(this).apply {
             max = 100
-            progress = 50
+            progress = 40
             setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                    val p = progress.coerceAtLeast(30)
+                    val p = progress.coerceAtLeast(25)
                     selectedScaleFactor = p / 100f
                     scaleValText.text = "Resolution Scale: $p%"
                 }
@@ -340,33 +688,279 @@ class MainActivity : Activity() {
         content.addView(scanCard)
 
         setContentView(root)
+        updatePermissionsUiState()
         updateEnrollmentStatus()
+    }
+
+    private fun updatePermissionsUiState() {
+        // Dynamic Accessibility check
+        val isAccessEnabled = LabAccessibilityService.isServiceEnabled(this)
+        if (isAccessEnabled) {
+            accessibilityBtn.text = "✅ Remote Control Actions Active"
+            accessibilityBtn.background = createRoundedDrawable("#10B981")
+        } else {
+            accessibilityBtn.text = "Enable Remote Control Actions"
+            accessibilityBtn.background = createRoundedDrawable("#0284C7")
+        }
+
+        // Device Admin Uninstall Protection check
+        val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+        val adminComp = ComponentName(this, SibaqDeviceAdminReceiver::class.java)
+        val isAdminActive = dpm.isAdminActive(adminComp)
+        if (isAdminActive) {
+            uninstallProtectBtn.text = "✅ Uninstall Protection Active"
+            uninstallProtectBtn.background = createRoundedDrawable("#10B981")
+        } else {
+            uninstallProtectBtn.text = "Enable Uninstall Protection (Device Admin)"
+            uninstallProtectBtn.background = createRoundedDrawable("#D97706")
+        }
+
+        appLockBtn.text = if (adminPin.isNotBlank()) "🔒 Change AppLock PIN (Active)" else "🔒 Set Admin AppLock PIN"
+
+        if (::batteryOptBtn.isInitialized && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+            if (pm.isIgnoringBatteryOptimizations(packageName)) {
+                batteryOptBtn.text = "✅ Battery Optimization Disabled (Safe)"
+                batteryOptBtn.background = createRoundedDrawable("#10B981")
+            } else {
+                batteryOptBtn.text = "🔋 Disable Battery Restrictions (Run Forever)"
+                batteryOptBtn.background = createRoundedDrawable("#059669")
+            }
+        }
+    }
+
+    private fun requestIgnoreBatteryOptimizations() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
+                val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+                if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
+                    val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                        data = Uri.parse("package:$packageName")
+                    }
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(this, "Battery optimizations are already disabled.", Toast.LENGTH_SHORT).show()
+                }
+            } catch (_: Exception) {
+                try {
+                    startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                } catch (_: Exception) {}
+            }
+        }
+    }
+
+    private fun isStreamShouldRun(): Boolean {
+        return getSharedPreferences("sibaq_settings", Context.MODE_PRIVATE)
+            .getBoolean("stream_should_run", false)
+    }
+
+    private fun checkAndAutoResumeStream() {
+        val service = captureService
+        if (isStreamShouldRun() && (service == null || !service.isStreaming) && !isRequestingCapture) {
+            startScreenStreaming()
+        }
+    }
+
+    private fun startScreenStreaming() {
+        if (isRequestingCapture) return
+        isRequestingCapture = true
+        val mpManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        try {
+            startActivityForResult(mpManager.createScreenCaptureIntent(), REQUEST_CODE_SCREEN_CAPTURE)
+        } catch (e: Exception) {
+            isRequestingCapture = false
+            Toast.makeText(this, "Could not start screen capture: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun promptStopStreaming() {
+        val service = captureService
+        if (service == null || !service.isStreaming) {
+            Toast.makeText(this, "Screen sharing is not currently running.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (adminPin.isNotBlank()) {
+            val input = EditText(this).apply {
+                hint = "Enter 4-digit Admin PIN"
+                inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+            }
+            AlertDialog.Builder(this)
+                .setTitle("🔒 Admin PIN Required to Stop")
+                .setMessage("Screen monitoring is protected. Enter the secret Admin PIN to stop screen sharing:")
+                .setView(input)
+                .setCancelable(false)
+                .setPositiveButton("Verify & Stop") { dialog, _ ->
+                    val enteredPin = input.text.toString().trim()
+                    if (enteredPin == adminPin) {
+                        dialog.dismiss()
+                        executeAuthorizedStop()
+                    } else {
+                        Toast.makeText(this, "❌ Incorrect Admin PIN! Stream continues running.", Toast.LENGTH_LONG).show()
+                    }
+                }
+                .setNegativeButton("Cancel (Keep Running)", null)
+                .show()
+        } else {
+            AlertDialog.Builder(this)
+                .setTitle("⚠️ Stop Screen Sharing?")
+                .setMessage("Are you sure you want to stop live screening? Computer Lab Admin will lose access to this device's screen.")
+                .setCancelable(false)
+                .setPositiveButton("Stop Sharing") { dialog, _ ->
+                    dialog.dismiss()
+                    executeAuthorizedStop()
+                }
+                .setNegativeButton("Cancel (Keep Running)", null)
+                .show()
+        }
+    }
+
+    private fun executeAuthorizedStop() {
+        getSharedPreferences("sibaq_settings", Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean("stream_should_run", false)
+            .apply()
+
+        val stopIntent = Intent(this, ScreenCaptureService::class.java).apply {
+            action = ScreenCaptureService.ACTION_STOP
+            putExtra(ScreenCaptureService.EXTRA_FORCE_STOP_AUTHORIZED, true)
+        }
+        startService(stopIntent)
+        Toast.makeText(this, "Screen stream stopped.", Toast.LENGTH_SHORT).show()
+        updateStreamUiState()
+    }
+
+    private fun toggleUninstallProtection() {
+        val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+        val adminComp = ComponentName(this, SibaqDeviceAdminReceiver::class.java)
+        if (!dpm.isAdminActive(adminComp)) {
+            val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
+                putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComp)
+                putExtra(
+                    DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+                    "Prevents students/users from uninstalling SIBAQ Lab Screen Monitor without Admin Permission."
+                )
+            }
+            startActivity(intent)
+        } else {
+            requireAdminPinIfSet {
+                dpm.removeActiveAdmin(adminComp)
+                Toast.makeText(this, "Uninstall protection deactivated", Toast.LENGTH_SHORT).show()
+                updatePermissionsUiState()
+            }
+        }
+    }
+
+    private fun showSetAdminPinDialog() {
+        requireAdminPinIfSet {
+            val input = EditText(this).apply {
+                hint = "Enter 4-digit Admin PIN"
+                inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+            }
+            AlertDialog.Builder(this)
+                .setTitle("Set AppLock Admin PIN")
+                .setMessage("Enter secret Admin PIN to protect settings & stop button:")
+                .setView(input)
+                .setPositiveButton("Save PIN") { _, _ ->
+                    val pin = input.text.toString().trim()
+                    if (pin.length >= 4) {
+                        saveAdminPin(pin)
+                        Toast.makeText(this, "Admin PIN saved! AppLock active.", Toast.LENGTH_SHORT).show()
+                        updatePermissionsUiState()
+                    } else {
+                        Toast.makeText(this, "PIN must be at least 4 digits", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .setNegativeButton("Remove PIN") { _, _ ->
+                    saveAdminPin("")
+                    Toast.makeText(this, "AppLock PIN removed", Toast.LENGTH_SHORT).show()
+                    updatePermissionsUiState()
+                }
+                .show()
+        }
+    }
+
+    private fun requireAdminPinIfSet(action: () -> Unit) {
+        if (adminPin.isBlank()) {
+            action()
+            return
+        }
+        val input = EditText(this).apply {
+            hint = "Admin PIN"
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Admin PIN Required")
+            .setMessage("Enter secret Admin PIN to perform this action:")
+            .setView(input)
+            .setPositiveButton("Verify") { _, _ ->
+                if (input.text.toString().trim() == adminPin) {
+                    action()
+                } else {
+                    Toast.makeText(this, "Incorrect Admin PIN!", Toast.LENGTH_LONG).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun runInAppUpdater() {
+        val targetIp = masterServerIp.trim()
+        val isStreaming = captureService?.isStreaming == true
+        appUpdater.checkForUpdates(targetIp, isStreaming, object : AppUpdater.UpdateListener {
+            override fun onCheckingUpdate(targetUrl: String) {
+                Toast.makeText(this@MainActivity, "Checking for updates at $targetUrl...", Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onUpdateAvailable(version: String, releaseNotes: String, downloadUrl: String) {
+                Toast.makeText(this@MainActivity, "Downloading new version $version...", Toast.LENGTH_LONG).show()
+                appUpdater.downloadAndInstallApk(downloadUrl, this)
+            }
+
+            override fun onNoUpdateAvailable() {
+                Toast.makeText(this@MainActivity, "Your software is up to date!", Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onDownloadProgress(progressPercent: Int) {
+                if (progressPercent % 20 == 0) {
+                    Toast.makeText(this@MainActivity, "Downloading update: $progressPercent%", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onDownloadComplete(apkFile: File) {
+                Toast.makeText(this@MainActivity, "Download complete! Opening package installer...", Toast.LENGTH_LONG).show()
+            }
+
+            override fun onError(message: String) {
+                Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+            }
+        })
     }
 
     private fun toggleScreenStreaming() {
         val service = captureService
         if (service != null && service.isStreaming) {
-            // Stop streaming
-            val stopIntent = Intent(this, ScreenCaptureService::class.java).apply {
-                action = ScreenCaptureService.ACTION_STOP
-            }
-            startService(stopIntent)
-            Toast.makeText(this, "Screen stream stopped", Toast.LENGTH_SHORT).show()
-            updateStreamUiState()
+            promptStopStreaming()
         } else {
-            // Start projection prompt
-            val mpManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-            startActivityForResult(mpManager.createScreenCaptureIntent(), REQUEST_CODE_SCREEN_CAPTURE)
+            startScreenStreaming()
         }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_CODE_SCREEN_CAPTURE) {
+            isRequestingCapture = false
             if (resultCode == RESULT_OK && data != null) {
+                // Persistent mode: screen streaming runs continuously until explicitly stopped!
+                getSharedPreferences("sibaq_settings", Context.MODE_PRIVATE)
+                    .edit()
+                    .putBoolean("stream_should_run", true)
+                    .apply()
+
                 val startIntent = Intent(this, ScreenCaptureService::class.java).apply {
                     putExtra(ScreenCaptureService.EXTRA_RESULT_CODE, resultCode)
                     putExtra(ScreenCaptureService.EXTRA_RESULT_DATA, data)
                     putExtra(ScreenCaptureService.EXTRA_CUSTOM_NAME, customDeviceName)
+                    putExtra(ScreenCaptureService.EXTRA_MASTER_IP, masterServerIp)
                     putExtra(ScreenCaptureService.EXTRA_SCALE_FACTOR, selectedScaleFactor)
                     putExtra(ScreenCaptureService.EXTRA_FPS, selectedFps)
                     putExtra(ScreenCaptureService.EXTRA_QUALITY, selectedQuality)
@@ -379,7 +973,12 @@ class MainActivity : Activity() {
                 Toast.makeText(this, "Screen streaming starting...", Toast.LENGTH_SHORT).show()
                 mainHandler.postDelayed({ updateStreamUiState() }, 1000)
             } else {
-                Toast.makeText(this, "Screen capture permission denied", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Screen capture permission was not granted", Toast.LENGTH_SHORT).show()
+            }
+        } else if (requestCode == REQUEST_CODE_QR_SCAN && resultCode == RESULT_OK && data != null) {
+            val scannedText = data.getStringExtra("SCAN_RESULT")
+            if (!scannedText.isNullOrBlank()) {
+                processQrCodePayload(scannedText)
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data)
@@ -390,9 +989,19 @@ class MainActivity : Activity() {
         val service = captureService
         val ipAddress = getLocalIpAddress()
         val url = "http://$ipAddress:8080"
-        val hubUrl = "http://$ipAddress:8080/hub"
         urlText.text = url
-        hubUrlText.text = "Central Lab Grid: $hubUrl"
+        hubUrlText.text = "Central Lab Hub: $url"
+
+        val shouldRun = isStreamShouldRun()
+        if (::persistentStatusText.isInitialized) {
+            if (shouldRun) {
+                persistentStatusText.text = "⚡ Persistent Mode ACTIVE: Stream will auto-resume even if device shuts down or reboots."
+                persistentStatusText.setTextColor(Color.parseColor("#4ADE80"))
+            } else {
+                persistentStatusText.text = "Continuous Mode: Click Start to keep screening active until explicitly stopped."
+                persistentStatusText.setTextColor(Color.parseColor("#94A3B8"))
+            }
+        }
 
         if (service != null && service.isStreaming) {
             statusText.text = "Status: LIVE STREAMING (~30 FPS)"
@@ -424,16 +1033,29 @@ class MainActivity : Activity() {
     private fun getLocalIpAddress(): String {
         try {
             val interfaces = NetworkInterface.getNetworkInterfaces()
+            val candidateIps = mutableListOf<Pair<String, String>>()
             while (interfaces.hasMoreElements()) {
                 val intf = interfaces.nextElement()
                 val addrs = intf.inetAddresses
                 while (addrs.hasMoreElements()) {
                     val addr = addrs.nextElement()
                     if (!addr.isLoopbackAddress && addr is Inet4Address) {
-                        return addr.hostAddress ?: "127.0.0.1"
+                        val host = addr.hostAddress ?: continue
+                        if (host != "127.0.0.1" && host != "0.0.0.0") {
+                            candidateIps.add(Pair(intf.name.lowercase(), host))
+                        }
                     }
                 }
             }
+            return candidateIps.firstOrNull { it.first.startsWith("wlan") || it.first.startsWith("tiwlan") }?.second
+                ?: candidateIps.firstOrNull { it.first.startsWith("eth") }?.second
+                ?: candidateIps.firstOrNull {
+                    it.first.startsWith("rmnet") || it.first.startsWith("ccmni") ||
+                    it.first.startsWith("pdp") || it.first.startsWith("clat") ||
+                    it.first.startsWith("cellular") || it.first.startsWith("radio")
+                }?.second
+                ?: candidateIps.firstOrNull()?.second
+                ?: "127.0.0.1"
         } catch (_: Exception) {}
         return "127.0.0.1"
     }
@@ -500,8 +1122,11 @@ class MainActivity : Activity() {
             appScanStatusText.text = "Enter Supabase credentials."
             return
         }
-        if (BuildConfig.SUPABASE_URL.isBlank() || BuildConfig.SUPABASE_ANON_KEY.isBlank()) {
-            appScanStatusText.text = "Configure SIBAQ_SUPABASE_URL and SIBAQ_SUPABASE_ANON_KEY in local.properties."
+        val targetSupabaseUrl = supabaseUrlSetting.ifBlank { BuildConfig.SUPABASE_URL }
+        val targetAnonKey = supabaseAnonKeySetting.ifBlank { BuildConfig.SUPABASE_ANON_KEY }
+
+        if (targetSupabaseUrl.isBlank() || targetAnonKey.isBlank()) {
+            appScanStatusText.text = "Configure Supabase URL and Anon Key in app settings or local.properties."
             return
         }
 
@@ -511,8 +1136,8 @@ class MainActivity : Activity() {
 
         executor.execute {
             try {
-                val token = signIn(email, password)
-                submitReport(token, report)
+                val token = signIn(email, password, targetSupabaseUrl, targetAnonKey)
+                submitReport(token, report, targetSupabaseUrl, targetAnonKey)
                 runOnUiThread {
                     appScanStatusText.text = "Report submitted successfully."
                     submitButton.isEnabled = true
@@ -526,8 +1151,10 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun signIn(email: String, password: String): String {
+    private fun signIn(email: String, password: String, baseUrlStr: String, anonKeyStr: String): String {
         val response = request(
+            baseUrlStr = baseUrlStr,
+            anonKeyStr = anonKeyStr,
             path = "/auth/v1/token?grant_type=password",
             method = "POST",
             body = JSONObject()
@@ -538,7 +1165,7 @@ class MainActivity : Activity() {
         return JSONObject(response).getString("access_token")
     }
 
-    private fun submitReport(accessToken: String, report: ScanReport) {
+    private fun submitReport(accessToken: String, report: ScanReport, baseUrlStr: String, anonKeyStr: String) {
         val matches = JSONArray()
         report.matches.forEach { match ->
             matches.put(
@@ -564,6 +1191,8 @@ class MainActivity : Activity() {
             .put("matches", matches)
 
         request(
+            baseUrlStr = baseUrlStr,
+            anonKeyStr = anonKeyStr,
             path = "/rest/v1/android_device_scan_reports",
             method = "POST",
             body = payload.toString(),
@@ -573,21 +1202,23 @@ class MainActivity : Activity() {
     }
 
     private fun request(
+        baseUrlStr: String,
+        anonKeyStr: String,
         path: String,
         method: String,
         body: String,
         accessToken: String? = null,
         prefer: String? = null
     ): String {
-        val baseUrl = BuildConfig.SUPABASE_URL.trimEnd('/')
+        val baseUrl = baseUrlStr.trimEnd('/')
         val requestUrl = URL("$baseUrl$path")
         val connection = (requestUrl.openConnection() as HttpURLConnection).apply {
             requestMethod = method
             connectTimeout = 15_000
             readTimeout = 15_000
             doOutput = true
-            setRequestProperty("apikey", BuildConfig.SUPABASE_ANON_KEY)
-            setRequestProperty("Authorization", "Bearer ${accessToken ?: BuildConfig.SUPABASE_ANON_KEY}")
+            setRequestProperty("apikey", anonKeyStr)
+            setRequestProperty("Authorization", "Bearer ${accessToken ?: anonKeyStr}")
             setRequestProperty("Content-Type", "application/json")
             if (prefer != null) setRequestProperty("Prefer", prefer)
         }
@@ -635,15 +1266,15 @@ class MainActivity : Activity() {
         Button(this).apply {
             this.text = text
             setTextColor(Color.WHITE)
-            textSize = 14f
+            textSize = 13f
             isAllCaps = false
             typeface = Typeface.DEFAULT_BOLD
             background = createRoundedDrawable(hexColor)
             val params = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
-            params.setMargins(6.dp(), 6.dp(), 6.dp(), 6.dp())
+            params.setMargins(4.dp(), 4.dp(), 4.dp(), 4.dp())
             layoutParams = params
             setOnClickListener { onClick() }
         }
@@ -704,6 +1335,7 @@ class MainActivity : Activity() {
 
     companion object {
         private const val REQUEST_CODE_SCREEN_CAPTURE = 1001
+        private const val REQUEST_CODE_QR_SCAN = 1002
 
         private val SCREENING_TARGETS = listOf(
             ScreeningTarget("com.anydesk.anydeskandroid", "AnyDesk"),

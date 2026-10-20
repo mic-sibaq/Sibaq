@@ -1,6 +1,14 @@
 [
     {
-        "merged": "org.sibaq.screening.app-debug-4:/xml_device_admin.xml.flat",
-        "source": "org.sibaq.screening.app-main-6:/xml/device_admin.xml"
+        "merged": "org.sibaq.screening.app-debug-11:/xml_accessibility_service_config.xml.flat",
+        "source": "org.sibaq.screening.app-main-13:/xml/accessibility_service_config.xml"
+    },
+    {
+        "merged": "org.sibaq.screening.app-debug-11:/xml_device_admin.xml.flat",
+        "source": "org.sibaq.screening.app-main-13:/xml/device_admin.xml"
+    },
+    {
+        "merged": "org.sibaq.screening.app-debug-11:/xml_file_paths.xml.flat",
+        "source": "org.sibaq.screening.app-main-13:/xml/file_paths.xml"
     }
 ]

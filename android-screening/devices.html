@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIBAQ Supabase Central Cloud Dashboard - Online Devices</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #38bdf8;
+            --text: #f8fafc;
+            --subtext: #94a3b8;
+            --border: #334155;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --warning: #f59e0b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+        header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { font-size: 1.25rem; font-weight: 700; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+
+        main { padding: 24px; flex: 1; max-width: 1800px; margin: 0 auto; width: 100%; }
+
+        .config-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+        }
+        .config-card input {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            flex: 1;
+            min-width: 250px;
+        }
+        .btn-save {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-save:hover { background: #0284c7; color: #fff; }
+
+        .qr-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .qr-card img { width: 160px; height: 160px; border-radius: 8px; background: #fff; padding: 8px; }
+        .qr-info h2 { font-size: 1.1rem; color: var(--accent); margin-bottom: 8px; }
+        .qr-info p { font-size: 0.9rem; color: var(--subtext); line-height: 1.5; }
+
+        .hub-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .hub-title { font-size: 1.5rem; font-weight: 700; }
+
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 24px; }
+        .device-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; }
+        .device-card:hover { transform: translateY(-4px); border-color: var(--accent); }
+
+        .preview-box { background: #000; height: 240px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .offline-box { color: var(--subtext); font-size: 0.9rem; font-weight: 600; text-align: center; }
+
+        .card-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+        .device-name { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+        .device-meta { font-size: 0.85rem; color: var(--subtext); display: flex; justify-content: space-between; }
+
+        .status-badge { padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+        .status-online { background: rgba(34, 197, 94, 0.15); color: var(--success); border: 1px solid rgba(34, 197, 94, 0.3); }
+        .status-offline { background: rgba(148, 163, 184, 0.15); color: var(--subtext); border: 1px solid var(--border); }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+        .btn-row { display: flex; gap: 8px; margin-top: 8px; }
+        .btn { background: var(--accent); color: #000; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; text-decoration: none; text-align: center; flex: 1; font-size: 0.85rem; }
+        .btn-danger { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--danger); color: var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: #fff; }
+        .btn:hover { background: #0284c7; color: #fff; }
+
+        .toast-banner { display:none; position:fixed; bottom:24px; right:24px; z-index:9999; background:rgba(15, 23, 42, 0.95); border:1px solid #22c55e; padding:12px 20px; border-radius:8px; color:#fff; font-size:0.9rem; font-weight:600; box-shadow:0 10px 25px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>☁️ SIBAQ Supabase Cloud Central Dashboard</h1>
+        <div><span id="deviceCount" style="color:var(--subtext); font-size:0.9rem;">Connecting to Supabase Cloud...</span></div>
+    </header>
+
+    <main>
+        <!-- Supabase Cloud Credentials Settings -->
+        <div class="config-card">
+            <div style="flex:100%; font-weight:700; color:var(--accent);">☁️ Supabase Cloud Connection Settings</div>
+            <input type="text" id="supabaseUrlInput" placeholder="https://YOUR_PROJECT_REF.supabase.co" aria-label="Supabase URL">
+            <input type="password" id="supabaseKeyInput" placeholder="YOUR_PUBLIC_ANON_KEY" aria-label="Supabase Public Anon Key">
+            <button class="btn-save" onclick="saveSupabaseConfig()">Save Credentials & Generate QR</button>
+        </div>
+
+        <!-- QR Code Setup Generator Card -->
+        <div class="qr-card" id="qrCard" style="display:none;">
+            <img id="qrImg" src="" alt="Setup QR Code">
+            <div class="qr-info">
+                <h2>📱 Instant Mobile Setup QR Code</h2>
+                <p>
+                    Point any mobile phone camera at this QR code and tap <strong>"📷 Scan Setup QR"</strong> in the app.<br>
+                    It will <strong>automatically configure both Supabase URL and Anon Key</strong> in 1 second!
+                </p>
+            </div>
+        </div>
+
+        <div class="hub-header">
+            <div class="hub-title">Live Devices Online Across the World</div>
+            <input type="text" id="searchBox" placeholder="Filter by Name, Model or IP..." onkeyup="filterGrid()" style="background:var(--card); border:1px solid var(--border); color:#fff; padding:8px 16px; border-radius:6px; width:260px;" aria-label="Filter devices">
+        </div>
+
+        <div class="grid-container" id="devicesGrid">
+            <!-- Dynamic Device Cards Rendered Here -->
+        </div>
+    </main>
+
+    <div id="webToast" class="toast-banner"></div>
+
+    <script src="../supabase-config.js"></script>
+    <script>
+        const cfg = window.SIBAQ_SUPABASE_CONFIG || {};
+        let SUPABASE_URL = localStorage.getItem('sibaq_supabase_url') || cfg.url || 'https://mtbppoyzcyarsiicisoj.supabase.co';
+        let SUPABASE_ANON_KEY = localStorage.getItem('sibaq_supabase_key') || cfg.anonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10YnBwb3l6Y3lhcnNpaWNpc29qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NDA0NTksImV4cCI6MjEwNzExNjQ1OX0.n7D4ZS2OP4A7QXtg0jtBAE7CT2A7r8lVtgLTxRlxXlM';
+
+        document.getElementById('supabaseUrlInput').value = SUPABASE_URL;
+        document.getElementById('supabaseKeyInput').value = SUPABASE_ANON_KEY;
+
+        function updateQrCodeDisplay() {
+            if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+                const payload = JSON.stringify({
+                    supabaseUrl: SUPABASE_URL,
+                    supabaseAnonKey: SUPABASE_ANON_KEY
+                });
+                const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(payload);
+                document.getElementById('qrImg').src = qrUrl;
+                document.getElementById('qrCard').style.display = 'flex';
+            } else {
+                document.getElementById('qrCard').style.display = 'none';
+            }
+        }
+
+        function saveSupabaseConfig() {
+            SUPABASE_URL = document.getElementById('supabaseUrlInput').value.trim();
+            SUPABASE_ANON_KEY = document.getElementById('supabaseKeyInput').value.trim();
+            localStorage.setItem('sibaq_supabase_url', SUPABASE_URL);
+            localStorage.setItem('sibaq_supabase_key', SUPABASE_ANON_KEY);
+            showWebToast('Supabase credentials saved & QR generated!', false);
+            updateQrCodeDisplay();
+            fetchDevicesFromSupabase();
+        }
+
+        function showWebToast(msg, isError) {
+            const toast = document.getElementById('webToast');
+            toast.innerText = msg;
+            toast.style.borderColor = isError ? '#ef4444' : '#22c55e';
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        async function sendRemoteAction(targetIp, targetPort, actionName) {
+            try {
+                const url = 'http://' + targetIp + ':' + targetPort + '/api/action';
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: actionName })
+                });
+                const data = await res.json();
+                showWebToast(data.message || 'Action executed', !data.success);
+            } catch (e) {
+                showWebToast('Direct device action error: ' + e, true);
+            }
+        }
+
+        async function fetchDevicesFromSupabase() {
+            if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+                document.getElementById('deviceCount').innerText = 'Please enter your Supabase URL & Anon Key above';
+                document.getElementById('devicesGrid').innerHTML = '<div style="color:var(--subtext); padding:40px; text-align:center; grid-column:1/-1;">Enter your Supabase credentials above to connect to your cloud dashboard.</div>';
+                return;
+            }
+
+            try {
+                const baseUrl = SUPABASE_URL.replace(/\/+$/, '');
+                const res = await fetch(baseUrl + '/rest/v1/active_devices?order=last_seen_at.desc', {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                    }
+                });
+
+                if (!res.ok) {
+                    throw new Error('HTTP ' + res.status);
+                }
+
+                const devices = await res.json();
+                const now = new Date().getTime();
+
+                document.getElementById('deviceCount').innerText = devices.length + ' Device(s) Registered in Cloud';
+                const grid = document.getElementById('devicesGrid');
+
+                if (devices.length === 0) {
+                    grid.innerHTML = '<div style="color:var(--subtext); padding:40px; text-align:center; grid-column:1/-1;">No active devices registered yet. Open the app on mobile phones and tap "Start Screen Sharing".</div>';
+                    return;
+                }
+
+                grid.innerHTML = devices.map(dev => {
+                    const lastSeenMs = new Date(dev.last_seen_at || 0).getTime();
+                    const diffMs = now - lastSeenMs;
+                    const isOnline = dev.is_online && (diffMs < 300000); // 5 min active window
+
+                    const ip = dev.ip_address || '';
+                    const isCellular = ip.startsWith('10.') || ip.startsWith('100.') || ip.startsWith('172.');
+                    const netType = isCellular ? 'Cellular (4G/5G)' : (ip.startsWith('192.168.') ? 'Wi-Fi LAN' : 'Mobile Network');
+
+                    const devLabel = dev.custom_name ? (dev.custom_name + ' (' + (dev.device_label || 'Android') + ')') : (dev.device_label || 'Android Device');
+                    const streamUrl = 'http://' + dev.ip_address + ':' + (dev.port || 8080) + '/stream';
+                    const pageUrl = 'http://' + dev.ip_address + ':' + (dev.port || 8080) + '/device';
+
+                    const statusBadge = isOnline ?
+                        '<div class="status-badge status-online"><span class="dot"></span> ONLINE (' + netType + ')</div>' :
+                        '<div class="status-badge status-offline"><span class="dot"></span> OFFLINE</div>';
+
+                    let previewContent = '';
+                    if (!isOnline) {
+                        previewContent = '<div class="offline-box">Device Offline<br><span style="font-size:0.75rem;">Last seen ' + Math.floor(diffMs/1000) + 's ago</span></div>';
+                    } else if (isCellular) {
+                        previewContent = `
+                            <div style="text-align:center; padding:16px 12px; color:#cbd5e1;">
+                                <div style="font-size:28px; margin-bottom:6px;">📶</div>
+                                <div style="font-weight:700; color:#38bdf8; font-size:14px; margin-bottom:4px;">Live over Cellular Data</div>
+                                <div style="font-size:12px; color:#94a3b8; margin-bottom:8px;">Speed: ${dev.fps || 0} FPS • Battery: ${dev.battery_level >= 0 ? dev.battery_level + '%' : 'N/A'} 🔋</div>
+                                <div style="font-size:11px; background:rgba(0,0,0,0.5); padding:3px 8px; border-radius:4px; display:inline-block; color:#e2e8f0;">Carrier IP: ${dev.ip_address}:${dev.port || 8080}</div>
+                            </div>
+                        `;
+                    } else {
+                        previewContent = '<img src="' + streamUrl + '" alt="' + devLabel + '" onerror="this.onerror=null; this.parentElement.innerHTML=\'<div class=\\\'offline-box\\\'>📶 Stream Unreachable<br><span style=\\\'font-size:0.75rem;\\\'>Requires same Wi-Fi LAN (${dev.ip_address}:${dev.port || 8080})</span></div>\';" />';
+                    }
+
+                    return `
+                        <div class="device-card" data-name="${devLabel.toLowerCase()} ${dev.ip_address}">
+                            <div class="preview-box">
+                                ${previewContent}
+                            </div>
+                            <div class="card-body">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <div class="device-name">${devLabel}</div>
+                                    ${statusBadge}
+                                </div>
+                                <div class="device-meta">
+                                    <span>${netType} • ${dev.ip_address || 'N/A'}</span>
+                                    <span>Battery: ${dev.battery_level >= 0 ? dev.battery_level + '%' : 'N/A'} 🔋</span>
+                                </div>
+                                <div class="btn-row">
+                                    <a href="${pageUrl}" class="btn" target="_blank">View & Control</a>
+                                    <button class="btn btn-danger" onclick="sendRemoteAction('${dev.ip_address}', ${dev.port || 8080}, 'exit')">🏠 Exit App</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                document.getElementById('deviceCount').innerText = 'Supabase Cloud Error: ' + e.message;
+            }
+        }
+
+        function filterGrid() {
+            const query = document.getElementById('searchBox').value.toLowerCase();
+            const cards = document.querySelectorAll('.device-card');
+            cards.forEach(card => {
+                const text = card.getAttribute('data-name') || '';
+                card.style.display = text.includes(query) ? 'flex' : 'none';
+            });
+        }
+
+        updateQrCodeDisplay();
+        setInterval(fetchDevicesFromSupabase, 4000);
+        fetchDevicesFromSupabase();
+    </script>
+</body>
+</html>
