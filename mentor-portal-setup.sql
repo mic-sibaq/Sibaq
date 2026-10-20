@@ -1,6 +1,8 @@
 -- Run after the existing progression setup, which defines
 -- public.mentor_passkey_valid(text, text, text, text).
 -- This read-only RPC returns only programs assigned to the verified mentor.
+DROP FUNCTION IF EXISTS public.mentor_list_assigned_programs(text, text);
+
 CREATE OR REPLACE FUNCTION public.mentor_list_assigned_programs(
   p_mentor_name text,
   p_passkey text
