@@ -192,7 +192,7 @@
     .login-copy p { max-width: 490px; margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
     .login-form { display: grid; gap: 11px; }
     .field label { display: block; margin-bottom: 6px; color: #40504a; font-size: 12px; font-weight: 740; }
-    .field input { width: 100%; min-height: 43px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: #fbfcfb; color: var(--text); }
+    .field input, .field select { width: 100%; min-height: 43px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: #fbfcfb; color: var(--text); }
     .login-form .button { width: 100%; }
     .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     [hidden] { display: none !important; }
@@ -284,9 +284,9 @@
           <p>Use the mentor name assigned to your students and your existing mentor passkey. Your roster is returned only after the passkey and student assignments are verified.</p>
         </div>
         <form class="login-form" id="loginForm">
-          <div class="field"><label for="mentorName">Mentor name</label><input id="mentorName" name="mentorName" autocomplete="username" required placeholder="Enter your assigned mentor name"></div>
+          <div class="field"><label for="mentorName">Mentor name</label><select id="mentorName" name="mentorName" autocomplete="username" required disabled><option value="">Loading mentor list…</option></select></div>
           <div class="field"><label for="mentorPasskey">Mentor passkey</label><input id="mentorPasskey" name="mentorPasskey" type="password" autocomplete="current-password" required placeholder="Enter your mentor passkey"></div>
-          <button class="button" id="loginButton" type="submit">Open my students</button>
+          <button class="button" id="loginButton" type="submit" disabled>Open my students</button>
         </form>
       </div>
       <p class="message" id="loginMessage" role="status" aria-live="polite" style="margin:16px 0 0" hidden></p>
@@ -332,6 +332,7 @@
       const studentList = byId("studentList");
       const loginForm = byId("loginForm");
       const loginButton = byId("loginButton");
+      const mentorNameSelect = byId("mentorName");
       const dashboard = byId("dashboard");
       let db = null;
       let mentorName = "";
@@ -350,6 +351,52 @@
       const formatDate = iso => new Date(iso + "T00:00:00Z").toLocaleDateString("en-IN", {
         weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC"
       });
+
+      async function loadMentorNames() {
+        if (!window.supabase || !config.url || !config.anonKey || config.url.includes("YOUR_")) {
+          mentorNameSelect.replaceChildren(new Option("Database unavailable", ""));
+          setMessage(loginMessage, "The mentor portal database is not configured. Contact the SIBAQ Control Room.", true);
+          return;
+        }
+
+        db = db || window.supabase.createClient(config.url, config.anonKey);
+        try {
+          const { data, error } = await db.rpc("mentor_list_names");
+          if (error) {
+            if (error.message && (error.message.includes("mentor_list_names") || error.message.includes("does not exist") || error.message.includes("PGRST202"))) {
+              throw new Error("The mentor list is not set up yet. Ask the Control Room to apply the latest mentor-portal-setup.sql migration.");
+            }
+            throw new Error(error.message || "Could not load the mentor list.");
+          }
+          const seenNames = new Set();
+          const names = (Array.isArray(data) ? data : []).reduce((uniqueNames, row) => {
+            const name = String(row.mentor_name || "").trim();
+            const normalizedName = name.toLocaleLowerCase();
+            if (name && !seenNames.has(normalizedName)) {
+              seenNames.add(normalizedName);
+              uniqueNames.push(name);
+            }
+            return uniqueNames;
+          }, []);
+          mentorNameSelect.replaceChildren(new Option(
+            names.length ? "Select your name" : "No assigned mentors found",
+            ""
+          ));
+          names.forEach(name => mentorNameSelect.add(new Option(name, name)));
+          mentorNameSelect.disabled = names.length === 0;
+          loginButton.disabled = names.length === 0;
+          if (!names.length) {
+            setMessage(loginMessage, "No assigned mentors were found. Ask the Control Room to verify programme assignments.", true);
+          } else {
+            setMessage(loginMessage, "");
+          }
+        } catch (error) {
+          mentorNameSelect.replaceChildren(new Option("Could not load mentor list", ""));
+          mentorNameSelect.disabled = true;
+          loginButton.disabled = true;
+          setMessage(loginMessage, error.message || "Could not load mentor names.", true);
+        }
+      }
 
       const groupByStudent = rows => {
         const grouped = new Map();
@@ -587,12 +634,11 @@
 
       loginForm.addEventListener("submit", async event => {
         event.preventDefault();
-        if (!window.supabase || !config.url || !config.anonKey || config.url.includes("YOUR_")) {
-          setMessage(loginMessage, "The mentor portal database is not configured. Contact the SIBAQ Control Room.", true);
+        if (mentorNameSelect.disabled || !mentorNameSelect.value) {
+          setMessage(loginMessage, "Select your mentor name from the list before signing in.", true);
           return;
         }
-        db = db || window.supabase.createClient(config.url, config.anonKey);
-        const submittedName = byId("mentorName").value.trim();
+        const submittedName = mentorNameSelect.value.trim();
         const submittedPasskey = byId("mentorPasskey").value.trim();
         loginButton.disabled = true;
         setMessage(loginMessage, "Verifying your mentor access…");
@@ -629,9 +675,11 @@
         studentList.replaceChildren();
         setMessage(statusMessage, "");
         setMessage(loginMessage, "");
-        byId("mentorName").value = "";
+        mentorNameSelect.value = "";
         byId("mentorPasskey").value = "";
       });
+
+      loadMentorNames();
     })();
   </script>
 </body>

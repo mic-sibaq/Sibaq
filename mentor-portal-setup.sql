@@ -104,3 +104,69 @@ $function$;
 
 REVOKE ALL ON FUNCTION public.mentor_list_assigned_programs(text, text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.mentor_list_assigned_programs(text, text) TO anon, authenticated;
+
+CREATE OR REPLACE FUNCTION public.mentor_list_names()
+RETURNS TABLE (mentor_name text)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $function$
+DECLARE
+  profile_row record;
+  mentors_json jsonb;
+  names_json jsonb;
+  codes_json jsonb;
+  program_count integer;
+  program_index integer;
+  assigned_mentor text;
+  seen_names text[] := ARRAY[]::text[];
+BEGIN
+  FOR profile_row IN
+    SELECT
+      to_jsonb(sp.programs) AS programs_json,
+      to_jsonb(sp.program_codes) AS codes_json,
+      to_jsonb(sp.program_mentors) AS mentors_json,
+      sp.mentor::text AS legacy_mentor
+    FROM public.student_profiles AS sp
+  LOOP
+    names_json := CASE
+      WHEN jsonb_typeof(profile_row.programs_json) = 'array' THEN profile_row.programs_json
+      ELSE '[]'::jsonb
+    END;
+    codes_json := CASE
+      WHEN jsonb_typeof(profile_row.codes_json) = 'array' THEN profile_row.codes_json
+      ELSE '[]'::jsonb
+    END;
+    mentors_json := CASE
+      WHEN jsonb_typeof(profile_row.mentors_json) = 'array' THEN profile_row.mentors_json
+      ELSE '[]'::jsonb
+    END;
+    program_count := greatest(
+      jsonb_array_length(names_json),
+      jsonb_array_length(codes_json),
+      jsonb_array_length(mentors_json)
+    );
+
+    IF program_count = 0 THEN
+      CONTINUE;
+    END IF;
+
+    FOR program_index IN 0..(program_count - 1) LOOP
+      assigned_mentor := nullif(btrim(mentors_json ->> program_index), '');
+      IF assigned_mentor IS NULL AND program_count = 1 THEN
+        assigned_mentor := nullif(btrim(profile_row.legacy_mentor), '');
+      END IF;
+
+      IF assigned_mentor IS NOT NULL
+         AND NOT (lower(assigned_mentor) = ANY (seen_names)) THEN
+        seen_names := array_append(seen_names, lower(assigned_mentor));
+        mentor_name := assigned_mentor;
+        RETURN NEXT;
+      END IF;
+    END LOOP;
+  END LOOP;
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.mentor_list_names() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.mentor_list_names() TO anon, authenticated;
