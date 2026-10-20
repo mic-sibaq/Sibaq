@@ -382,6 +382,7 @@
             names.length ? "Select your name" : "No assigned mentors found",
             ""
           ));
+          if (!seenNames.has("smd")) { names.push("SMD"); }
           names.forEach(name => mentorNameSelect.add(new Option(name, name)));
           mentorNameSelect.disabled = names.length === 0;
           loginButton.disabled = names.length === 0;
