@@ -195,6 +195,46 @@
     .field input, .field select { width: 100%; min-height: 43px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: #fbfcfb; color: var(--text); }
     .login-form .button { width: 100%; }
     .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+    /* Export dropdown */
+    .export-wrap { position: relative; display: inline-flex; }
+    .export-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      z-index: 100;
+      min-width: 190px;
+      padding: 6px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 10px 28px rgba(20,50,40,.10);
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .export-menu.open { display: flex; }
+    .export-menu button {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      width: 100%;
+      padding: 8px 11px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 640;
+      text-align: left;
+      cursor: pointer;
+      transition: background .12s;
+    }
+    .export-menu button:hover { background: #f0f5f3; }
+    .export-menu .sep { height: 1px; background: var(--border); margin: 3px 0; border: none; }
+    .export-menu .dot {
+      width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto;
+    }
     [hidden] { display: none !important; }
 
     @media (max-width: 700px) {
@@ -302,6 +342,18 @@
             <button class="button secondary no-print" id="refreshButton" type="button">Refresh day</button>
             <button class="button secondary no-print" id="printButton" type="button">Print daily report</button>
             <button class="button secondary no-print" id="printPendingButton" type="button">Print who&#39;s not done</button>
+            <div class="export-wrap no-print" id="exportWrap">
+              <button class="button secondary" id="exportButton" type="button" aria-haspopup="true" aria-expanded="false">Export ▾</button>
+              <div class="export-menu" id="exportMenu" role="menu">
+                <button data-filter="not-completed" role="menuitem"><span class="dot" style="background:#f0dfb8;border:1.5px solid #d4b06a"></span>Not Completed</button>
+                <button data-filter="completed" role="menuitem"><span class="dot" style="background:#b8e5d0;border:1.5px solid #5ab88a"></span>Completed</button>
+                <hr class="sep">
+                <button data-filter="Excellent" role="menuitem"><span class="dot" style="background:#c8e6c9;border:1.5px solid #66bb6a"></span>Excellent</button>
+                <button data-filter="Good" role="menuitem"><span class="dot" style="background:#bbdefb;border:1.5px solid #42a5f5"></span>Good</button>
+                <button data-filter="Average" role="menuitem"><span class="dot" style="background:#fff9c4;border:1.5px solid #f9a825"></span>Average</button>
+                <button data-filter="Poor" role="menuitem"><span class="dot" style="background:#ffcdd2;border:1.5px solid #ef9a9a"></span>Poor</button>
+              </div>
+            </div>
             <button class="button secondary no-print" id="signOutButton" type="button">Sign out</button>
           </div>
         </div>
@@ -668,6 +720,86 @@
       dateInput.addEventListener("change", loadSelectedDate);
       byId("refreshButton").addEventListener("click", loadSelectedDate);
       byId("printButton").addEventListener("click", () => window.print());
+
+      // ── Export dropdown logic ──────────────────────────────────────────
+      const exportButton = byId("exportButton");
+      const exportMenu   = byId("exportMenu");
+
+      exportButton.addEventListener("click", e => {
+        e.stopPropagation();
+        const open = exportMenu.classList.toggle("open");
+        exportButton.setAttribute("aria-expanded", String(open));
+      });
+
+      document.addEventListener("click", e => {
+        if (!byId("exportWrap").contains(e.target)) {
+          exportMenu.classList.remove("open");
+          exportButton.setAttribute("aria-expanded", "false");
+        }
+      });
+
+      exportMenu.addEventListener("click", e => {
+        const btn = e.target.closest("button[data-filter]");
+        if (!btn) return;
+        exportMenu.classList.remove("open");
+        exportButton.setAttribute("aria-expanded", "false");
+        exportCSV(btn.dataset.filter);
+      });
+
+      function exportCSV(filter) {
+        const selectedDate = dateInput.value || isoToday;
+        const rows = [["Student Name", "Admission No", "Programme", "Programme Code", "Status", "Rating", "Date"]];
+
+        studentList.querySelectorAll(".student-card").forEach(card => {
+          const studentName  = card.querySelector(".student-name")?.textContent.trim() || "";
+          const admissionNo  = (card.querySelector(".student-meta")?.textContent || "").replace("Admission no. ", "").trim();
+
+          card.querySelectorAll(".program-row").forEach(row => {
+            const progName = row.querySelector(".program-title")?.textContent.trim() || "";
+            const progCode = row.querySelector(".program-code")?.textContent.trim()  || "";
+            const badges   = row.querySelectorAll(".status");
+            let status = "";
+            let rating = "";
+            badges.forEach(b => {
+              const txt = b.textContent.trim();
+              if (b.classList.contains("done"))    status = "Completed";
+              else if (b.classList.contains("pending")) status = "Not Completed";
+              if (b.classList.contains("rating") && txt.startsWith("Rating ·")) {
+                rating = txt.replace("Rating ·", "").trim();
+              }
+            });
+
+            // Apply filter
+            const keep = (() => {
+              if (filter === "not-completed") return status === "Not Completed";
+              if (filter === "completed")     return status === "Completed";
+              return rating.toLowerCase() === filter.toLowerCase();
+            })();
+
+            if (keep) rows.push([studentName, admissionNo, progName, progCode, status, rating, selectedDate]);
+          });
+        });
+
+        if (rows.length === 1) {
+          alert("No records match the selected export filter.");
+          return;
+        }
+
+        const csv = rows.map(r =>
+          r.map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(",")
+        ).join("\r\n");
+
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement("a");
+        a.href     = url;
+        const label = filter === "not-completed" ? "Not-Completed"
+                    : filter === "completed"     ? "Completed"
+                    : filter;
+        a.download = "SIBAQ-" + label + "-" + selectedDate + ".csv";
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+      }
 
       byId("printPendingButton").addEventListener("click", () => {
         // Collect all programme rows and mark completed ones as print-hide
