@@ -252,6 +252,55 @@
       background: var(--yellow)
     }
 
+    /* ── Admin Export Dropdown ── */
+    .admin-export-wrap { position: relative; display: inline-flex; }
+    .admin-export-menu {
+      position: absolute;
+      bottom: calc(100% + 6px);
+      right: 0;
+      z-index: 200;
+      min-width: 200px;
+      padding: 6px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--card);
+      box-shadow: 0 10px 28px rgba(0,0,0,.13);
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .admin-export-menu.open { display: flex; }
+    .admin-export-menu button {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      width: 100%;
+      padding: 9px 12px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 640;
+      text-align: left;
+      cursor: pointer;
+      transition: background .12s;
+    }
+    .admin-export-menu button:hover { background: rgba(91,92,226,.08); }
+    .admin-export-menu .adm-sep { height: 1px; background: var(--border); margin: 3px 0; border: none; }
+    .admin-export-menu .adm-dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
+    .admin-exp-arrow { margin-left: auto; font-size: 15px; color: var(--muted); transition: transform .18s; display: inline-block; }
+    .admin-completed-parent[aria-expanded="true"] .admin-exp-arrow { transform: rotate(90deg); }
+    .admin-export-sub {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding-left: 14px;
+      border-left: 2px solid #b8e5d0;
+      margin: 2px 0 2px 8px;
+    }
+    .admin-export-sub button { font-size: 12px; padding: 7px 10px; }
+
     .btn-row {
       display: flex;
       gap: 9px;
@@ -2546,6 +2595,24 @@ body.dark .matrix-summary-pill {
         <button class="btn purple-btn" onclick="viewSelectedDateGraph()">📊 View Data</button>
         <button class="btn secondary" onclick="openRatingStudentView('missing')">👁 View Not Done</button>
         <button class="btn red" onclick="exportMissingResponsesPDF()">📄 Export PDF</button>
+            <div class="admin-export-wrap" id="adminExportWrap">
+              <button class="btn secondary" id="adminExportBtn" aria-haspopup="true" aria-expanded="false">📥 Export CSV ▾</button>
+              <div class="admin-export-menu" id="adminExportMenu" role="menu">
+                <button class="admin-completed-parent" id="adminCompletedParent" aria-expanded="false" role="menuitem">
+                  <span class="adm-dot" style="background:#b8e5d0;border:1.5px solid #5ab88a"></span>
+                  Completed
+                  <span class="admin-exp-arrow" aria-hidden="true">›</span>
+                </button>
+                <div class="admin-export-sub" id="adminCompletedSub" hidden>
+                  <button data-rating="Excellent" role="menuitem"><span class="adm-dot" style="background:#c8e6c9;border:1.5px solid #66bb6a"></span>Excellent</button>
+                  <button data-rating="Good"      role="menuitem"><span class="adm-dot" style="background:#bbdefb;border:1.5px solid #42a5f5"></span>Good</button>
+                  <button data-rating="Average"   role="menuitem"><span class="adm-dot" style="background:#fff9c4;border:1.5px solid #f9a825"></span>Average</button>
+                  <button data-rating="Poor"      role="menuitem"><span class="adm-dot" style="background:#ffcdd2;border:1.5px solid #ef9a9a"></span>Poor</button>
+                  <hr class="adm-sep">
+                  <button data-rating="__all__"   role="menuitem"><span class="adm-dot" style="background:#e8eaf6;border:1.5px solid #7986cb"></span>All Ratings</button>
+                </div>
+              </div>
+            </div>
       </div>
     </div>
   </div>
@@ -6948,6 +7015,120 @@ function exportMissingResponsesPDF() {
 </style></head><body><h1>SIBAQ — Missing Student Responses</h1><p>Date: ${ratingEsc(date)} | Not-submitted programme records: ${missing.length}</p><table><thead><tr><th>No.</th><th>Not Done Programme</th><th>Mentor</th><th>Admission No.</th><th>Student Name</th></tr></thead><tbody>${rows}</tbody></table><script>window.onload=()=>{window.focus();window.print();};<\/script></body></html>`);
   w.document.close();
 }
+
+/* =========================================================
+   EXPORT COMPLETED CSV (Admin)
+   Exports completed students grouped by rating with headings
+   ========================================================= */
+function exportCompletedCSV(ratingFilter) {
+  if (!ratingEnsureDataLoaded()) return;
+  const date = ratingReviewDateValue();
+  const allRows = ratingBuildDateRows(date).filter(r => r.completed === true);
+
+  if (!allRows.length) {
+    alert(`No completed programme records found for ${date}.`);
+    return;
+  }
+
+  const ratings = ratingFilter === "__all__"
+    ? ["Excellent", "Good", "Average", "Poor", "Others"]
+    : [ratingFilter];
+
+  const csvLines = [];
+  // File-level header
+  csvLines.push(`"SIBAQ — Completed Programme Report","Date: ${date}"`);
+  csvLines.push(""); // blank spacer
+
+  let totalAdded = 0;
+
+  ratings.forEach(rating => {
+    let group;
+    if (rating === "Others") {
+      group = allRows.filter(r => !["Excellent","Good","Average","Poor"].includes(r.rating));
+    } else {
+      group = allRows.filter(r => r.rating === rating);
+    }
+    if (!group.length) return;
+
+    // Section heading row
+    csvLines.push(`"=== ${rating.toUpperCase()} — ${group.length} record(s) ==="`);
+    // Column header
+    csvLines.push('"Student Name","Admission No","Mentor","Programme","Programme Code","Status","Rating","Date"');
+
+    group
+      .sort((a, b) => a.name.localeCompare(b.name) || a.program.localeCompare(b.program))
+      .forEach(r => {
+        const cells = [r.name, r.admission, r.mentor, r.program, r.programCode || "", r.status, r.rating, date];
+        csvLines.push(cells.map(c => '"' + String(c ?? "").replace(/"/g, '""') + '"').join(","));
+        totalAdded++;
+      });
+
+    csvLines.push(""); // blank line between sections
+  });
+
+  if (!totalAdded) {
+    alert(`No completed records found for rating "${ratingFilter}" on ${date}.`);
+    return;
+  }
+
+  const csv = csvLines.join("\r\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  const label = ratingFilter === "__all__" ? "Completed-All" : "Completed-" + ratingFilter;
+  a.download = `SIBAQ-${label}-${date}.csv`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+// Wire up admin export dropdown after DOM ready
+(function initAdminExportDropdown() {
+  function ready(fn) {
+    if (document.readyState !== "loading") fn();
+    else document.addEventListener("DOMContentLoaded", fn);
+  }
+  ready(() => {
+    const wrap    = document.getElementById("adminExportWrap");
+    const btn     = document.getElementById("adminExportBtn");
+    const menu    = document.getElementById("adminExportMenu");
+    const parent  = document.getElementById("adminCompletedParent");
+    const sub     = document.getElementById("adminCompletedSub");
+    if (!wrap || !btn || !menu || !parent || !sub) return;
+
+    const closeAll = () => {
+      menu.classList.remove("open");
+      btn.setAttribute("aria-expanded", "false");
+      sub.hidden = true;
+      parent.setAttribute("aria-expanded", "false");
+    };
+
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const open = menu.classList.toggle("open");
+      btn.setAttribute("aria-expanded", String(open));
+      if (!open) { sub.hidden = true; parent.setAttribute("aria-expanded", "false"); }
+    });
+
+    parent.addEventListener("click", e => {
+      e.stopPropagation();
+      const expanded = sub.hidden;
+      sub.hidden = !expanded;
+      parent.setAttribute("aria-expanded", String(expanded));
+    });
+
+    sub.addEventListener("click", e => {
+      const btn2 = e.target.closest("button[data-rating]");
+      if (!btn2) return;
+      closeAll();
+      exportCompletedCSV(btn2.dataset.rating);
+    });
+
+    document.addEventListener("click", e => {
+      if (!wrap.contains(e.target)) closeAll();
+    });
+  });
+})();
 function viewSelectedDateGraph() {
   if (!ratingEnsureDataLoaded()) return;
   renderAllStudentsGraph();
