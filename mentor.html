@@ -248,6 +248,8 @@
       .program-row { grid-template-columns: 1fr auto; padding: 8px 11px; }
       .program-edit { display: none !important; }
       .status { border-color: #aaa !important; background: #fff !important; color: #111 !important; }
+      .print-hide { display: none !important; }
+      #printPendingTitle { display: block; margin: 0 0 6px; font-size: 13px; font-weight: 700; color: #7a3a00; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -299,6 +301,7 @@
           <div class="toolbar">
             <button class="button secondary no-print" id="refreshButton" type="button">Refresh day</button>
             <button class="button secondary no-print" id="printButton" type="button">Print daily report</button>
+            <button class="button secondary no-print" id="printPendingButton" type="button">Print who&#39;s not done</button>
             <button class="button secondary no-print" id="signOutButton" type="button">Sign out</button>
           </div>
         </div>
@@ -665,6 +668,48 @@
       dateInput.addEventListener("change", loadSelectedDate);
       byId("refreshButton").addEventListener("click", loadSelectedDate);
       byId("printButton").addEventListener("click", () => window.print());
+
+      byId("printPendingButton").addEventListener("click", () => {
+        // Collect all programme rows and mark completed ones as print-hide
+        const allRows = studentList.querySelectorAll(".program-row");
+        const allCards = studentList.querySelectorAll(".student-card");
+
+        allRows.forEach(row => {
+          const badge = row.querySelector(".status");
+          if (badge && badge.classList.contains("done")) {
+            row.classList.add("print-hide");
+          }
+        });
+
+        // Hide student cards where every programme row is hidden (all done)
+        allCards.forEach(card => {
+          const rows = card.querySelectorAll(".program-row");
+          const allDone = rows.length > 0 && Array.from(rows).every(r => r.classList.contains("print-hide"));
+          if (allDone) card.classList.add("print-hide");
+        });
+
+        // Add a temporary print heading to show context
+        let tempTitle = document.getElementById("_pendingPrintTitle");
+        if (!tempTitle) {
+          tempTitle = document.createElement("p");
+          tempTitle.id = "_pendingPrintTitle";
+          tempTitle.style.cssText = "margin:0 0 10px;font-weight:700;font-size:13px;color:#7a3a00;";
+          studentList.insertAdjacentElement("beforebegin", tempTitle);
+        }
+        tempTitle.textContent = "Pending completions — " + byId("overviewSubtitle").textContent;
+
+        const cleanup = () => {
+          allRows.forEach(r => r.classList.remove("print-hide"));
+          allCards.forEach(c => c.classList.remove("print-hide"));
+          if (tempTitle) tempTitle.remove();
+          window.removeEventListener("afterprint", cleanup);
+        };
+
+        window.addEventListener("afterprint", cleanup);
+        window.print();
+        // Fallback cleanup in case afterprint doesn't fire
+        setTimeout(cleanup, 3000);
+      });
       byId("signOutButton").addEventListener("click", () => {
         requestId++;
         mentorName = "";
