@@ -235,6 +235,27 @@
     .export-menu .dot {
       width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto;
     }
+    .export-parent { justify-content: flex-start; }
+    .exp-arrow {
+      margin-left: auto;
+      font-size: 15px;
+      color: var(--muted);
+      transition: transform .18s;
+      display: inline-block;
+    }
+    .export-parent[aria-expanded="true"] .exp-arrow { transform: rotate(90deg); }
+    .export-sub {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding-left: 14px;
+      border-left: 2px solid #b8e5d0;
+      margin: 2px 0 2px 8px;
+    }
+    .export-sub button {
+      font-size: 12px;
+      padding: 7px 10px;
+    }
     [hidden] { display: none !important; }
 
     @media (max-width: 700px) {
@@ -346,12 +367,17 @@
               <button class="button secondary" id="exportButton" type="button" aria-haspopup="true" aria-expanded="false">Export ▾</button>
               <div class="export-menu" id="exportMenu" role="menu">
                 <button data-filter="not-completed" role="menuitem"><span class="dot" style="background:#f0dfb8;border:1.5px solid #d4b06a"></span>Not Completed</button>
-                <button data-filter="completed" role="menuitem"><span class="dot" style="background:#b8e5d0;border:1.5px solid #5ab88a"></span>Completed</button>
-                <hr class="sep">
-                <button data-filter="Excellent" role="menuitem"><span class="dot" style="background:#c8e6c9;border:1.5px solid #66bb6a"></span>Excellent</button>
-                <button data-filter="Good" role="menuitem"><span class="dot" style="background:#bbdefb;border:1.5px solid #42a5f5"></span>Good</button>
-                <button data-filter="Average" role="menuitem"><span class="dot" style="background:#fff9c4;border:1.5px solid #f9a825"></span>Average</button>
-                <button data-filter="Poor" role="menuitem"><span class="dot" style="background:#ffcdd2;border:1.5px solid #ef9a9a"></span>Poor</button>
+                <button class="export-parent" id="completedParent" aria-expanded="false" role="menuitem">
+                  <span class="dot" style="background:#b8e5d0;border:1.5px solid #5ab88a"></span>
+                  Completed
+                  <span class="exp-arrow" aria-hidden="true">›</span>
+                </button>
+                <div class="export-sub" id="completedSub" hidden>
+                  <button data-filter="completed" data-rating="Excellent" role="menuitem"><span class="dot" style="background:#c8e6c9;border:1.5px solid #66bb6a"></span>Excellent</button>
+                  <button data-filter="completed" data-rating="Good"      role="menuitem"><span class="dot" style="background:#bbdefb;border:1.5px solid #42a5f5"></span>Good</button>
+                  <button data-filter="completed" data-rating="Average"   role="menuitem"><span class="dot" style="background:#fff9c4;border:1.5px solid #f9a825"></span>Average</button>
+                  <button data-filter="completed" data-rating="Poor"      role="menuitem"><span class="dot" style="background:#ffcdd2;border:1.5px solid #ef9a9a"></span>Poor</button>
+                </div>
               </div>
             </div>
             <button class="button secondary no-print" id="signOutButton" type="button">Sign out</button>
@@ -722,19 +748,36 @@
       byId("printButton").addEventListener("click", () => window.print());
 
       // ── Export dropdown logic ──────────────────────────────────────────
-      const exportButton = byId("exportButton");
-      const exportMenu   = byId("exportMenu");
+      const exportButton  = byId("exportButton");
+      const exportMenu    = byId("exportMenu");
+      const completedParent = byId("completedParent");
+      const completedSub    = byId("completedSub");
 
       exportButton.addEventListener("click", e => {
         e.stopPropagation();
         const open = exportMenu.classList.toggle("open");
         exportButton.setAttribute("aria-expanded", String(open));
+        // Collapse sub-menu when main menu closes
+        if (!open) {
+          completedSub.hidden = true;
+          completedParent.setAttribute("aria-expanded", "false");
+        }
+      });
+
+      // Toggle the Completed sub-menu
+      completedParent.addEventListener("click", e => {
+        e.stopPropagation();
+        const expanded = completedSub.hidden;
+        completedSub.hidden = !expanded;
+        completedParent.setAttribute("aria-expanded", String(expanded));
       });
 
       document.addEventListener("click", e => {
         if (!byId("exportWrap").contains(e.target)) {
           exportMenu.classList.remove("open");
           exportButton.setAttribute("aria-expanded", "false");
+          completedSub.hidden = true;
+          completedParent.setAttribute("aria-expanded", "false");
         }
       });
 
@@ -743,16 +786,18 @@
         if (!btn) return;
         exportMenu.classList.remove("open");
         exportButton.setAttribute("aria-expanded", "false");
-        exportCSV(btn.dataset.filter);
+        completedSub.hidden = true;
+        completedParent.setAttribute("aria-expanded", "false");
+        exportCSV(btn.dataset.filter, btn.dataset.rating || "");
       });
 
-      function exportCSV(filter) {
+      function exportCSV(filter, ratingFilter) {
         const selectedDate = dateInput.value || isoToday;
         const rows = [["Student Name", "Admission No", "Programme", "Programme Code", "Status", "Rating", "Date"]];
 
         studentList.querySelectorAll(".student-card").forEach(card => {
-          const studentName  = card.querySelector(".student-name")?.textContent.trim() || "";
-          const admissionNo  = (card.querySelector(".student-meta")?.textContent || "").replace("Admission no. ", "").trim();
+          const studentName = card.querySelector(".student-name")?.textContent.trim() || "";
+          const admissionNo = (card.querySelector(".student-meta")?.textContent || "").replace("Admission no. ", "").trim();
 
           card.querySelectorAll(".program-row").forEach(row => {
             const progName = row.querySelector(".program-title")?.textContent.trim() || "";
@@ -762,18 +807,20 @@
             let rating = "";
             badges.forEach(b => {
               const txt = b.textContent.trim();
-              if (b.classList.contains("done"))    status = "Completed";
+              if (b.classList.contains("done"))         status = "Completed";
               else if (b.classList.contains("pending")) status = "Not Completed";
               if (b.classList.contains("rating") && txt.startsWith("Rating ·")) {
                 rating = txt.replace("Rating ·", "").trim();
               }
             });
 
-            // Apply filter
             const keep = (() => {
               if (filter === "not-completed") return status === "Not Completed";
-              if (filter === "completed")     return status === "Completed";
-              return rating.toLowerCase() === filter.toLowerCase();
+              if (filter === "completed") {
+                // Must be completed; if a rating sub-filter is chosen, also match rating
+                return status === "Completed" && (!ratingFilter || rating.toLowerCase() === ratingFilter.toLowerCase());
+              }
+              return false;
             })();
 
             if (keep) rows.push([studentName, admissionNo, progName, progCode, status, rating, selectedDate]);
@@ -794,8 +841,8 @@
         const a    = document.createElement("a");
         a.href     = url;
         const label = filter === "not-completed" ? "Not-Completed"
-                    : filter === "completed"     ? "Completed"
-                    : filter;
+                    : ratingFilter ? "Completed-" + ratingFilter
+                    : "Completed";
         a.download = "SIBAQ-" + label + "-" + selectedDate + ".csv";
         a.click();
         setTimeout(() => URL.revokeObjectURL(url), 10000);
