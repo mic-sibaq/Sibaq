@@ -423,6 +423,11 @@
       font-weight: 800;
     }
 
+    .seen-status {
+      color: #4f46e5;
+      font-weight: 800;
+    }
+
     .pending {
       color: var(--red);
       font-weight: 800;
@@ -1533,6 +1538,11 @@ body.dark .matrix-summary-pill {
   background: rgba(239, 68, 68, .06);
 }
 
+.matrix-day-card.status-seen {
+  border-color: rgba(99, 102, 241, .55);
+  background: rgba(99, 102, 241, .08);
+}
+
 .matrix-day-card.status-missed {
   opacity: .65;
 }
@@ -1572,6 +1582,9 @@ body.dark .matrix-summary-pill {
 }
 .matrix-rating-pill.pill-poor {
   background: #ef4444; color: #fff;
+}
+.matrix-rating-pill.pill-seen {
+  background: #6366f1; color: #fff;
 }
 .matrix-rating-pill.pill-missed {
   background: #94a3b8; color: #fff;
@@ -6285,6 +6298,7 @@ function renderIndividualCalendarMatrix(dates, programs, statuses) {
     const card = document.createElement("div");
     const matching = statusByDate.get(date) || [];
     const completedItems = matching.filter(s => s.completed === true);
+    const seenNoGradeItems = matching.filter(s => !s.completed && s.rating === "Seen No grade");
 
     let highestRating = "";
     if (completedItems.some(i => i.rating === "Excellent")) highestRating = "Excellent";
@@ -6294,7 +6308,7 @@ function renderIndividualCalendarMatrix(dates, programs, statuses) {
 
     let statusClass = "status-missed";
     let pillClass = "pill-missed";
-    let pillText = "Missed";
+    let pillText = "Not Seen";
 
     if (completedItems.length > 0) {
       if (highestRating) {
@@ -6306,10 +6320,14 @@ function renderIndividualCalendarMatrix(dates, programs, statuses) {
         pillClass = "pill-good";
         pillText = "Done";
       }
+    } else if (seenNoGradeItems.length > 0) {
+      statusClass = "status-seen";
+      pillClass = "pill-seen";
+      pillText = "Seen";
     }
 
     card.className = "matrix-day-card " + statusClass;
-    card.title = `${graphFormatDateLabel(date)}: ${pillText} (${completedItems.length} completed)`;
+    card.title = `${graphFormatDateLabel(date)}: ${pillText} (${completedItems.length} completed, ${seenNoGradeItems.length} seen no grade)`;
 
     card.innerHTML = `
       <div class="matrix-day-num">DAY ${String(index + 1).padStart(2, "0")}</div>
@@ -6380,6 +6398,7 @@ function renderAllStudentsGraph() {
   const allRatings = [];
   let assignmentCount = 0;
   let totalCompleted = 0;
+  let totalSeenNoGrade = 0;
   let totalExpected = 0;
 
   // Use online database cache or fallback to CSV student records
@@ -6426,6 +6445,8 @@ function renderAllStudentsGraph() {
           if (status.completed === true) {
             stat.completed++;
             totalCompleted++;
+          } else if (status.rating === "Seen No grade") {
+            totalSeenNoGrade++;
           }
           if (status.rating) {
             stat.ratings.push(status);
@@ -6453,6 +6474,7 @@ function renderAllStudentsGraph() {
       ["Total Students", hasProfiles ? profilesToUse.length : (window.students?.length || 0)],
       ["Programme Assignments", assignmentCount || 0],
       ["Completed Programmes (Selected Day)", totalCompleted || 0],
+      ["Seen No Grade (Selected Day)", totalSeenNoGrade || 0],
       ["Daily Completion", totalExpected > 0 ? graphPercent(totalCompleted, totalExpected) + "%" : "0%"]
     ];
 
@@ -6897,7 +6919,10 @@ function ratingBuildDateRows(date) {
         matched.add(id);
         const rating = String(status.rating || "").trim();
         const completed = status.completed === true;
-        output.push({name:profile.name || "—", admission:profile.admission_no || "—", mentor:program.mentor || status.mentor || profile.mentor || "—", program:program.name || program.code || "—", programCode:program.code || status.program_code || "", status: completed ? "Completed" : (status.completed === false ? "Not done" : "Response submitted"), rating:rating || "Others", submitted:true, completed, profile});
+        const seenNoGrade = !completed && rating === "Seen No grade";
+        const notSeen = !completed && (rating === "Not Seen" || rating === "");
+        const statusLabel = completed ? "Completed" : seenNoGrade ? "Seen No grade" : notSeen ? "Not Seen" : "Response submitted";
+        output.push({name:profile.name || "—", admission:profile.admission_no || "—", mentor:program.mentor || status.mentor || profile.mentor || "—", program:program.name || program.code || "—", programCode:program.code || status.program_code || "", status: statusLabel, rating:rating || "Others", submitted:true, completed, seenNoGrade, profile});
       }
     });
     programs.forEach(program => {
@@ -6932,7 +6957,10 @@ function openRatingStudentView(filter = "all", rating = "") {
     const tr = document.createElement("tr");
     [r.name,r.admission,r.mentor,r.program,r.status,r.rating].forEach((v,i) => {
       const td = document.createElement("td"); td.textContent = v;
-      if ((i===4 && !r.submitted) || (i===5 && r.rating === "Poor")) td.className = "pending";
+      if (i===4 && !r.submitted) td.className = "pending";
+      else if (i===4 && r.seenNoGrade) td.style.cssText = "color:#4f46e5;font-weight:700;";
+      else if (i===5 && r.rating === "Poor") td.className = "pending";
+      else if (i===5 && r.rating === "Seen No grade") td.style.cssText = "color:#4f46e5;font-weight:700;";
       tr.appendChild(td);
     });
     tbody.appendChild(tr);

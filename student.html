@@ -222,6 +222,12 @@
             color: #166534
         }
 
+        .pill.seen {
+            background: #e0e7ff;
+            color: #3730a3;
+            border: 1px solid #c7d2fe
+        }
+
         .rating-excellent {
             background: #dcfce7 !important;
             color: #166534 !important;
@@ -387,6 +393,7 @@
             flex-shrink: 0
         }
 
+        .status-select,
         .rating-select,
         .field input {
             width: 100%;
@@ -395,7 +402,8 @@
             border: 1px solid #cfd6e3;
             border-radius: 10px;
             background: white;
-            font: inherit
+            font: inherit;
+            cursor: pointer
         }
 
         .save-btn {
@@ -888,7 +896,7 @@
                             card anytime; the assigned mentor can sign in to update it.</p>
                     </div><span class="pill" id="progressCount">0 completed</span>
                 </div>
-                <div class="status-summary"><span class="pill">✓ Completed: tick the box</span><span
+                <div class="status-summary"><span class="pill">Status: Not Seen / Seen No grade / Completed</span><span
                         class="pill">Performance: Excellent / Good / Average / Poor</span></div>
                 <div id="statusList" class="program-list"></div>
                 <div id="statusMessage" class="notice" aria-live="polite"></div>
@@ -1062,6 +1070,27 @@
                 return '';
             }
             function ratingClass(rating) { return ({ Excellent: 'rating-excellent', Good: 'rating-good', Average: 'rating-average', Poor: 'rating-poor' })[rating] || 'rating-unrated'; }
+            const realtimeBroadcastChannel = "BroadcastChannel" in window ? new BroadcastChannel("artsFestChannel") : null;
+            let realtimeSyncChannel = null;
+            function getRealtimeSyncChannel() {
+                if (!realtimeSyncChannel && db) {
+                    try {
+                        realtimeSyncChannel = db.channel("sibaQ-live-announcements");
+                        realtimeSyncChannel.subscribe();
+                    } catch (_) {}
+                }
+                return realtimeSyncChannel;
+            }
+            function broadcastProgressionUpdate(payload) {
+                if (realtimeBroadcastChannel) {
+                    try { realtimeBroadcastChannel.postMessage({ type: "progression_update", payload }); } catch (_) {}
+                }
+                const rsc = getRealtimeSyncChannel();
+                if (rsc) {
+                    try { rsc.send({ type: "broadcast", event: "progression_update", payload }); } catch (_) {}
+                }
+            }
+
             async function fetchStatuses() { const rpcName = sessionRole === 'mentor' ? 'mentor_get_program_status' : 'student_get_program_status'; const args = sessionRole === 'mentor' ? { p_admission_no: admissionNo, p_program_code: selectedProgramCode, p_mentor_name: signedInMentor, p_passkey: signedInPasskey, p_start_date: dates[0], p_end_date: dates[dates.length - 1] } : { p_admission_no: admissionNo, p_start_date: dates[0], p_end_date: dates[dates.length - 1] }; const { data, error } = await db.rpc(rpcName, args); if (error) throw error; return new Map((data || []).map(item => [item.progress_date + '|' + item.program_code, item])); }
             async function renderStatuses() {
                 const list = $('statusList'); list.innerHTML = ''; $('statusMessage').textContent = 'Loading daily progression…'; let statuses; try { statuses = await fetchStatuses(); } catch (error) { $('statusMessage').textContent = 'Could not load progression. Apply the supplied progression SQL migration and verify Supabase configuration. ' + (error.message || ''); return; }
@@ -1070,25 +1099,113 @@
                 dates.forEach(date => {
                     const dateCard = document.createElement('section'); dateCard.className = 'date-card'; const dateHead = document.createElement('div'); dateHead.className = 'date-head'; const title = document.createElement('strong'); title.textContent = dateLabel(date); const dailyPill = document.createElement('span'); dailyPill.className = 'pill'; const rows = [];
                     const body = document.createElement('div'); programs.forEach(program => {
-                        const key = date + '|' + program.code; const status = statuses.get(key) || { completed: false, rating: '' }; total++; if (status.completed) done++;
+                        const key = date + '|' + program.code; const status = statuses.get(key) || { completed: false, rating: '' }; total++;
+                        let currentStatus = 'not_seen';
+                        if (status.completed) {
+                            currentStatus = 'completed';
+                            done++;
+                        } else if (status.rating === 'Seen No grade') {
+                            currentStatus = 'seen_no_grade';
+                        }
                         const row = document.createElement('div'); row.className = 'program-row'; const meta = document.createElement('div'); meta.className = 'program-meta'; const name = document.createElement('div'); name.className = 'program-name'; name.textContent = program.name; const code = document.createElement('span'); code.className = 'program-code'; code.textContent = 'Code: ' + program.code; meta.append(name, code);
-                        const label = document.createElement('label'); label.className = 'check-label'; const check = document.createElement('input'); check.type = 'checkbox'; check.checked = !!status.completed; check.disabled = !sessionRole; label.append(check, document.createTextNode('Completed'));
-                        const select = document.createElement('select'); select.className = 'rating-select'; select.setAttribute('aria-label', 'Performance for ' + program.name + ' on ' + dateLabel(date)); select.disabled = !sessionRole;[['', 'Choose performance'], ['Excellent', 'Excellent'], ['Good', 'Good'], ['Average', 'Average'], ['Poor', 'Poor']].forEach(([value, labelText]) => { const option = document.createElement('option'); option.value = value; option.textContent = labelText; select.appendChild(option); }); select.value = status.rating || ''; select.classList.add(ratingClass(status.rating)); select.addEventListener('change', () => { select.classList.remove('rating-excellent', 'rating-good', 'rating-average', 'rating-poor', 'rating-unrated'); select.classList.add(ratingClass(select.value)); });
-                        const save = document.createElement('button'); save.type = 'button'; save.className = 'btn save-btn'; save.textContent = 'Save'; save.disabled = !sessionRole;
+
                         if (!sessionRole) {
                             const visibleStatus = document.createElement('div'); visibleStatus.className = 'student-status';
-                            const completion = document.createElement('span'); completion.className = 'pill' + (status.completed ? ' done' : ''); completion.textContent = status.completed ? '✓ Completed' : '○ Not completed';
-                            const performance = document.createElement('span'); performance.className = 'pill ' + ratingClass(status.rating); performance.textContent = status.rating ? 'Performance: ' + status.rating : 'Performance: Not rated';
-                            visibleStatus.append(completion, performance); row.append(meta, visibleStatus); body.appendChild(row); rows.push({ check }); return;
+                            let statusText = '○ Not Seen';
+                            let statusClass = 'pill';
+                            if (currentStatus === 'completed') {
+                                statusText = '✓ Completed';
+                                statusClass = 'pill done';
+                            } else if (currentStatus === 'seen_no_grade') {
+                                statusText = '👁 Seen No grade';
+                                statusClass = 'pill seen';
+                            }
+                            const completion = document.createElement('span'); completion.className = statusClass; completion.textContent = statusText;
+                            const performance = document.createElement('span');
+                            if (currentStatus === 'completed' && status.rating && status.rating !== 'Seen No grade' && status.rating !== 'Not Seen') {
+                                performance.className = 'pill ' + ratingClass(status.rating);
+                                performance.textContent = 'Performance: ' + status.rating;
+                            } else if (currentStatus === 'seen_no_grade') {
+                                performance.className = 'pill rating-unrated';
+                                performance.textContent = 'Performance: No grade';
+                            } else {
+                                performance.className = 'pill rating-unrated';
+                                performance.textContent = 'Performance: Not rated';
+                            }
+                            visibleStatus.append(completion, performance); row.append(meta, visibleStatus); body.appendChild(row); rows.push({ completed: currentStatus === 'completed' }); return;
                         }
-                        save.addEventListener('click', async () => {
-                            save.disabled = true; save.textContent = 'Saving…'; $('statusMessage').textContent = ''; try {
-                                const { data, error } = await db.rpc('mentor_save_program_status', { p_admission_no: admissionNo, p_mentor_name: signedInMentor, p_passkey: signedInPasskey, p_progress_date: date, p_program_code: program.code, p_program_name: program.name, p_completed: check.checked, p_rating: select.value || null }); if (error) throw error; if (data !== true) throw new Error('The passkey or mentor assignment was not accepted.');
-                                $('statusMessage').textContent = 'Saved ' + program.name + ' for ' + dateLabel(date) + '.'; await renderStatuses();
-                            } catch (error) { $('statusMessage').textContent = 'Could not save progression. ' + (error.message || 'Check the SQL migration and access permissions.'); save.disabled = !sessionRole; save.textContent = 'Save'; }
+
+                        const statusSelect = document.createElement('select'); statusSelect.className = 'status-select'; statusSelect.setAttribute('aria-label', 'Status for ' + program.name + ' on ' + dateLabel(date));
+                        [['not_seen', 'Not Seen'], ['seen_no_grade', 'Seen No grade'], ['completed', 'Completed']].forEach(([v, l]) => { const opt = document.createElement('option'); opt.value = v; opt.textContent = l; statusSelect.appendChild(opt); });
+                        statusSelect.value = currentStatus;
+
+                        const select = document.createElement('select'); select.className = 'rating-select'; select.setAttribute('aria-label', 'Performance for ' + program.name + ' on ' + dateLabel(date));
+                        [['', 'Choose performance'], ['Excellent', 'Excellent'], ['Good', 'Good'], ['Average', 'Average'], ['Poor', 'Poor']].forEach(([value, labelText]) => { const option = document.createElement('option'); option.value = value; option.textContent = labelText; select.appendChild(option); });
+                        if (currentStatus === 'completed' && status.rating && status.rating !== 'Seen No grade' && status.rating !== 'Not Seen') {
+                            select.value = status.rating;
+                            select.disabled = false;
+                        } else {
+                            select.value = '';
+                            select.disabled = currentStatus !== 'completed';
+                        }
+                        select.classList.add(ratingClass(select.value));
+
+                        const save = document.createElement('button'); save.type = 'button'; save.className = 'btn save-btn'; save.textContent = 'Save';
+
+                        async function doSave(statusVal, ratingVal) {
+                            const isCompleted = statusVal === 'completed';
+                            const effectiveRating = statusVal === 'seen_no_grade' ? 'Seen No grade' : (isCompleted ? (ratingVal || null) : null);
+                            save.disabled = true; save.textContent = 'Saving…'; $('statusMessage').textContent = '';
+                            try {
+                                const { data, error } = await db.rpc('mentor_save_program_status', { p_admission_no: admissionNo, p_mentor_name: signedInMentor, p_passkey: signedInPasskey, p_progress_date: date, p_program_code: program.code, p_program_name: program.name, p_completed: isCompleted, p_rating: effectiveRating });
+                                if (error) throw error;
+                                if (data !== true) throw new Error('The passkey or mentor assignment was not accepted.');
+                                save.disabled = false; save.textContent = 'Saved ✓';
+                                setTimeout(() => { save.textContent = 'Save'; }, 2000);
+                                broadcastProgressionUpdate({
+                                    admissionNo: admissionNo,
+                                    studentName: profile?.name || '',
+                                    mentorName: signedInMentor,
+                                    programCode: program.code,
+                                    programName: program.name,
+                                    date: date,
+                                    status: statusVal,
+                                    completed: isCompleted,
+                                    rating: effectiveRating
+                                });
+                                $('statusMessage').textContent = 'Saved ' + program.name + ' for ' + dateLabel(date) + '.';
+                            } catch (error) {
+                                $('statusMessage').textContent = 'Could not save progression. ' + (error.message || 'Check the SQL migration and access permissions.');
+                                save.disabled = false; save.textContent = 'Save';
+                            }
+                        }
+
+                        statusSelect.addEventListener('change', () => {
+                            if (statusSelect.value !== 'completed') {
+                                select.value = '';
+                                select.disabled = true;
+                                select.classList.remove('rating-excellent', 'rating-good', 'rating-average', 'rating-poor');
+                                select.classList.add('rating-unrated');
+                            } else {
+                                select.disabled = false;
+                            }
+                            doSave(statusSelect.value, select.value);
                         });
-                        row.append(meta, label, select, save); body.appendChild(row); rows.push({ check, pill: null });
-                    }); const completedCount = rows.filter(r => r.check.checked).length; dailyPill.textContent = completedCount + ' / ' + programs.length + ' selected program done'; if (completedCount === programs.length) dailyPill.classList.add('done'); dateHead.append(title, dailyPill); dateCard.append(dateHead, body); fragment.appendChild(dateCard);
+
+                        select.addEventListener('change', () => {
+                            select.classList.remove('rating-excellent', 'rating-good', 'rating-average', 'rating-poor', 'rating-unrated');
+                            select.classList.add(ratingClass(select.value));
+                            if (statusSelect.value === 'completed') {
+                                doSave(statusSelect.value, select.value);
+                            }
+                        });
+
+                        save.addEventListener('click', () => {
+                            doSave(statusSelect.value, select.value);
+                        });
+
+                        row.append(meta, statusSelect, select, save); body.appendChild(row); rows.push({ completed: currentStatus === 'completed' });
+                    }); const completedCount = rows.filter(r => r.completed).length; dailyPill.textContent = completedCount + ' / ' + programs.length + ' selected program done'; if (completedCount === programs.length) dailyPill.classList.add('done'); dateHead.append(title, dailyPill); dateCard.append(dateHead, body); fragment.appendChild(dateCard);
                 }); list.appendChild(fragment); $('progressCount').textContent = done + ' / ' + total + ' selected-program days completed'; $('statusMessage').textContent = sessionRole === 'mentor' ? 'Mentor mode: progression is editable.' : '';
             }
         })();

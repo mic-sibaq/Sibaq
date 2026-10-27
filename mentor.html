@@ -147,7 +147,7 @@
     .button.secondary { border-color: var(--border); background: var(--surface); color: var(--text); box-shadow: none; }
     .button:disabled { cursor: wait; opacity: .65; transform: none; }
 
-    .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
     .summary-card { padding: 16px 18px; border: 1px solid var(--border); border-radius: 14px; background: linear-gradient(145deg, #fff, #f5f8f6); }
     .summary-number { display: block; color: var(--primary); font-size: 29px; font-weight: 850; letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
     .summary-label { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; font-weight: 700; }
@@ -177,11 +177,11 @@
     .status { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid transparent; border-radius: 99px; font-size: 11px; font-weight: 760; white-space: nowrap; }
     .status.done { border-color: #b8e5d0; background: #eaf7f0; color: #176b4c; }
     .status.pending { border-color: #f0dfb8; background: #fff8e8; color: #8a6419; }
+    .status.seen { border-color: #c7d2fe; background: #eef2ff; color: #3730a3; }
     .status.rating { border-color: #d9e6e0; background: #f3f7f5; color: #53635d; }
     .status-group { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
     .program-edit { display: flex; grid-column: 1 / -1; align-items: center; justify-content: space-between; gap: 9px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid #edf1ef; }
-    .completion-control { display: inline-flex; align-items: center; gap: 7px; color: var(--text); font-size: 12px; font-weight: 680; white-space: nowrap; }
-    .completion-control input { width: 17px; height: 17px; margin: 0; accent-color: var(--primary); }
+    .status-select { min-height: 37px; padding: 7px 11px; border: 1px solid var(--border); border-radius: 9px; background: #fff; color: var(--text); font-size: 12px; font-weight: 650; cursor: pointer; }
     .rating-select { min-height: 37px; max-width: 155px; padding: 7px 9px; border: 1px solid var(--border); border-radius: 9px; background: #fff; color: var(--text); font-size: 12px; }
     .save-button { min-height: 36px; padding: 8px 12px; }
     .save-button.saved { background: var(--success); }
@@ -262,7 +262,7 @@
       .shell { padding: 18px 14px 28px; }
       .hero { align-items: flex-start; flex-direction: column; gap: 20px; min-height: 0; }
       .hero-date { width: min(100%, 290px); }
-      .summary { grid-template-columns: 1fr; }
+      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .summary-card { padding: 13px 16px; }
       .summary-number { font-size: 25px; }
       .login-layout { grid-template-columns: 1fr; }
@@ -366,7 +366,8 @@
             <div class="export-wrap no-print" id="exportWrap">
               <button class="button secondary" id="exportButton" type="button" aria-haspopup="true" aria-expanded="false">Export ▾</button>
               <div class="export-menu" id="exportMenu" role="menu">
-                <button data-filter="not-completed" role="menuitem"><span class="dot" style="background:#f0dfb8;border:1.5px solid #d4b06a"></span>Not Completed</button>
+                <button data-filter="not-seen" role="menuitem"><span class="dot" style="background:#f0dfb8;border:1.5px solid #d4b06a"></span>Not Seen</button>
+                <button data-filter="seen-no-grade" role="menuitem"><span class="dot" style="background:#c7d2fe;border:1.5px solid #6366f1"></span>Seen No grade</button>
                 <button class="export-parent" id="completedParent" aria-expanded="false" role="menuitem">
                   <span class="dot" style="background:#b8e5d0;border:1.5px solid #5ab88a"></span>
                   Completed
@@ -386,7 +387,8 @@
         <div class="summary" aria-live="polite">
           <div class="summary-card"><span class="summary-number" id="studentCount">0</span><span class="summary-label">Assigned students</span></div>
           <div class="summary-card"><span class="summary-number" id="completedCount">0</span><span class="summary-label">Programmes completed</span></div>
-          <div class="summary-card"><span class="summary-number" id="pendingCount">0</span><span class="summary-label">Still to complete</span></div>
+          <div class="summary-card"><span class="summary-number" id="seenCount">0</span><span class="summary-label">Seen No grade</span></div>
+          <div class="summary-card"><span class="summary-number" id="pendingCount">0</span><span class="summary-label">Not Seen</span></div>
         </div>
       </div>
       <div class="panel">
@@ -528,6 +530,40 @@
         return data;
       }
 
+      const realtimeBroadcastChannel = "BroadcastChannel" in window ? new BroadcastChannel("artsFestChannel") : null;
+      let realtimeSyncChannel = null;
+
+      function getRealtimeSyncChannel() {
+        if (!realtimeSyncChannel && db) {
+          try {
+            realtimeSyncChannel = db.channel("sibaQ-live-announcements");
+            realtimeSyncChannel.subscribe();
+          } catch (_) {}
+        }
+        return realtimeSyncChannel;
+      }
+
+      function broadcastProgressionUpdate(payload) {
+        if (realtimeBroadcastChannel) {
+          try {
+            realtimeBroadcastChannel.postMessage({
+              type: "progression_update",
+              payload: payload
+            });
+          } catch (_) {}
+        }
+        const rsc = getRealtimeSyncChannel();
+        if (rsc) {
+          try {
+            rsc.send({
+              type: "broadcast",
+              event: "progression_update",
+              payload: payload
+            });
+          } catch (_) {}
+        }
+      }
+
       function makeStatusBadge(label, kind) {
         const badge = document.createElement("span");
         badge.className = "status " + kind;
@@ -535,9 +571,30 @@
         return badge;
       }
 
+      function updateSummaryCounts() {
+        const cards = studentList.querySelectorAll(".student-card");
+        let completed = 0;
+        let seenNoGrade = 0;
+        let notSeen = 0;
+        cards.forEach(card => {
+          card.querySelectorAll(".program-row").forEach(row => {
+            const badge = row.querySelector(".status");
+            if (badge && badge.classList.contains("done")) completed++;
+            else if (badge && badge.classList.contains("seen")) seenNoGrade++;
+            else notSeen++;
+          });
+        });
+        byId("studentCount").textContent = String(cards.length);
+        byId("completedCount").textContent = String(completed);
+        const seenEl = byId("seenCount");
+        if (seenEl) seenEl.textContent = String(seenNoGrade);
+        byId("pendingCount").textContent = String(notSeen);
+      }
+
       function renderStudents(students, statusByProgram) {
         const fragment = document.createDocumentFragment();
         let completed = 0;
+        let seenNoGrade = 0;
         let total = 0;
 
         students.forEach(student => {
@@ -579,26 +636,47 @@
             code.className = "program-code";
             code.textContent = program.code;
             details.append(title, code);
+
             const result = statusByProgram.get(student.admissionNo + "|" + program.code);
-            const state = result && result.completed === true ? "Completed" : "Not completed";
-            const status = makeStatusBadge(state, result && result.completed === true ? "done" : "pending");
+            let initialStatus = "not_seen";
+            if (result && result.completed === true) {
+              initialStatus = "completed";
+              completed++;
+            } else if (result && result.rating === "Seen No grade") {
+              initialStatus = "seen_no_grade";
+              seenNoGrade++;
+            }
+
             const statusGroup = document.createElement("div");
             statusGroup.className = "status-group";
-            statusGroup.appendChild(status);
-            if (result && result.rating) {
-              statusGroup.appendChild(makeStatusBadge("Rating · " + result.rating, "rating"));
+            if (initialStatus === "completed") {
+              statusGroup.appendChild(makeStatusBadge("Completed", "done"));
+              if (result && result.rating && result.rating !== "Seen No grade" && result.rating !== "Not Seen") {
+                statusGroup.appendChild(makeStatusBadge("Rating · " + result.rating, "rating"));
+              }
+            } else if (initialStatus === "seen_no_grade") {
+              statusGroup.appendChild(makeStatusBadge("Seen No grade", "seen"));
+            } else {
+              statusGroup.appendChild(makeStatusBadge("Not Seen", "pending"));
             }
-            if (!result) statusGroup.appendChild(makeStatusBadge("No update yet", "rating"));
 
             const edit = document.createElement("div");
             edit.className = "program-edit no-print";
-            const completionLabel = document.createElement("label");
-            completionLabel.className = "completion-control";
-            const completion = document.createElement("input");
-            completion.type = "checkbox";
-            completion.checked = result?.completed === true;
-            completion.setAttribute("aria-label", "Mark " + student.name + " — " + program.name + " completed");
-            completionLabel.append(completion, document.createTextNode("Completed"));
+
+            const statusSelect = document.createElement("select");
+            statusSelect.className = "status-select";
+            statusSelect.setAttribute("aria-label", "Status for " + student.name + " — " + program.name);
+            [
+              ["not_seen", "Not Seen"],
+              ["seen_no_grade", "Seen No grade"],
+              ["completed", "Completed"]
+            ].forEach(([val, lbl]) => {
+              const opt = document.createElement("option");
+              opt.value = val;
+              opt.textContent = lbl;
+              statusSelect.appendChild(opt);
+            });
+            statusSelect.value = initialStatus;
 
             const rating = document.createElement("select");
             rating.className = "rating-select";
@@ -615,19 +693,45 @@
               option.textContent = label;
               rating.appendChild(option);
             });
-            rating.value = result?.rating || "";
+
+            if (initialStatus === "completed" && result?.rating && result.rating !== "Seen No grade" && result.rating !== "Not Seen") {
+              rating.value = result.rating;
+              rating.disabled = false;
+            } else {
+              rating.value = "";
+              rating.disabled = initialStatus !== "completed";
+            }
 
             const save = document.createElement("button");
             save.type = "button";
             save.className = "button save-button";
             save.textContent = "Update performance";
-            save.addEventListener("click", () => saveProgress(program, completion, rating, save));
-            edit.append(completionLabel, rating, save);
+
+            const autoSaveHandler = () => saveProgress(program, student.name, statusSelect, rating, save, statusGroup, progress, student.programs.length);
+
+            statusSelect.addEventListener("change", () => {
+              if (statusSelect.value !== "completed") {
+                rating.value = "";
+                rating.disabled = true;
+              } else {
+                rating.disabled = false;
+              }
+              autoSaveHandler();
+            });
+
+            rating.addEventListener("change", () => {
+              if (statusSelect.value === "completed") {
+                autoSaveHandler();
+              }
+            });
+
+            save.addEventListener("click", autoSaveHandler);
+
+            edit.append(statusSelect, rating, save);
             row.append(details, statusGroup, edit);
             programList.appendChild(row);
           });
 
-          completed += studentCompleted;
           card.append(header, programList);
           fragment.appendChild(card);
         });
@@ -635,14 +739,20 @@
         studentList.replaceChildren(fragment);
         byId("studentCount").textContent = String(students.length);
         byId("completedCount").textContent = String(completed);
-        byId("pendingCount").textContent = String(total - completed);
+        const seenEl = byId("seenCount");
+        if (seenEl) seenEl.textContent = String(seenNoGrade);
+        byId("pendingCount").textContent = String(total - completed - seenNoGrade);
       }
 
-      async function saveProgress(program, completion, rating, button) {
+      async function saveProgress(program, studentName, statusSelect, rating, button, statusGroup, progressEl, totalStudentPrograms) {
         const selectedDate = dateInput.value;
+        const statusVal = statusSelect.value;
+        const isCompleted = statusVal === "completed";
+        const ratingVal = statusVal === "seen_no_grade" ? "Seen No grade" : (isCompleted ? (rating.value || null) : null);
+
         button.disabled = true;
         button.textContent = "Saving…";
-        setMessage(statusMessage, "Saving " + program.name + " for " + formatDate(selectedDate) + "…");
+        setMessage(statusMessage, "Updating " + program.name + " for " + formatDate(selectedDate) + "…");
 
         try {
           const { data, error } = await db.rpc("mentor_save_program_status", {
@@ -652,12 +762,57 @@
             p_progress_date: selectedDate,
             p_program_code: program.code,
             p_program_name: program.name,
-            p_completed: completion.checked,
-            p_rating: rating.value || null
+            p_completed: isCompleted,
+            p_rating: ratingVal
           });
           if (error) throw new Error(error.message || "Progress update failed.");
           if (data !== true) throw new Error("The passkey or mentor assignment was not accepted.");
-          await loadSelectedDate("Saved " + program.name + " for " + formatDate(selectedDate) + ".");
+
+          button.disabled = false;
+          button.textContent = "Saved ✓";
+          button.classList.add("saved");
+          setTimeout(() => {
+            button.classList.remove("saved");
+            button.textContent = "Update performance";
+          }, 2000);
+
+          // Update status badge UI immediately
+          if (statusGroup) {
+            statusGroup.replaceChildren();
+            if (isCompleted) {
+              statusGroup.appendChild(makeStatusBadge("Completed", "done"));
+              if (ratingVal) statusGroup.appendChild(makeStatusBadge("Rating · " + ratingVal, "rating"));
+            } else if (statusVal === "seen_no_grade") {
+              statusGroup.appendChild(makeStatusBadge("Seen No grade", "seen"));
+            } else {
+              statusGroup.appendChild(makeStatusBadge("Not Seen", "pending"));
+            }
+          }
+
+          // Recalculate this student card's progress indicator
+          if (progressEl) {
+            const card = progressEl.closest(".student-card");
+            if (card) {
+              const cardDone = card.querySelectorAll(".status.done").length;
+              progressEl.textContent = cardDone + " / " + totalStudentPrograms + " complete";
+            }
+          }
+
+          // Broadcast live update to Admin Page and other tabs immediately
+          broadcastProgressionUpdate({
+            admissionNo: program.admissionNo,
+            studentName: studentName || "",
+            mentorName: program.mentorName || mentorName,
+            programCode: program.code,
+            programName: program.name,
+            date: selectedDate,
+            status: statusVal,
+            completed: isCompleted,
+            rating: ratingVal
+          });
+
+          setMessage(statusMessage, "Saved " + program.name + " for " + formatDate(selectedDate) + ".");
+          updateSummaryCounts();
         } catch (error) {
           setMessage(statusMessage, "Could not update performance: " + (error.message || "Unknown error. Check your mentor access and database setup."), true);
           button.disabled = false;
@@ -808,14 +963,16 @@
             badges.forEach(b => {
               const txt = b.textContent.trim();
               if (b.classList.contains("done"))         status = "Completed";
-              else if (b.classList.contains("pending")) status = "Not Completed";
+              else if (b.classList.contains("seen"))    status = "Seen No grade";
+              else if (b.classList.contains("pending")) status = "Not Seen";
               if (b.classList.contains("rating") && txt.startsWith("Rating ·")) {
                 rating = txt.replace("Rating ·", "").trim();
               }
             });
 
             const keep = (() => {
-              if (filter === "not-completed") return status === "Not Completed";
+              if (filter === "not-seen" || filter === "not-completed") return status === "Not Seen" || status === "Not Completed";
+              if (filter === "seen-no-grade") return status === "Seen No grade";
               if (filter === "completed") {
                 // Must be completed; if a rating sub-filter is chosen, also match rating
                 return status === "Completed" && (!ratingFilter || rating.toLowerCase() === ratingFilter.toLowerCase());
